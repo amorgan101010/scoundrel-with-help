@@ -299,8 +299,18 @@ public partial class ScoundrelGame : Node
     {
         ResetCardScale(card);
         card.Set("modulate", new Color(1f, 1f, 1f));
-        _slainPile.Call("move_cards", new Array { card }, -1, false);
-        _slainGodotCards.Add(card);
+        _slainPile.Call("move_cards", new Array { card }, 0, false);
+        _slainGodotCards.Insert(0, card);
+        FixSlainZOrder();
+    }
+
+    // The pile assigns stored_z_index = array_index, so the newest card (index 0)
+    // gets z=0 and ends up buried. Invert so the newest card always has the highest z.
+    private void FixSlainZOrder()
+    {
+        int count = _slainGodotCards.Count;
+        for (int i = 0; i < count; i++)
+            _slainGodotCards[i].Set("stored_z_index", count - 1 - i);
     }
 
     private void DiscardSlainCards()

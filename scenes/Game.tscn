@@ -116,16 +116,16 @@ horizontal_alignment = 1
 
 [node name="SlainPile" type="Control" parent="UI"]
 offset_left = 30.0
-offset_top = 390.0
+offset_top = 330.0
 offset_right = 180.0
-offset_bottom = 405.0
+offset_bottom = 345.0
 mouse_filter = 1
 script = ExtResource("4_pile")
 enable_drop_zone = false
 card_face_up = true
 allow_card_movement = false
 restrict_to_top_card = false
-layout = 0
+layout = 1
 stack_display_gap = 20
 max_stack_display = 4
 
