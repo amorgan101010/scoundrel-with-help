@@ -29,6 +29,7 @@ jobs:
         run: |
           curl -fsSL "https://downloads.godotengine.org/?version=4.7&flavor=stable&slug=mono_linux_x86_64.zip&platform=linux.64" -o godot.zip
           unzip -q godot.zip
+          ls -la
           GODOT_DIR="$GITHUB_WORKSPACE/${GODOT_DIR_NAME}"
           GODOT_BIN="$GODOT_DIR/${GODOT_DIR_NAME}"
           chmod +x "$GODOT_BIN"
