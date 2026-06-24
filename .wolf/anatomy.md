@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-24T04:55:58.002Z
-> Files: 510 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-24T05:20:20.085Z
+> Files: 515 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
@@ -19,7 +19,7 @@
 - `Scoundrel_base_rules.sh` (~41 tok)
 - `ScoundrelWithHelp.csproj` (~56 tok)
 - `ScoundrelWithHelp.csproj.old` (~108 tok)
-- `ScoundrelWithHelp.sln` (~308 tok)
+- `ScoundrelWithHelp.sln` (~439 tok)
 - `stuff to fix.md` — Claude's To-Do (~1006 tok)
 - `weirdly sized discard cards.png.import` (~263 tok)
 
@@ -611,5 +611,11 @@
 
 ## scripts/
 
-- `ScoundrelGame.cs` — Central game controller. Tracks health, weapon, suit counts (♣♠♥♦ in-play), deck/discard counts; handles potion tinting. (~4200 tok)
-- `CardData.cs` — Immutable card data: Suit enum, Rank, MonsterValue, WeaponValue, PotionValue; FromGodotCard factory (~200 tok)
+- `CardData.cs` — Class: CardData (~352 tok)
+- `ScoundrelGame.cs` — Central game controller for Scoundrel solitaire. Owns all mutable game state; the GDScript card-fram (~3733 tok)
+- `ScoundrelRules.cs` — Pure game-logic functions for Scoundrel. No Godot dependencies — fully unit-testable. (~446 tok)
+
+## tests/
+
+- `ScoundrelRulesTests.cs` — Class: MonsterValueTests (~1244 tok)
+- `ScoundrelTests.csproj` (~193 tok)

@@ -1,4 +1,21 @@
 {
   "version": 1,
-  "bugs": []
+  "bugs": [
+    {
+      "id": "bug-001",
+      "timestamp": "2026-06-24T05:18:25.954Z",
+      "error_message": "Wrong reference: MaxHealth should be ScoundrelRules",
+      "file": "scripts/ScoundrelGame.cs",
+      "root_cause": "Used \"MaxHealth\" instead of \"ScoundrelRules\"",
+      "fix": "Changed MaxHealth → ScoundrelRules",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "cs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-24T05:18:25.954Z"
+    }
+  ]
 }

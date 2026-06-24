@@ -1,7 +1,7 @@
 using Godot;
 using Godot.Collections;
 
-public enum Suit { Clubs, Spades, Hearts, Diamonds }
+// Suit enum lives in ScoundrelRules.cs (Godot-free, testable).
 
 public class CardData
 {
@@ -11,7 +11,7 @@ public class CardData
 
     // Clubs/Spades: A counts as 14 (strongest monster)
     public int MonsterValue => Suit is Suit.Clubs or Suit.Spades
-        ? (Rank == 1 ? 14 : Rank)
+        ? ScoundrelRules.MonsterValue(Rank)
         : 0;
 
     // Diamonds: weapon value equals rank (A=1, 2-10=face)

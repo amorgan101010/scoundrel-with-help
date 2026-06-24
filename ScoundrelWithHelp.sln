@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScoundrelWithHelp", "ScoundrelWithHelp.csproj", "{E9AA082A-B16B-4BFC-9FF5-36BA1A44E134}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScoundrelTests", "tests\ScoundrelTests.csproj", "{C3D7E4F1-9A52-4B8E-A31C-7F0261845D90}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{E9AA082A-B16B-4BFC-9FF5-36BA1A44E134}.ExportDebug|Any CPU.Build.0 = ExportDebug|Any CPU
 		{E9AA082A-B16B-4BFC-9FF5-36BA1A44E134}.ExportRelease|Any CPU.ActiveCfg = ExportRelease|Any CPU
 		{E9AA082A-B16B-4BFC-9FF5-36BA1A44E134}.ExportRelease|Any CPU.Build.0 = ExportRelease|Any CPU
+		{C3D7E4F1-9A52-4B8E-A31C-7F0261845D90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3D7E4F1-9A52-4B8E-A31C-7F0261845D90}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3D7E4F1-9A52-4B8E-A31C-7F0261845D90}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3D7E4F1-9A52-4B8E-A31C-7F0261845D90}.ExportRelease|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 EndGlobal

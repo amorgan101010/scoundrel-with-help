@@ -30,8 +30,7 @@ public partial class ScoundrelGame : Node
     private AcceptDialog _helpDialog = null!;
 
     // ── Game state ────────────────────────────────────────────────────────
-    private int _health = 20;
-    private const int MaxHealth = 20;
+    private int _health = ScoundrelRules.StartHealth;
 
     // ── Suit tracking (cards still in play = deck + room + weapon slot) ───
     private int _inPlayClubs;
@@ -98,7 +97,7 @@ public partial class ScoundrelGame : Node
     // ── Setup ─────────────────────────────────────────────────────────────
     private void StartGame()
     {
-        _health = MaxHealth;
+        _health = ScoundrelRules.MaxHealth;
         _equippedWeapon = null;
         _weaponFloor = int.MaxValue;
         _potionUsedThisRoom = false;
@@ -180,7 +179,7 @@ public partial class ScoundrelGame : Node
             case Suit.Hearts:
                 if (!_potionUsedThisRoom)
                 {
-                    _health = Mathf.Min(MaxHealth, _health + data.Rank);
+                    _health = ScoundrelRules.Heal(_health, data.Rank);
                     _potionUsedThisRoom = true;
                     TintRemainingPotions();
                 }
@@ -206,14 +205,13 @@ public partial class ScoundrelGame : Node
     {
         int damage = data.MonsterValue;
 
-        bool canUseWeapon = _equippedWeapon != null && data.MonsterValue < _weaponFloor;
-        if (canUseWeapon)
+        if (_equippedWeapon != null && ScoundrelRules.CanUseWeapon(data.MonsterValue, _weaponFloor))
         {
-            damage = Mathf.Max(0, data.MonsterValue - _equippedWeapon!.WeaponValue);
-            _weaponFloor = data.MonsterValue;
+            damage = ScoundrelRules.CalcDamage(data.MonsterValue, _equippedWeapon.WeaponValue);
+            _weaponFloor = ScoundrelRules.NextWeaponFloor(data.MonsterValue);
         }
 
-        _health = Mathf.Max(0, _health - damage);
+        _health = System.Math.Max(0, _health - damage);
     }
 
     private void EquipWeapon(GodotObject card, CardData data)
@@ -376,7 +374,7 @@ public partial class ScoundrelGame : Node
 
     private void UpdateUI()
     {
-        _healthLabel.Text = $"HP: {_health} / {MaxHealth}";
+        _healthLabel.Text = $"HP: {_health} / {ScoundrelRules.MaxHealth}";
 
         if (_equippedWeapon != null)
         {

@@ -29,3 +29,20 @@
 | 03:22 | Added potion visual feedback | ScoundrelGame.cs | TintRemainingPotions() grays out remaining ♥ cards after first use; resets on new room and on discard/run | ~300 |
 | 03:25 | Updated .wolf/anatomy.md + cerebrum.md | .wolf/ | anatomy: scenes/ scripts/ entries updated; cerebrum: key learnings on Pile API, modulate trick, suit tracking | ~200 |
 | 00:57 | Session end: 11 writes across 2 files (ScoundrelGame.cs, Game.tscn) | 11 reads | ~21235 tok |
+| 01:16 | Created scripts/ScoundrelRules.cs | — | ~446 |
+| 01:16 | Edited scripts/CardData.cs | modified MonsterValue() | ~124 |
+| 01:17 | Edited scripts/ScoundrelGame.cs | modified ApplyMonsterDamage() | ~122 |
+| 01:17 | Edited scripts/ScoundrelGame.cs | Min() → Heal() | ~68 |
+| 01:18 | Edited scripts/ScoundrelGame.cs | 3→2 lines | ~35 |
+| 01:18 | Edited scripts/ScoundrelGame.cs | inline fix | ~7 |
+| 01:18 | Created tests/ScoundrelTests.csproj | — | ~193 |
+| 01:19 | Created tests/ScoundrelRulesTests.cs | — | ~1244 |
+| 01:20 | Edited ScoundrelWithHelp.sln | 3→5 lines | ~84 |
+| 01:20 | Edited ScoundrelWithHelp.sln | 3→7 lines | ~146 |
+| 01:21 | Unit tests: 30/30 passed (dotnet test) | tests/ | ScoundrelRules.cs extracted as Godot-free core; NUnit test project wired into sln |
+| 01:21 | Session end: 21 writes across 7 files (ScoundrelGame.cs, Game.tscn, ScoundrelRules.cs, CardData.cs, ScoundrelTests.csproj) | 14 reads | ~24324 tok |
+
+## Session: 2026-06-24 01:21
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
