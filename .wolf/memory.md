@@ -211,3 +211,24 @@
 | 10:00 | Fix MouseClickCard: SimulateMouseButtonPressed atomic — switched to separate Press+AwaitIdleFrame+Release | scene_tests/ScoundrelSceneTests.cs | bug-018 logged | ~800 |
 | 10:01 | Fix DragAndClickProduceSameOutcome: increased retry wait 200→1200ms (cards in MOVING state reject input) | scene_tests/ScoundrelSceneTests.cs | 14/14 scene tests pass | ~200 |
 | 16:05 | Edited .gitignore | 3→6 lines | ~23 |
+| 16:05 | Session end: 1 writes across 1 files (.gitignore) | 1 reads | ~66 tok |
+
+## Session: 2026-06-24 16:07
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 16:21 | Edited scripts/ScoundrelGame.cs | modified StartGame() | ~412 |
+| 16:22 | Edited tests/ScoundrelRulesTests.cs | GreaterThanOrEqualTo() → EqualTo() | ~33 |
+| 16:22 | Edited tests/ScoundrelRulesTests.cs | modified NewFloor_BlocksSameMonster() | ~220 |
+| 16:22 | Edited tests/GameEngineTests.cs | expanded (+28 lines) | ~472 |
+| 16:22 | Edited tests/GameEngineTests.cs | modified RunThenFight_FlowIsCorrect() | ~963 |
+| 16:24 | Created scene_tests/ScoundrelSceneTests.cs | — | ~6016 |
+| 16:24 | QA audit + test suite fix: deterministic FixedDeck, StartGameWithDeck(), bad-path, CardModel, game-over/win scene tests | ScoundrelGame.cs, all test files, cerebrum.md | builds clean | ~6000 |
+| 16:25 | Session end: 6 writes across 4 files (ScoundrelGame.cs, ScoundrelRulesTests.cs, GameEngineTests.cs, ScoundrelSceneTests.cs) | 8 reads | ~26256 tok |
+| 16:31 | Edited scene_tests/ScoundrelSceneTests.cs | modified SetupFixedDeck() | ~154 |
+| 16:31 | Edited scene_tests/ScoundrelSceneTests.cs | modified MouseClickTakesCard() | ~44 |
+| 16:31 | Edited scene_tests/ScoundrelSceneTests.cs | modified MouseDragTakesCard() | ~53 |
+| 16:31 | Edited scene_tests/ScoundrelSceneTests.cs | modified DragAndClickProduceSameOutcome() | ~51 |
+| 16:32 | Edited scene_tests/ScoundrelSceneTests.cs | modified SetupFixedDeck() | ~62 |
+| 16:32 | Edited scene_tests/ScoundrelSceneTests.cs | inline fix | ~8 |
+| 16:33 | Session end: 12 writes across 4 files (ScoundrelGame.cs, ScoundrelRulesTests.cs, GameEngineTests.cs, ScoundrelSceneTests.cs) | 9 reads | ~26833 tok |

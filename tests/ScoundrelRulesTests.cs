@@ -65,7 +65,7 @@ public class CalcDamageTests
 
     [Test]
     public void DamageNeverNegative()
-        => Assert.That(ScoundrelRules.CalcDamage(2, 10), Is.GreaterThanOrEqualTo(0));
+        => Assert.That(ScoundrelRules.CalcDamage(2, 10), Is.EqualTo(0));
 }
 
 [TestFixture]
@@ -76,6 +76,24 @@ public class NextWeaponFloorTests
     [TestCase(14)]
     public void FloorSetToMonsterValue(int monsterValue)
         => Assert.That(ScoundrelRules.NextWeaponFloor(monsterValue), Is.EqualTo(monsterValue));
+
+    [TestCase(3)]
+    [TestCase(7)]
+    [TestCase(14)]
+    public void NewFloor_BlocksSameMonster(int monsterValue)
+    {
+        int floor = ScoundrelRules.NextWeaponFloor(monsterValue);
+        Assert.That(ScoundrelRules.CanUseWeapon(monsterValue, floor), Is.False);
+    }
+
+    [TestCase(3)]
+    [TestCase(7)]
+    [TestCase(14)]
+    public void NewFloor_AllowsStrictlyWeakerMonster(int monsterValue)
+    {
+        int floor = ScoundrelRules.NextWeaponFloor(monsterValue);
+        Assert.That(ScoundrelRules.CanUseWeapon(monsterValue - 1, floor), Is.True);
+    }
 }
 
 [TestFixture]

@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-24T20:05:45.509Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-24T20:32:14.244Z
 > Files: 523 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../.claude/projects/-home-aileen-Repositories-godot-scoundrel-with-help/memory/
@@ -613,7 +613,7 @@
 
 ## scene_tests/
 
-- `ScoundrelSceneTests.cs` — Scene-level integration tests for Scoundrel. Run via the gdUnit4 test runner (editor toolbar or: god (~4760 tok)
+- `ScoundrelSceneTests.cs` — Scene-level integration tests for Scoundrel. Run via the gdUnit4 test runner (editor toolbar or: god (~6100 tok)
 
 ## scenes/
 
@@ -625,11 +625,11 @@
 - `CardData.cs` — Class: CardData (~208 tok)
 - `CardModel.cs` — Godot-free card data record. Used by GameEngine and unit tests. (~126 tok)
 - `GameEngine.cs` — Pure C# game-state machine for Scoundrel. No Godot dependencies — fully integration-testable. Deck i (~1348 tok)
-- `ScoundrelGame.cs` — Godot bridge for Scoundrel. Owns node references and visual card movements. All game-state decisions (~3983 tok)
+- `ScoundrelGame.cs` — Godot bridge for Scoundrel. Owns node references and visual card movements. All game-state decisions (~4071 tok)
 - `ScoundrelRules.cs` — Pure game-logic functions for Scoundrel. No Godot dependencies — fully unit-testable. (~446 tok)
 
 ## tests/
 
-- `GameEngineTests.cs` — Class: Cards (~5034 tok)
-- `ScoundrelRulesTests.cs` — Class: MonsterValueTests (~1244 tok)
+- `GameEngineTests.cs` — Class: CardModelTests (~6258 tok)
+- `ScoundrelRulesTests.cs` — Class: MonsterValueTests (~1391 tok)
 - `ScoundrelTests.csproj` (~201 tok)

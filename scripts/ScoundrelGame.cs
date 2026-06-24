@@ -92,24 +92,30 @@ public partial class ScoundrelGame : Node
     // ── Setup ─────────────────────────────────────────────────────────────
     private void StartGame()
     {
+        var deck = BuildDeck();
+        var rng  = new System.Random();
+        InitGameWithDeck(deck.OrderBy(_ => rng.Next()).ToList());
+    }
+
+    // Called by scene tests to start with a known, deterministic deck.
+    public void StartGameWithDeck(SysCollections.List<CardModel> deck) => InitGameWithDeck(deck);
+
+    private void InitGameWithDeck(SysCollections.List<CardModel> deck)
+    {
         _godotCards.Clear();
-        _inPlayClubs    = 13;
-        _inPlaySpades   = 13;
-        _inPlayHearts   = 9;
-        _inPlayDiamonds = 9;
+        _slainGodotCards.Clear();
         _statusLabel.Text = "";
 
-        _slainGodotCards.Clear();
         _roomContainer.Call("clear_cards");
         _deckPile.Call("clear_cards");
         _discardPile.Call("clear_cards");
         _weaponSlot.Call("clear_cards");
         _slainPile.Call("clear_cards");
 
-        // Build the shuffled CardModel deck — GameEngine is authoritative for order.
-        var deck = BuildDeck();
-        var rng  = new System.Random();
-        deck = deck.OrderBy(_ => rng.Next()).ToList();
+        _inPlayClubs    = deck.Count(c => c.Suit == Suit.Clubs);
+        _inPlaySpades   = deck.Count(c => c.Suit == Suit.Spades);
+        _inPlayHearts   = deck.Count(c => c.Suit == Suit.Hearts);
+        _inPlayDiamonds = deck.Count(c => c.Suit == Suit.Diamonds);
 
         // Create matching Godot card nodes (all start in the deck pile).
         foreach (var cardModel in deck)

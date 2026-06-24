@@ -31,6 +31,16 @@
 
 - [2026-06-24] **`card.move()` early-return causes stale-tween bug (bug-014, FIXED).** `draggable_object.gd`'s `move()` early-returns when `global_position == target_destination`. After `OnRunPressed()` moves old room cards to deck, their deck-bound tweens start but `_process` hasn't run yet — the cards still sit at their old room-slot positions. If `SyncRoomToGodot()` immediately re-deals a card back to the same room slot, `card.move(room_slot_pos)` early-returns, leaving the deck tween running. That tween carries the card (logically in the room, face-up/interactive) to the deck area. **Fix:** in `SyncRoomToGodot()`, set `godotCard.Set("global_position", deckAnchor)` before calling `move_cards` on the room container, so global_position ≠ room_slot_pos and the stale deck tween is always killed.
 
+- [2026-06-24] **`ISceneRunner.AwaitMillis` takes `uint`, not `int`.** Pass uint literals (`1200u`) or cast explicitly — `int` arguments cause CS1503.
+
+- [2026-06-24] **After `StartGameWithDeck()` mid-test, wait 1200ms before sending real mouse input.** `ISceneRunner.Load` + `AwaitMillis(200)` works because gdUnit4's loader processes frames during load; calling `StartGameWithDeck` inside a running test gives no such head-start and cards animate for up to 700ms. DraggableObject silently rejects all input while in MOVING state. Signal-based `ClickCard()` is unaffected; only `MouseClickCard` / `MouseDragCard` need the longer settle. In `SetupFixedDeck(uint settleMs)`, pass `1200u` from mouse-input tests.
+
+- [2026-06-24] **Scene tests must use `ScoundrelGame.StartGameWithDeck()` for deterministic room composition.** Tests that depend on specific card suits (weapon, monster, potion) must inject a known deck at the start of the test via `((ScoundrelGame)_runner.Scene()).StartGameWithDeck(FixedDeck)`. Never use `if (card == null) return;` to silently skip when a required card isn't in the random initial room — that produces a green test that asserted nothing. Use `AssertThat(card).IsNotNull()` instead so a missing card is a clear failure.
+
+- [2026-06-24] **Test assertions must be exact, not permissive.** Never write `Is.GreaterThanOrEqualTo(0)` when the exact value is `0` (or any known value). Permissive assertions pass even when the implementation returns a wrong-but-still-valid value. Write the specific value the code should return.
+
+- [2026-06-24] **`ClickCard` (direct signal emit) vs `MouseClickCard` (real input).** `ClickCard` bypasses DraggableObject entirely and is appropriate for testing C# game-logic handlers in isolation. `MouseClickCard`/`MouseDragCard` test the real GDScript→C# input pathway and should be used when the interaction mechanism itself is under test. Don't use `ClickCard` for a test whose description says "clicking a card" if the signal routing is what you're verifying.
+
 ## Decision Log
 
 <!-- Significant technical decisions with rationale. Why X was chosen over Y. -->

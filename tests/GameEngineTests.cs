@@ -5,6 +5,34 @@ using System.Linq;
 
 namespace ScoundrelTests;
 
+// ── CardModel ─────────────────────────────────────────────────────────────────
+
+[TestFixture]
+public class CardModelTests
+{
+    [Test] public void Clubs_IsMonster()  => Assert.That(new CardModel(Suit.Clubs,    5).IsMonster, Is.True);
+    [Test] public void Spades_IsMonster() => Assert.That(new CardModel(Suit.Spades,   5).IsMonster, Is.True);
+    [Test] public void Diamonds_IsNotMonster() => Assert.That(new CardModel(Suit.Diamonds, 5).IsMonster, Is.False);
+    [Test] public void Hearts_IsNotMonster()   => Assert.That(new CardModel(Suit.Hearts,   5).IsMonster, Is.False);
+
+    [Test] public void Diamonds_IsWeapon()    => Assert.That(new CardModel(Suit.Diamonds, 5).IsWeapon, Is.True);
+    [Test] public void Clubs_IsNotWeapon()    => Assert.That(new CardModel(Suit.Clubs,    5).IsWeapon, Is.False);
+    [Test] public void Hearts_IsPotion()      => Assert.That(new CardModel(Suit.Hearts,   5).IsPotion, Is.True);
+    [Test] public void Clubs_IsNotPotion()    => Assert.That(new CardModel(Suit.Clubs,    5).IsPotion, Is.False);
+
+    [Test] public void Ace_MonsterValueIs14()
+        => Assert.That(new CardModel(Suit.Clubs, 1).MonsterValue, Is.EqualTo(14));
+    [Test] public void King_MonsterValueIs13()
+        => Assert.That(new CardModel(Suit.Spades, 13).MonsterValue, Is.EqualTo(13));
+    [Test] public void NumberCard_MonsterValueIsRank()
+        => Assert.That(new CardModel(Suit.Clubs, 7).MonsterValue, Is.EqualTo(7));
+
+    [Test] public void WeaponValueIsRank()
+        => Assert.That(new CardModel(Suit.Diamonds, 8).WeaponValue, Is.EqualTo(8));
+    [Test] public void PotionValueIsRank()
+        => Assert.That(new CardModel(Suit.Hearts, 4).PotionValue, Is.EqualTo(4));
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 file static class Cards
@@ -563,5 +591,85 @@ public class FullScenarioTests
 
         // Room 3: can run again
         Assert.That(engine.CanRun, Is.True);
+    }
+}
+
+// ── Bad-path / guard tests ────────────────────────────────────────────────────
+
+[TestFixture]
+public class BadPathTests
+{
+    [Test]
+    public void TakeCard_NotInRoom_Throws()
+    {
+        var engine  = Cards.RoomOf(Cards.Potion(2), Cards.Potion(3), Cards.Weapon(4), Cards.Monster(5));
+        var phantom = Cards.Monster(7); // was never in any room
+        Assert.Throws<ArgumentException>(() => engine.TakeCard(phantom));
+    }
+
+    [Test]
+    public void TakeCard_AfterWon_Throws()
+    {
+        var deck = new[] { Cards.Potion(2), Cards.Potion(3), Cards.Potion(4), Cards.Potion(5) };
+        var engine = new GameEngine(deck);
+        engine.TakeCard(engine.Room[0]);
+        engine.TakeCard(engine.Room[0]);
+        engine.TakeCard(engine.Room[0]);
+        engine.TakeCard(engine.Room[0]);
+        Assert.That(engine.Won, Is.True);
+
+        Assert.Throws<InvalidOperationException>(() => engine.TakeCard(Cards.Potion(2)));
+    }
+
+    [Test]
+    public void NextRoom_AfterGameOver_Throws()
+    {
+        var engine = Cards.RoomOf(Cards.Monster(9), Cards.Monster(9), Cards.Monster(9), Cards.Potion(2));
+        engine.TakeCard(engine.Room.First(c => c.IsMonster));
+        engine.TakeCard(engine.Room.First(c => c.IsMonster));
+        engine.TakeCard(engine.Room.First(c => c.IsMonster));
+        Assert.That(engine.GameOver, Is.True);
+
+        Assert.Throws<InvalidOperationException>(() => engine.NextRoom());
+    }
+
+    [Test]
+    public void NextRoom_AfterWon_Throws()
+    {
+        var deck = new[] { Cards.Potion(2), Cards.Potion(3), Cards.Potion(4), Cards.Potion(5) };
+        var engine = new GameEngine(deck);
+        engine.TakeCard(engine.Room[0]);
+        engine.TakeCard(engine.Room[0]);
+        engine.TakeCard(engine.Room[0]);
+        engine.TakeCard(engine.Room[0]);
+        Assert.That(engine.Won, Is.True);
+
+        Assert.Throws<InvalidOperationException>(() => engine.NextRoom());
+    }
+
+    [Test]
+    public void Run_AfterGameOver_Throws()
+    {
+        var engine = Cards.RoomOf(Cards.Monster(9), Cards.Monster(9), Cards.Monster(9), Cards.Potion(2));
+        engine.TakeCard(engine.Room.First(c => c.IsMonster));
+        engine.TakeCard(engine.Room.First(c => c.IsMonster));
+        engine.TakeCard(engine.Room.First(c => c.IsMonster));
+        Assert.That(engine.GameOver, Is.True);
+
+        Assert.Throws<InvalidOperationException>(() => engine.Run(new Random(0)));
+    }
+
+    [Test]
+    public void Run_AfterWon_Throws()
+    {
+        var deck = new[] { Cards.Potion(2), Cards.Potion(3), Cards.Potion(4), Cards.Potion(5) };
+        var engine = new GameEngine(deck);
+        engine.TakeCard(engine.Room[0]);
+        engine.TakeCard(engine.Room[0]);
+        engine.TakeCard(engine.Room[0]);
+        engine.TakeCard(engine.Room[0]);
+        Assert.That(engine.Won, Is.True);
+
+        Assert.Throws<InvalidOperationException>(() => engine.Run(new Random(0)));
     }
 }
