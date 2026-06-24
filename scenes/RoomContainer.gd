@@ -3,7 +3,7 @@
 ## Cards occupy fixed slots so positions don't shift when one is taken.
 ## Incoming drops are disabled (enable_drop_zone=false in inspector);
 ## cards are moved here programmatically by ScoundrelGame.cs.
-## Emits card_selected(card) after a click or drag-release so C# can handle game logic.
+## Emits card_selected(card) on click or drag-release so C# can handle game logic.
 class_name RoomContainer
 extends CardContainer
 
@@ -21,23 +21,17 @@ const SLOTS: Array[Vector2] = [
 # Maps Card → slot index so positions stay stable as cards are removed.
 var _slot_of: Dictionary = {}
 
-# Card currently being dragged; set on press, cleared on move_done.
-var _dragged_card: Card = null
 
-
-## Record which card was pressed. The actual card_selected signal fires in
-## on_card_move_done so that dragging also works: the card follows the mouse,
-## then snaps back to its slot on release, and the signal fires on arrival.
-func on_card_pressed(card: Card) -> void:
-	_dragged_card = card
-
-
-## Fires card_selected after a drag-return (or a quick click-snap-back).
-## Only responds to the card that was pressed; ignores layout/deal moves.
-func on_card_move_done(card: Card) -> void:
-	if card == _dragged_card:
-		_dragged_card = null
-		card_selected.emit(card)
+## Override the base release so card_selected fires on mouse-up, before the
+## framework's return-to-slot tween has a chance to start. C# handles the
+## card immediately and kills the return tween by redirecting the card to its
+## real destination — all within the same frame, so no snap-back is visible.
+func release_holding_cards() -> void:
+	if _holding_cards.is_empty():
+		return
+	var card := _holding_cards[0] as Card
+	super.release_holding_cards()  # starts return tween + fires _on_drag_dropped
+	card_selected.emit(card)       # C# redirects card, killing the return tween
 
 
 func _update_target_positions() -> void:
@@ -73,7 +67,6 @@ func remove_card(card: Card) -> bool:
 ## Reset slot tracking when the room is fully emptied (e.g. new game).
 func clear_cards() -> void:
 	_slot_of.clear()
-	_dragged_card = null
 	super.clear_cards()
 
 
