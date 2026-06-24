@@ -2,8 +2,10 @@
 
 ## Stuff to fix
 
-- sometimes cards go back into the deck face up. When this happens they can still be clicked. It seems related to all 4 cards not getting dealt.
-- sometimes not all 4 cards deal out. Once when this happened when i fought an enemy and they went in the discard another card was drawn without changing rooms (said card was also still face up, as mentioned in the previous bullet)
+- ~~sometimes cards go back into the deck face up. When this happens they can still be clicked. It seems related to all 4 cards not getting dealt.~~ (FIXED — bug-014)
+- ~~sometimes not all 4 cards deal out. Once when this happened when i fought an enemy and they went in the discard another card was drawn without changing rooms (said card was also still face up, as mentioned in the previous bullet)~~ (FIXED — bug-014)
+- discard pile cards are sometimes mis-aligned vertically (visual bug, low priority)
+- weapon choice: player should be able to choose whether to use the weapon on a monster or tank the damage directly. Implement after drag-and-drop (second pass on drag destinations).
 - it is unclear what is happening when you click a second potion and nothing happens healing-wise (I know it is the rules you get one potion per room but there needs to be visual feedback those potions are void)
 - I don't think you should be able to skip a room once a card has been used. IDK...maybe there should be a penalty to it or something, it can be handy. Put a pin in that.
 - I reviewed the base rules further and when a room is skipped it gets put at the bottom of the deck, not shuffled in. Maybe potions and weapons go to the bottom and monsters get shuffled, since they can "wander" between rooms.

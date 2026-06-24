@@ -1,9 +1,9 @@
 ## 2×2 card grid for the Scoundrel dungeon room.
 ##
 ## Cards occupy fixed slots so positions don't shift when one is taken.
-## Drag-and-drop is disabled entirely (set enable_drop_zone=false in inspector);
+## Incoming drops are disabled (enable_drop_zone=false in inspector);
 ## cards are moved here programmatically by ScoundrelGame.cs.
-## Emits card_selected(card) on mouse press so C# can handle game logic.
+## Emits card_selected(card) after a click or drag-release so C# can handle game logic.
 class_name RoomContainer
 extends CardContainer
 
@@ -21,9 +21,23 @@ const SLOTS: Array[Vector2] = [
 # Maps Card → slot index so positions stay stable as cards are removed.
 var _slot_of: Dictionary = {}
 
+# Card currently being dragged; set on press, cleared on move_done.
+var _dragged_card: Card = null
 
+
+## Record which card was pressed. The actual card_selected signal fires in
+## on_card_move_done so that dragging also works: the card follows the mouse,
+## then snaps back to its slot on release, and the signal fires on arrival.
 func on_card_pressed(card: Card) -> void:
-	card_selected.emit(card)
+	_dragged_card = card
+
+
+## Fires card_selected after a drag-return (or a quick click-snap-back).
+## Only responds to the card that was pressed; ignores layout/deal moves.
+func on_card_move_done(card: Card) -> void:
+	if card == _dragged_card:
+		_dragged_card = null
+		card_selected.emit(card)
 
 
 func _update_target_positions() -> void:
@@ -59,6 +73,7 @@ func remove_card(card: Card) -> bool:
 ## Reset slot tracking when the room is fully emptied (e.g. new game).
 func clear_cards() -> void:
 	_slot_of.clear()
+	_dragged_card = null
 	super.clear_cards()
 
 
