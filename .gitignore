@@ -11,3 +11,6 @@ obj/
 # gdUnit4 test reports and temp files
 reports/
 .gdunit_temp/
+
+# Export builds
+builds/

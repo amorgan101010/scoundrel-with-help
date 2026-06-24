@@ -184,3 +184,30 @@
 | 15:16 | Edited tests/GameEngineTests.cs | modified Run_AlwaysDealsFourRoomCards_AcrossSeeds() | ~255 |
 | 15:16 | Added RunPositionsCardsAtRoomSlots scene test + Run_AlwaysDealsFourRoomCards_AcrossSeeds unit test | scene_tests/ScoundrelSceneTests.cs, tests/GameEngineTests.cs | 57/57 unit tests pass; scene test regression for bug-014 |
 | 15:17 | Session end: 2 writes across 2 files (ScoundrelSceneTests.cs, GameEngineTests.cs) | 2 reads | ~9006 tok |
+| 15:18 | Session end: 2 writes across 2 files (ScoundrelSceneTests.cs, GameEngineTests.cs) | 2 reads | ~9006 tok |
+| 15:21 | Session end: 2 writes across 2 files (ScoundrelSceneTests.cs, GameEngineTests.cs) | 2 reads | ~9006 tok |
+| 15:31 | Edited stuff to fix.md | 2→4 lines | ~184 |
+| 15:31 | Edited scenes/RoomContainer.gd | modified on_card_pressed() | ~205 |
+| 15:31 | Edited scenes/RoomContainer.gd | modified clear_cards() | ~24 |
+| 15:31 | Edited scenes/RoomContainer.gd | entirely() → disabled() | ~78 |
+| 15:43 | Session end: 6 writes across 4 files (ScoundrelSceneTests.cs, GameEngineTests.cs, stuff to fix.md, RoomContainer.gd) | 8 reads | ~22568 tok |
+| 15:47 | Edited scenes/RoomContainer.gd | 4→4 lines | ~77 |
+| 15:47 | Edited scenes/RoomContainer.gd | modified release_holding_cards() | ~182 |
+| 15:47 | Edited scenes/RoomContainer.gd | modified clear_cards() | ~18 |
+| 15:48 | Session end: 9 writes across 4 files (ScoundrelSceneTests.cs, GameEngineTests.cs, stuff to fix.md, RoomContainer.gd) | 8 reads | ~22836 tok |
+| 15:53 | Created ../../../.claude/projects/-home-aileen-Repositories-godot-scoundrel-with-help/memory/feedback_tests_with_feature.md | — | ~160 |
+| 15:53 | Edited ../../../.claude/projects/-home-aileen-Repositories-godot-scoundrel-with-help/memory/MEMORY.md | 1→2 lines | ~58 |
+| 15:55 | Edited scene_tests/ScoundrelSceneTests.cs | modified MouseClickCard() | ~330 |
+| 15:55 | Edited scene_tests/ScoundrelSceneTests.cs | added 2 condition(s) | ~719 |
+| 15:56 | Session end: 13 writes across 6 files (ScoundrelSceneTests.cs, GameEngineTests.cs, stuff to fix.md, RoomContainer.gd, feedback_tests_with_feature.md) | 9 reads | ~24682 tok |
+| 16:00 | Edited scene_tests/ScoundrelSceneTests.cs | modified MouseClickCard() | ~237 |
+| 16:00 | Edited scene_tests/ScoundrelSceneTests.cs | added 2 condition(s) | ~246 |
+| 16:03 | Edited scene_tests/ScoundrelSceneTests.cs | 3→3 lines | ~52 |
+
+## Session: 2026-06-24 16:03
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 10:00 | Fix MouseClickCard: SimulateMouseButtonPressed atomic — switched to separate Press+AwaitIdleFrame+Release | scene_tests/ScoundrelSceneTests.cs | bug-018 logged | ~800 |
+| 10:01 | Fix DragAndClickProduceSameOutcome: increased retry wait 200→1200ms (cards in MOVING state reject input) | scene_tests/ScoundrelSceneTests.cs | 14/14 scene tests pass | ~200 |
+| 16:05 | Edited .gitignore | 3→6 lines | ~23 |

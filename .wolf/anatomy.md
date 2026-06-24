@@ -1,13 +1,18 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-24T19:16:40.219Z
-> Files: 521 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-24T20:05:45.509Z
+> Files: 523 tracked | Anatomy hits: 0 | Misses: 0
+
+## ../../../.claude/projects/-home-aileen-Repositories-godot-scoundrel-with-help/memory/
+
+- `feedback_tests_with_feature.md` (~169 tok)
+- `MEMORY.md` — Memory Index (~99 tok)
 
 ## ./
 
 - `.editorconfig` — Editor configuration (~9 tok)
 - `.gitattributes` — Git attributes (~22 tok)
-- `.gitignore` — Git ignore rules (~41 tok)
+- `.gitignore` — Git ignore rules (~47 tok)
 - `blank_playfield.png.import` (~254 tok)
 - `CLAUDE.md` — OpenWolf (~1431 tok)
 - `export_presets.cfg` (~1089 tok)
@@ -22,7 +27,7 @@
 - `ScoundrelWithHelp.csproj` — /*.cs" /> (~117 tok)
 - `ScoundrelWithHelp.csproj.old` (~108 tok)
 - `ScoundrelWithHelp.sln` (~439 tok)
-- `stuff to fix.md` — Claude's To-Do (~1006 tok)
+- `stuff to fix.md` — Claude's To-Do (~1516 tok)
 - `weirdly sized discard cards.png.import` (~263 tok)
 
 ## .claude/
@@ -608,12 +613,12 @@
 
 ## scene_tests/
 
-- `ScoundrelSceneTests.cs` — Scene-level integration tests for Scoundrel. Run via the gdUnit4 test runner (editor toolbar or: god (~3787 tok)
+- `ScoundrelSceneTests.cs` — Scene-level integration tests for Scoundrel. Run via the gdUnit4 test runner (editor toolbar or: god (~4760 tok)
 
 ## scenes/
 
 - `Game.tscn` (~1688 tok)
-- `RoomContainer.gd` — Extends CardContainer; fixed 2×2 grid layout; emits card_selected signal; get_all_cards() helper (~370 tok)
+- `RoomContainer.gd` — # 2×2 card grid for the Scoundrel dungeon room. (~620 tok)
 
 ## scripts/
 
