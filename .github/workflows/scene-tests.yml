@@ -29,9 +29,10 @@ jobs:
         run: |
           curl -fsSL "https://downloads.godotengine.org/?version=4.7&flavor=stable&slug=mono_linux_x86_64.zip&platform=linux.64" -o godot.zip
           unzip -q godot.zip
-          ls -la
           GODOT_DIR="$GITHUB_WORKSPACE/${GODOT_DIR_NAME}"
-          GODOT_BIN="$GODOT_DIR/${GODOT_DIR_NAME}"
+          ls -la "$GODOT_DIR"
+          GODOT_BIN=$(find "$GODOT_DIR" -maxdepth 1 -name 'Godot_*' -type f | head -1)
+          echo "Found binary: $GODOT_BIN"
           chmod +x "$GODOT_BIN"
           echo "GODOT_DIR=$GODOT_DIR" >> $GITHUB_ENV
           echo "GODOT_BIN=$GODOT_BIN" >> $GITHUB_ENV
