@@ -3,3 +3,7 @@
 /android/
 .exe
 .zip
+
+# .NET build artifacts
+bin/
+obj/
