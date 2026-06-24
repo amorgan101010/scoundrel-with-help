@@ -1,0 +1,223 @@
+[gd_scene load_steps=6 format=3 uid="uid://dscndrlgame1"]
+
+[ext_resource type="Script" path="res://scripts/ScoundrelGame.cs" id="1_gm"]
+[ext_resource type="Script" uid="uid://clqgq1n7v0ar" path="res://addons/card-framework/card_manager.gd" id="2_cm"]
+[ext_resource type="PackedScene" uid="uid://bscndrlcfact1" path="res://scenes/ScoundrelCardFactory.tscn" id="3_cf"]
+[ext_resource type="Script" uid="uid://6ams8uvg43gu" path="res://addons/card-framework/pile.gd" id="4_pile"]
+[ext_resource type="Script" path="res://scenes/RoomContainer.gd" id="5_room"]
+
+[node name="Game" type="Node"]
+script = ExtResource("1_gm")
+
+[node name="CardManager" type="Control" parent="."]
+script = ExtResource("2_cm")
+card_factory_scene = ExtResource("3_cf")
+card_size = Vector2(150, 210)
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="Background" type="ColorRect" parent="UI"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.13, 0.2, 0.13, 1)
+
+[node name="HealthLabel" type="Label" parent="UI"]
+offset_left = 30.0
+offset_top = 30.0
+offset_right = 280.0
+offset_bottom = 60.0
+theme_override_font_sizes/font_size = 22
+text = "HP: 20 / 20"
+
+[node name="WeaponLabel" type="Label" parent="UI"]
+offset_left = 30.0
+offset_top = 62.0
+offset_right = 400.0
+offset_bottom = 90.0
+theme_override_font_sizes/font_size = 16
+text = "Weapon: none"
+
+[node name="StatusLabel" type="Label" parent="UI"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -150.0
+offset_top = 20.0
+offset_right = 150.0
+offset_bottom = 60.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 36
+horizontal_alignment = 1
+text = ""
+
+[node name="WeaponSlot" type="Control" parent="UI"]
+offset_left = 30.0
+offset_top = 110.0
+offset_right = 180.0
+offset_bottom = 320.0
+mouse_filter = 1
+script = ExtResource("4_pile")
+enable_drop_zone = false
+card_face_up = true
+allow_card_movement = false
+restrict_to_top_card = false
+
+[node name="DeckPile" type="Control" parent="UI"]
+offset_left = 940.0
+offset_top = 48.0
+offset_right = 1090.0
+offset_bottom = 258.0
+mouse_filter = 1
+script = ExtResource("4_pile")
+enable_drop_zone = false
+card_face_up = false
+allow_card_movement = false
+restrict_to_top_card = false
+
+[node name="DiscardPile" type="Control" parent="UI"]
+offset_left = 940.0
+offset_top = 325.0
+offset_right = 1090.0
+offset_bottom = 535.0
+mouse_filter = 1
+script = ExtResource("4_pile")
+enable_drop_zone = false
+card_face_up = true
+allow_card_movement = false
+restrict_to_top_card = false
+
+[node name="RoomContainer" type="Control" parent="UI"]
+offset_left = 390.0
+offset_top = 130.0
+offset_right = 730.0
+offset_bottom = 590.0
+mouse_filter = 1
+script = ExtResource("5_room")
+enable_drop_zone = false
+
+[node name="DeckLabel" type="Label" parent="UI"]
+offset_left = 940.0
+offset_top = 262.0
+offset_right = 1090.0
+offset_bottom = 288.0
+text = "DECK"
+horizontal_alignment = 1
+
+[node name="DiscardLabel" type="Label" parent="UI"]
+offset_left = 940.0
+offset_top = 550.0
+offset_right = 1090.0
+offset_bottom = 576.0
+text = "DISCARD"
+horizontal_alignment = 1
+
+[node name="InPlayHeader" type="Label" parent="UI"]
+offset_left = 30.0
+offset_top = 335.0
+offset_right = 200.0
+offset_bottom = 356.0
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+text = "IN PLAY:"
+
+[node name="ClubsLabel" type="Label" parent="UI"]
+offset_left = 30.0
+offset_top = 358.0
+offset_right = 200.0
+offset_bottom = 382.0
+theme_override_font_sizes/font_size = 16
+text = "♣  13"
+
+[node name="SpadesLabel" type="Label" parent="UI"]
+offset_left = 30.0
+offset_top = 386.0
+offset_right = 200.0
+offset_bottom = 410.0
+theme_override_font_sizes/font_size = 16
+text = "♠  13"
+
+[node name="HeartsLabel" type="Label" parent="UI"]
+offset_left = 30.0
+offset_top = 414.0
+offset_right = 200.0
+offset_bottom = 438.0
+theme_override_font_sizes/font_size = 16
+text = "♥  9"
+
+[node name="DiamondsLabel" type="Label" parent="UI"]
+offset_left = 30.0
+offset_top = 442.0
+offset_right = 200.0
+offset_bottom = 466.0
+theme_override_font_sizes/font_size = 16
+text = "♦  9"
+
+[node name="WeaponLabel2" type="Label" parent="UI"]
+offset_left = 30.0
+offset_top = 82.0
+offset_right = 180.0
+offset_bottom = 108.0
+text = "WEAPON SLOT"
+horizontal_alignment = 1
+
+[node name="RunButton" type="Button" parent="UI"]
+offset_left = 390.0
+offset_top = 615.0
+offset_right = 555.0
+offset_bottom = 650.0
+text = "RUN (skip room)"
+
+[node name="NextRoomButton" type="Button" parent="UI"]
+offset_left = 565.0
+offset_top = 615.0
+offset_right = 730.0
+offset_bottom = 650.0
+text = "Next Room →"
+visible = false
+
+[node name="RetryButton" type="Button" parent="UI"]
+offset_left = 800.0
+offset_top = 615.0
+offset_right = 960.0
+offset_bottom = 650.0
+text = "↺ New Game"
+
+[node name="HelpButton" type="Button" parent="UI"]
+offset_left = 970.0
+offset_top = 615.0
+offset_right = 1040.0
+offset_bottom = 650.0
+text = "? Help"
+
+[node name="HelpDialog" type="AcceptDialog" parent="UI"]
+title = "How to Play Scoundrel"
+size = Vector2i(480, 420)
+dialog_text = "GOAL: Survive the dungeon. Start with 20 HP.
+
+DECK: 44 cards (standard 52 minus red face cards & red aces).
+
+EACH ROOM: 4 cards are dealt face-up. You MUST take at least 3.
+Click a card to take it. After 3 cards, 'Next Room' appears — the
+remaining card carries into the next room. You may take all 4.
+
+MONSTERS (Clubs & Spades):
+  2-10 = face value damage, J=11, Q=12, K=13, A=14.
+  With a weapon: damage = monster - weapon (minimum 0).
+  Weapon degrades: next use must be vs. a WEAKER monster.
+
+WEAPONS (Diamonds, 2-10 only):
+  Click to equip. Replaces your current weapon.
+  Old weapon is discarded. Weapon value = card rank.
+
+POTIONS (Hearts, 2-10 only):
+  Restore HP equal to rank, capped at 20.
+  Only ONE potion heals per room (extras are discarded).
+
+RUN: Skip an entire room — monsters shuffle back into the deck,
+  potions and weapons sink to the bottom. Cannot run two rooms in a row.
+
+DEATH: Reach 0 HP.
+WIN: Clear the deck."
