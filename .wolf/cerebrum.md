@@ -21,6 +21,16 @@
 <!-- Mistakes made and corrected. Each entry prevents the same mistake recurring. -->
 <!-- Format: [YYYY-MM-DD] Description of what went wrong and what to do instead. -->
 
+- [2026-06-24] **gdUnit4 C# tests: always add `[RequireGodotRuntime]` on scene test classes.** Without it, `ISceneRunner.Load()` runs on a thread-pool thread and crashes with "AddChild only allowed from main thread." `[RequireGodotRuntime]` routes test hooks through Godot's SynchronizationContext.
+- [2026-06-24] **After every `dotnet build`, run `godot --import` before running tests.** The Godot global script class cache (`.godot/global_script_class_cache.cfg`) is cleared on rebuild, causing `GdUnitTestCIRunner: type not found`. The `run_scene_tests.sh` script does this automatically.
+- [2026-06-24] **NuGet deps don't auto-copy to Godot's output dir.** Add `<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>` to `ScoundrelWithHelp.csproj` — without it, `GdUnit4Api.dll`, `Mono.Cecil.dll`, `Newtonsoft.Json.dll` etc. must be manually copied each time.
+- [2026-06-24] **gdUnit4 CLI arg parser is strict.** Do NOT use `--` separator before `-a`, and do NOT pass `--exit` (tool auto-exits). Correct: `-s res://addons/gdUnit4/bin/GdUnitCmdTool.gd -a res://scene_tests/`.
+- [2026-06-24] **Scene test assertions must not assume card type in random room.** If asserting a specific suit exists (diamond, heart, monster), use early `return` (not `AssertThat(...).IsNotNull()`) to skip gracefully when the random deal doesn't include it.
+- [2026-06-24] **3 random monster cards can kill from full HP** (e.g. 9+5+6=20 damage). Tests clicking 3 cards must check `ParseHP(scene) <= 0` before asserting game-state conditions that require the player to be alive.
+
 ## Decision Log
 
 <!-- Significant technical decisions with rationale. Why X was chosen over Y. -->
+
+- [2026-06-24] **gdUnit4 v6.1.3 addon + gdUnit4.api NuGet v5.0.0** — the NuGet version numbering is decoupled from the addon version; v5 NuGet works with v6 addon.
+- [2026-06-24] **`ISceneRunner.Load("res://scenes/Game.tscn", true)` in `[BeforeTest]`** — loads a fresh Game.tscn for each test case. CardManager's `current_scene` meta path fails (returns wrong node when run via GdUnitCmdTool), but `_find_card_manager_in_parents()` fallback succeeds because CardManager IS an ancestor in the gdUnit4-hosted tree. Error messages appear but are non-fatal.

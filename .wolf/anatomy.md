@@ -1,23 +1,24 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-24T05:51:17.158Z
-> Files: 518 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-24T15:17:36.006Z
+> Files: 520 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
 - `.editorconfig` — Editor configuration (~9 tok)
 - `.gitattributes` — Git attributes (~22 tok)
-- `.gitignore` — Git ignore rules (~24 tok)
+- `.gitignore` — Git ignore rules (~41 tok)
 - `blank_playfield.png.import` (~254 tok)
 - `CLAUDE.md` — OpenWolf (~1431 tok)
 - `export_presets.cfg` (~1089 tok)
 - `icon.svg.import` (~271 tok)
 - `misaligned playfield.png.import` (~258 tok)
 - `NuGet.Config` (~80 tok)
-- `project.godot` (~206 tok)
+- `project.godot` (~227 tok)
+- `run_scene_tests.sh` — Run gdUnit4 scene tests. (~179 tok)
 - `Scoundrel_base_rules.pck` (~122710 tok)
 - `Scoundrel_base_rules.sh` (~41 tok)
-- `ScoundrelWithHelp.csproj` — /*.cs" /> (~75 tok)
+- `ScoundrelWithHelp.csproj` — /*.cs" /> (~117 tok)
 - `ScoundrelWithHelp.csproj.old` (~108 tok)
 - `ScoundrelWithHelp.sln` (~439 tok)
 - `stuff to fix.md` — Claude's To-Do (~1006 tok)
@@ -25,7 +26,7 @@
 
 ## .claude/
 
-- `settings.json` (~441 tok)
+- `settings.json` (~461 tok)
 
 ## .claude/rules/
 
@@ -603,6 +604,10 @@
 - `cardBack_blue2.png.import` (~263 tok)
 - `cardBack_blue3.png.import` (~263 tok)
 - `cardBack_blue4.png.import` (~263 tok)
+
+## scene_tests/
+
+- `ScoundrelSceneTests.cs` — Scene-level integration tests for Scoundrel. Run via the gdUnit4 test runner (editor toolbar or: god (~2111 tok)
 
 ## scenes/
 

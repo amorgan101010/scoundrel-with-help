@@ -7,7 +7,7 @@
       "error_message": "Wrong reference: MaxHealth should be ScoundrelRules",
       "file": "scripts/ScoundrelGame.cs",
       "root_cause": "Used \"MaxHealth\" instead of \"ScoundrelRules\"",
-      "fix": "Changed MaxHealth → ScoundrelRules",
+      "fix": "Changed MaxHealth \u2192 ScoundrelRules",
       "tags": [
         "auto-detected",
         "wrong-reference",
@@ -23,7 +23,7 @@
       "error_message": "Wrong reference: CardData should be CardModel",
       "file": "scripts/ScoundrelGame.cs",
       "root_cause": "Used \"CardData\" instead of \"CardModel\"",
-      "fix": "Changed CardData → CardModel",
+      "fix": "Changed CardData \u2192 CardModel",
       "tags": [
         "auto-detected",
         "wrong-reference",
@@ -55,7 +55,7 @@
       "error_message": "Wrong reference: Collections should be Linq",
       "file": "scripts/ScoundrelGame.cs",
       "root_cause": "Used \"Collections\" instead of \"Linq\"",
-      "fix": "Changed Collections → Linq",
+      "fix": "Changed Collections \u2192 Linq",
       "tags": [
         "auto-detected",
         "wrong-reference",
@@ -64,6 +64,129 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-06-24T05:50:46.173Z"
+    },
+    {
+      "id": "bug-005",
+      "timestamp": "2026-06-24T14:37:40.047Z",
+      "error_message": "Wrong reference: Array should be GArray",
+      "file": "scene_tests/ScoundrelSceneTests.cs",
+      "root_cause": "Used \"Array\" instead of \"GArray\"",
+      "fix": "Changed Array \u2192 GArray",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "cs"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-24T14:37:43.901Z"
+    },
+    {
+      "id": "bug-006",
+      "timestamp": "2026-06-24T15:17:24.837Z",
+      "error_message": "Null/undefined access in ",
+      "file": "scene_tests/ScoundrelSceneTests.cs",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "cs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-24T15:17:24.837Z"
+    },
+    {
+      "id": "bug-007",
+      "timestamp": "2026-06-24T15:17:36.018Z",
+      "error_message": "Significant refactor of ",
+      "file": "scene_tests/ScoundrelSceneTests.cs",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 7\u21924 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "cs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-24T15:17:36.018Z"
+    },
+    {
+      "id": "bug-008",
+      "timestamp": "2026-06-24",
+      "error_message": "Could not load file or assembly 'GdUnit4Api, Version=5.0.0.0'",
+      "file": "ScoundrelWithHelp.csproj",
+      "root_cause": "Godot.NET.Sdk doesn't copy NuGet package DLLs to output directory by default",
+      "fix": "Added <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies> to csproj",
+      "tags": [
+        "gdunit4",
+        "nuget",
+        "dll",
+        "assembly"
+      ],
+      "related_bugs": [
+        "bug-009",
+        "bug-010"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-06-24"
+    },
+    {
+      "id": "bug-009",
+      "timestamp": "2026-06-24",
+      "error_message": "ERROR: Adding children to a node inside the SceneTree is only allowed from the main thread",
+      "file": "scene_tests/ScoundrelSceneTests.cs",
+      "root_cause": "gdUnit4's C# test executor runs tests on thread pool; ISceneRunner.Load() calls AddChild which requires main thread",
+      "fix": "Added [RequireGodotRuntime] attribute to ScoundrelSceneTests class",
+      "tags": [
+        "gdunit4",
+        "threading",
+        "scene-runner",
+        "main-thread"
+      ],
+      "related_bugs": [
+        "bug-008"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-06-24"
+    },
+    {
+      "id": "bug-010",
+      "timestamp": "2026-06-24",
+      "error_message": "GdUnitTestCIRunner: type not found (after dotnet build)",
+      "file": "run_scene_tests.sh",
+      "root_cause": "dotnet build invalidates Godot global script class cache; GdUnitTestCIRunner is a GDScript class that must be in the cache",
+      "fix": "run_scene_tests.sh now runs 'godot --import' after every build to repopulate the class cache",
+      "tags": [
+        "gdunit4",
+        "class-cache",
+        "import",
+        "workflow"
+      ],
+      "related_bugs": [
+        "bug-008"
+      ],
+      "occurrences": 3,
+      "last_seen": "2026-06-24"
+    },
+    {
+      "id": "bug-011",
+      "timestamp": "2026-06-24",
+      "error_message": "NextRoomButtonAppearsAfterThreeCards: Expecting 'True' but is 'False' (intermittent)",
+      "file": "scene_tests/ScoundrelSceneTests.cs",
+      "root_cause": "3 random monster cards in room can total >=20 damage, killing player from full HP. GameOver sets CanNextRoom=false, hiding the button.",
+      "fix": "Test now prefers non-monster cards first (weapons/potions); falls back gracefully with ParseHP check before final assertion",
+      "tags": [
+        "flaky-test",
+        "game-over",
+        "monster-damage",
+        "scene-tests"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-24"
     }
   ]
 }
