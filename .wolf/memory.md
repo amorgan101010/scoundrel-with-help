@@ -232,3 +232,14 @@
 | 16:32 | Edited scene_tests/ScoundrelSceneTests.cs | modified SetupFixedDeck() | ~62 |
 | 16:32 | Edited scene_tests/ScoundrelSceneTests.cs | inline fix | ~8 |
 | 16:33 | Session end: 12 writes across 4 files (ScoundrelGame.cs, ScoundrelRulesTests.cs, GameEngineTests.cs, ScoundrelSceneTests.cs) | 9 reads | ~26833 tok |
+| 16:37 | Session end: 12 writes across 4 files (ScoundrelGame.cs, ScoundrelRulesTests.cs, GameEngineTests.cs, ScoundrelSceneTests.cs) | 9 reads | ~26833 tok |
+
+## Session: 2026-06-24 16:38
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 16:41 | Created .github/workflows/unit-tests.yml | — | ~132 |
+| 16:41 | Created .github/workflows/scene-tests.yml | — | ~230 |
+| 16:41 | Created VERSION | — | ~2 |
+| 16:41 | Added GitHub Actions CI (unit-tests + scene-tests) and VERSION file; tagged v0.3.0 | .github/workflows/, VERSION | created | ~800 |
+| 16:42 | Session end: 3 writes across 3 files (unit-tests.yml, scene-tests.yml, VERSION) | 3 reads | ~1859 tok |

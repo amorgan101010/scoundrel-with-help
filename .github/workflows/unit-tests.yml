@@ -1,0 +1,23 @@
+name: Unit Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  unit-tests:
+    name: C# Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0'
+
+      - name: Restore
+        run: dotnet restore tests/ScoundrelTests.csproj
+
+      - name: Test
+        run: dotnet test tests/ScoundrelTests.csproj --configuration Release --logger "console;verbosity=normal"

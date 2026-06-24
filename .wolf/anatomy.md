@@ -1,15 +1,21 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-24T20:32:14.244Z
-> Files: 523 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-24T20:41:09.260Z
+> Files: 526 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../.claude/projects/-home-aileen-Repositories-godot-scoundrel-with-help/memory/
 
 - `feedback_tests_with_feature.md` (~169 tok)
 - `MEMORY.md` — Memory Index (~99 tok)
 
+## .github/workflows/
+
+- `unit-tests.yml` — GitHub Actions: dotnet test on every push, no Godot required (~80 tok)
+- `scene-tests.yml` — GitHub Actions: gdUnit4 scene tests via MikeSchulze/gdUnit4-action on main/PRs (~90 tok)
+
 ## ./
 
+- `VERSION` — Semantic version string, currently 0.3.0 (~5 tok)
 - `.editorconfig` — Editor configuration (~9 tok)
 - `.gitattributes` — Git attributes (~22 tok)
 - `.gitignore` — Git ignore rules (~47 tok)
@@ -28,6 +34,7 @@
 - `ScoundrelWithHelp.csproj.old` (~108 tok)
 - `ScoundrelWithHelp.sln` (~439 tok)
 - `stuff to fix.md` — Claude's To-Do (~1516 tok)
+- `VERSION` (~2 tok)
 - `weirdly sized discard cards.png.import` (~263 tok)
 
 ## .claude/
@@ -37,6 +44,11 @@
 ## .claude/rules/
 
 - `openwolf.md` (~313 tok)
+
+## .github/workflows/
+
+- `scene-tests.yml` — CI: Scene Tests (~230 tok)
+- `unit-tests.yml` — CI: Unit Tests (~132 tok)
 
 ## .godot/
 
