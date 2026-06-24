@@ -1,13 +1,13 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-24T05:20:20.085Z
-> Files: 515 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-24T05:33:29.082Z
+> Files: 518 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
 - `.editorconfig` — Editor configuration (~9 tok)
 - `.gitattributes` — Git attributes (~22 tok)
-- `.gitignore` — Git ignore rules (~13 tok)
+- `.gitignore` — Git ignore rules (~24 tok)
 - `blank_playfield.png.import` (~254 tok)
 - `CLAUDE.md` — OpenWolf (~1431 tok)
 - `export_presets.cfg` (~1089 tok)
@@ -17,7 +17,7 @@
 - `project.godot` (~206 tok)
 - `Scoundrel_base_rules.pck` (~122710 tok)
 - `Scoundrel_base_rules.sh` (~41 tok)
-- `ScoundrelWithHelp.csproj` (~56 tok)
+- `ScoundrelWithHelp.csproj` — /*.cs" /> (~75 tok)
 - `ScoundrelWithHelp.csproj.old` (~108 tok)
 - `ScoundrelWithHelp.sln` (~439 tok)
 - `stuff to fix.md` — Claude's To-Do (~1006 tok)
@@ -611,11 +611,14 @@
 
 ## scripts/
 
-- `CardData.cs` — Class: CardData (~352 tok)
+- `CardData.cs` — Class: CardData (~208 tok)
+- `CardModel.cs` — Godot-free card data record. Used by GameEngine and unit tests. (~126 tok)
+- `GameEngine.cs` — Pure C# game-state machine for Scoundrel. No Godot dependencies — fully integration-testable. Deck i (~1348 tok)
 - `ScoundrelGame.cs` — Central game controller for Scoundrel solitaire. Owns all mutable game state; the GDScript card-fram (~3733 tok)
 - `ScoundrelRules.cs` — Pure game-logic functions for Scoundrel. No Godot dependencies — fully unit-testable. (~446 tok)
 
 ## tests/
 
+- `GameEngineTests.cs` — Class: Cards (~4864 tok)
 - `ScoundrelRulesTests.cs` — Class: MonsterValueTests (~1244 tok)
-- `ScoundrelTests.csproj` (~193 tok)
+- `ScoundrelTests.csproj` (~201 tok)

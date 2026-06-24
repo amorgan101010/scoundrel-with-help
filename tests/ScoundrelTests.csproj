@@ -12,9 +12,10 @@
     <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
   </ItemGroup>
 
-  <!-- Include only the Godot-free logic file; CardData.cs and ScoundrelGame.cs
-       depend on GodotSharp and cannot be compiled outside the Godot runtime. -->
+  <!-- Only Godot-free files. CardData.cs and ScoundrelGame.cs depend on GodotSharp. -->
   <ItemGroup>
     <Compile Include="../scripts/ScoundrelRules.cs" />
+    <Compile Include="../scripts/CardModel.cs" />
+    <Compile Include="../scripts/GameEngine.cs" />
   </ItemGroup>
 </Project>

@@ -38,7 +38,7 @@ public partial class ScoundrelGame : Node
     private int _inPlayHearts;
     private int _inPlayDiamonds;
 
-    private CardData? _equippedWeapon;
+    private CardModel? _equippedWeapon;
     // Weapon degrades: can only hit a monster WEAKER than the last one fought with this weapon.
     private int _weaponFloor = int.MaxValue;
 
@@ -201,7 +201,7 @@ public partial class ScoundrelGame : Node
         UpdateUI();
     }
 
-    private void ApplyMonsterDamage(CardData data)
+    private void ApplyMonsterDamage(CardModel data)
     {
         int damage = data.MonsterValue;
 
@@ -214,7 +214,7 @@ public partial class ScoundrelGame : Node
         _health = System.Math.Max(0, _health - damage);
     }
 
-    private void EquipWeapon(GodotObject card, CardData data)
+    private void EquipWeapon(GodotObject card, CardModel data)
     {
         // Move old weapon to discard
         if (_equippedWeapon != null)
@@ -324,7 +324,7 @@ public partial class ScoundrelGame : Node
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────
-    private void DecrementSuit(CardData data)
+    private void DecrementSuit(CardModel data)
     {
         switch (data.Suit)
         {
@@ -379,7 +379,7 @@ public partial class ScoundrelGame : Node
         if (_equippedWeapon != null)
         {
             string floor = _weaponFloor == int.MaxValue ? "any" : $"< {_weaponFloor}";
-            _weaponLabel.Text = $"Weapon: {_equippedWeapon.CardName}  (next: {floor})";
+            _weaponLabel.Text = $"Weapon: {_equippedWeapon.Name}  (next: {floor})";
         }
         else
         {
