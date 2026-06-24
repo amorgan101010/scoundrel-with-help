@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-24T15:17:36.006Z
-> Files: 520 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-24T16:05:16.593Z
+> Files: 521 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
@@ -15,6 +15,7 @@
 - `misaligned playfield.png.import` (~258 tok)
 - `NuGet.Config` (~80 tok)
 - `project.godot` (~227 tok)
+- `README.md` — Project documentation (~715 tok)
 - `run_scene_tests.sh` — Run gdUnit4 scene tests. (~179 tok)
 - `Scoundrel_base_rules.pck` (~122710 tok)
 - `Scoundrel_base_rules.sh` (~41 tok)
@@ -607,11 +608,11 @@
 
 ## scene_tests/
 
-- `ScoundrelSceneTests.cs` — Scene-level integration tests for Scoundrel. Run via the gdUnit4 test runner (editor toolbar or: god (~2111 tok)
+- `ScoundrelSceneTests.cs` — Scene-level integration tests for Scoundrel. Run via the gdUnit4 test runner (editor toolbar or: god (~3300 tok)
 
 ## scenes/
 
-- `Game.tscn` — Main scene: CardManager, UI (piles, room, labels, buttons, help dialog, suit-count labels) (~1700 tok)
+- `Game.tscn` (~1688 tok)
 - `RoomContainer.gd` — Extends CardContainer; fixed 2×2 grid layout; emits card_selected signal; get_all_cards() helper (~370 tok)
 
 ## scripts/
@@ -619,7 +620,7 @@
 - `CardData.cs` — Class: CardData (~208 tok)
 - `CardModel.cs` — Godot-free card data record. Used by GameEngine and unit tests. (~126 tok)
 - `GameEngine.cs` — Pure C# game-state machine for Scoundrel. No Godot dependencies — fully integration-testable. Deck i (~1348 tok)
-- `ScoundrelGame.cs` — Godot bridge for Scoundrel. Owns node references and visual card movements. All game-state decisions (~3339 tok)
+- `ScoundrelGame.cs` — Godot bridge for Scoundrel. Owns node references and visual card movements. All game-state decisions (~3628 tok)
 - `ScoundrelRules.cs` — Pure game-logic functions for Scoundrel. No Godot dependencies — fully unit-testable. (~446 tok)
 
 ## tests/

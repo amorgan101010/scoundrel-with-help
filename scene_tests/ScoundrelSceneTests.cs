@@ -205,4 +205,102 @@ public class ScoundrelSceneTests
 
         AssertThat(nextRoomButton.Visible).IsTrue();
     }
+
+    [TestCase(Description = "Monster killed with weapon goes to slain pile, not discard")]
+    public async Task WeaponedMonsterGoesToSlainPile()
+    {
+        var scene       = _runner!.Scene();
+        var slainPile   = scene.GetNode("UI/SlainPile");
+        var discardPile = scene.GetNode("UI/DiscardPile");
+
+        var weapon = FindRoomCard(scene, s => s == "diamonds");
+        if (weapon == null) return;
+        ClickCard(scene, weapon);
+        await _runner!.AwaitIdleFrame();
+
+        var monster = FindRoomCard(scene, s => s == "clubs" || s == "spades");
+        if (monster == null) return;
+        ClickCard(scene, monster);
+        await _runner!.AwaitIdleFrame();
+        if (ParseHP(scene) <= 0) return;
+
+        AssertThat((int)slainPile.Call("get_card_count")).IsEqual(1);
+        AssertThat((int)discardPile.Call("get_card_count")).IsEqual(0);
+    }
+
+    [TestCase(Description = "Discard pile ordering: most recently added monster is the top card")]
+    public async Task DiscardPileTopCardIsNewest()
+    {
+        var scene       = _runner!.Scene();
+        var discardPile = scene.GetNode("UI/DiscardPile");
+
+        // Collect two monsters from the room (no weapon → both go to discard).
+        GodotObject? first = null, second = null;
+        foreach (var obj in (GArray)scene.GetNode("UI/RoomContainer").Call("get_all_cards"))
+        {
+            var card = obj.AsGodotObject();
+            var suit = card.Get("card_info").AsGodotDictionary()["suit"].AsString();
+            if (suit != "clubs" && suit != "spades") continue;
+            if (first == null) first = card;
+            else { second = card; break; }
+        }
+        if (first == null || second == null) return;  // fewer than 2 monsters — skip
+
+        ClickCard(scene, first);
+        await _runner!.AwaitIdleFrame();
+        if (ParseHP(scene) <= 0) return;
+
+        ClickCard(scene, second);
+        await _runner!.AwaitIdleFrame();
+        if (ParseHP(scene) <= 0) return;
+
+        AssertThat((int)discardPile.Call("get_card_count")).IsEqual(2);
+
+        var topCards = (GArray)discardPile.Call("get_top_cards", 1);
+        AssertThat(topCards.Count).IsEqual(1);
+        var topName  = topCards[0].AsGodotObject().Get("card_info").AsGodotDictionary()["name"].AsString();
+        var expected = second.Get("card_info").AsGodotDictionary()["name"].AsString();
+        AssertThat(topName).IsEqual(expected);
+    }
+
+    [TestCase(Description = "Monster taken when weapon floor is too low goes to discard, not slain")]
+    public async Task ExpiredWeaponFloorMonsterGoesToDiscard()
+    {
+        var scene       = _runner!.Scene();
+        var slainPile   = scene.GetNode("UI/SlainPile");
+        var discardPile = scene.GetNode("UI/DiscardPile");
+
+        var weapon = FindRoomCard(scene, s => s == "diamonds");
+        if (weapon == null) return;
+        ClickCard(scene, weapon);
+        await _runner!.AwaitIdleFrame();
+
+        // Kill first monster with weapon → goes to slain; weapon floor = monster1Value
+        var monster1 = FindRoomCard(scene, s => s == "clubs" || s == "spades");
+        if (monster1 == null) return;
+        int monster1Value = MonsterDamage(monster1.Get("card_info").AsGodotDictionary());
+        ClickCard(scene, monster1);
+        await _runner!.AwaitIdleFrame();
+        if (ParseHP(scene) <= 0) return;
+        AssertThat((int)slainPile.Call("get_card_count")).IsEqual(1);
+
+        // Need a second monster with value >= monster1Value so weapon floor blocks its use
+        var monster2 = FindRoomCard(scene, s => s == "clubs" || s == "spades");
+        if (monster2 == null) return;
+        int monster2Value = MonsterDamage(monster2.Get("card_info").AsGodotDictionary());
+        if (monster2Value < monster1Value) return;  // weapon still usable — skip
+
+        ClickCard(scene, monster2);
+        await _runner!.AwaitIdleFrame();
+        if (ParseHP(scene) <= 0) return;
+
+        // monster2 should be in discard (weapon floor too low); slain count unchanged
+        AssertThat((int)discardPile.Call("get_card_count")).IsEqual(1);
+        AssertThat((int)slainPile.Call("get_card_count")).IsEqual(1);
+
+        var topCards = (GArray)discardPile.Call("get_top_cards", 1);
+        var topName  = topCards[0].AsGodotObject().Get("card_info").AsGodotDictionary()["name"].AsString();
+        var expected = monster2.Get("card_info").AsGodotDictionary()["name"].AsString();
+        AssertThat(topName).IsEqual(expected);
+    }
 }

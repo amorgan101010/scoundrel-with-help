@@ -114,43 +114,58 @@ offset_bottom = 576.0
 text = "DISCARD"
 horizontal_alignment = 1
 
-[node name="InPlayHeader" type="Label" parent="UI"]
+[node name="SlainPile" type="Control" parent="UI"]
 offset_left = 30.0
+offset_top = 390.0
+offset_right = 180.0
+offset_bottom = 405.0
+mouse_filter = 1
+script = ExtResource("4_pile")
+enable_drop_zone = false
+card_face_up = true
+allow_card_movement = false
+restrict_to_top_card = false
+layout = 0
+stack_display_gap = 20
+max_stack_display = 4
+
+[node name="InPlayHeader" type="Label" parent="UI"]
+offset_left = 215.0
 offset_top = 335.0
-offset_right = 200.0
+offset_right = 385.0
 offset_bottom = 356.0
 theme_override_font_sizes/font_size = 13
 theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
 text = "IN PLAY:"
 
 [node name="ClubsLabel" type="Label" parent="UI"]
-offset_left = 30.0
+offset_left = 215.0
 offset_top = 358.0
-offset_right = 200.0
+offset_right = 385.0
 offset_bottom = 382.0
 theme_override_font_sizes/font_size = 16
 text = "♣  13"
 
 [node name="SpadesLabel" type="Label" parent="UI"]
-offset_left = 30.0
+offset_left = 215.0
 offset_top = 386.0
-offset_right = 200.0
+offset_right = 385.0
 offset_bottom = 410.0
 theme_override_font_sizes/font_size = 16
 text = "♠  13"
 
 [node name="HeartsLabel" type="Label" parent="UI"]
-offset_left = 30.0
+offset_left = 215.0
 offset_top = 414.0
-offset_right = 200.0
+offset_right = 385.0
 offset_bottom = 438.0
 theme_override_font_sizes/font_size = 16
 text = "♥  9"
 
 [node name="DiamondsLabel" type="Label" parent="UI"]
-offset_left = 30.0
+offset_left = 215.0
 offset_top = 442.0
-offset_right = 200.0
+offset_right = 385.0
 offset_bottom = 466.0
 theme_override_font_sizes/font_size = 16
 text = "♦  9"

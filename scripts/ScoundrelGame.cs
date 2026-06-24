@@ -14,6 +14,7 @@ public partial class ScoundrelGame : Node
     private Node _deckPile = null!;
     private Node _discardPile = null!;
     private Node _weaponSlot = null!;
+    private Node _slainPile = null!;
     private Node _roomContainer = null!;
     private Label _healthLabel = null!;
     private Label _weaponLabel = null!;
@@ -34,6 +35,8 @@ public partial class ScoundrelGame : Node
     private GameEngine _engine = null!;
     // Maps card name (e.g. "ace_clubs") → its live GodotObject node
     private readonly SysCollections.Dictionary<string, GodotObject> _godotCards = new();
+    // Godot card nodes currently displayed in the slain pile (killed with weapon)
+    private readonly SysCollections.List<GodotObject> _slainGodotCards = new();
 
     // ── Suit tracking (UI labels only — not game logic) ───────────────────
     private int _inPlayClubs;
@@ -58,6 +61,7 @@ public partial class ScoundrelGame : Node
         _deckPile       = GetNode<Node>("UI/DeckPile");
         _discardPile    = GetNode<Node>("UI/DiscardPile");
         _weaponSlot     = GetNode<Node>("UI/WeaponSlot");
+        _slainPile      = GetNode<Node>("UI/SlainPile");
         _roomContainer  = GetNode<Node>("UI/RoomContainer");
         _healthLabel    = GetNode<Label>("UI/HealthLabel");
         _weaponLabel    = GetNode<Label>("UI/WeaponLabel");
@@ -95,10 +99,12 @@ public partial class ScoundrelGame : Node
         _inPlayDiamonds = 9;
         _statusLabel.Text = "";
 
+        _slainGodotCards.Clear();
         _roomContainer.Call("clear_cards");
         _deckPile.Call("clear_cards");
         _discardPile.Call("clear_cards");
         _weaponSlot.Call("clear_cards");
+        _slainPile.Call("clear_cards");
 
         // Build the shuffled CardModel deck — GameEngine is authoritative for order.
         var deck = BuildDeck();
@@ -169,6 +175,9 @@ public partial class ScoundrelGame : Node
         var oldWeapon          = _engine.EquippedWeapon;
         bool potionUsedBefore  = _engine.PotionUsedThisRoom;
         bool potionWastedBefore = _engine.PotionWastedThisRoom;
+        bool willUseWeapon     = cardModel.IsMonster
+            && _engine.EquippedWeapon != null
+            && ScoundrelRules.CanUseWeapon(cardModel.MonsterValue, _engine.WeaponFloor);
 
         _engine.TakeCard(cardModel);
 
@@ -178,7 +187,10 @@ public partial class ScoundrelGame : Node
             case Suit.Clubs:
             case Suit.Spades:
                 DecrementSuit(cardModel);
-                MoveToDiscard(card);
+                if (willUseWeapon)
+                    MoveToSlain(card);
+                else
+                    MoveToDiscard(card);
                 break;
 
             case Suit.Hearts:
@@ -194,6 +206,7 @@ public partial class ScoundrelGame : Node
                 if (oldWeapon != null)
                 {
                     DecrementSuit(oldWeapon);
+                    DiscardSlainCards();
                     MoveToDiscard(_godotCards[oldWeapon.Name]);
                 }
                 ResetCardScale(card);
@@ -280,6 +293,21 @@ public partial class ScoundrelGame : Node
         ResetCardScale(card);
         card.Set("modulate", new Color(1f, 1f, 1f));
         _discardPile.Call("move_cards", new Array { card }, -1, false);
+    }
+
+    private void MoveToSlain(GodotObject card)
+    {
+        ResetCardScale(card);
+        card.Set("modulate", new Color(1f, 1f, 1f));
+        _slainPile.Call("move_cards", new Array { card }, -1, false);
+        _slainGodotCards.Add(card);
+    }
+
+    private void DiscardSlainCards()
+    {
+        foreach (var slainCard in _slainGodotCards)
+            MoveToDiscard(slainCard);
+        _slainGodotCards.Clear();
     }
 
     private static void ResetCardScale(GodotObject card)

@@ -115,3 +115,44 @@
 | 15:20 | Fixed flaky test assertions | ScoundrelSceneTests.cs | Removed AssertThat(card).IsNotNull() that fails on random rooms; skip gracefully | ~100 |
 | 15:25 | Fixed game-over flaky test | ScoundrelSceneTests.cs | 3 random monsters can deal 20 dmg → game over → button hidden; prefer non-monsters + guard | ~120 |
 | 15:30 | Verified 8 consecutive passes | — | All 7 tests pass consistently across 8 runs | ~50 |
+
+## Session: 2026-06-24 11:22
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 11:24 | Created README.md | — | ~763 |
+| 11:24 | Session end: 1 writes across 1 files (README.md) | 1 reads | ~997 tok |
+| 11:25 | Session end: 1 writes across 1 files (README.md) | 1 reads | ~997 tok |
+| 11:26 | Session end: 1 writes across 1 files (README.md) | 1 reads | ~997 tok |
+
+## Session: 2026-06-24 11:26
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 11:34 | Edited scenes/Game.tscn | expanded (+15 lines) | ~360 |
+| 11:34 | Edited scripts/ScoundrelGame.cs | 6→7 lines | ~82 |
+| 11:34 | Edited scripts/ScoundrelGame.cs | 4→6 lines | ~117 |
+| 11:34 | Edited scripts/ScoundrelGame.cs | 5→6 lines | ~93 |
+| 11:34 | Edited scripts/ScoundrelGame.cs | 4→6 lines | ~64 |
+| 11:34 | Edited scripts/ScoundrelGame.cs | added 1 condition(s) | ~416 |
+| 11:34 | Edited scripts/ScoundrelGame.cs | modified MoveToDiscard() | ~171 |
+
+| 15:50 | Added SlainPile to Game.tscn + ScoundrelGame.cs routing; moved IN PLAY labels right | scenes/Game.tscn, scripts/ScoundrelGame.cs | Slain monsters now display below weapon slot and discard with it | ~400 |
+| 11:35 | Session end: 7 writes across 2 files (Game.tscn, ScoundrelGame.cs) | 6 reads | ~10208 tok |
+| 11:41 | Session end: 7 writes across 2 files (Game.tscn, ScoundrelGame.cs) | 11 reads | ~10208 tok |
+| 11:45 | Edited scripts/ScoundrelGame.cs | Add() → Insert() | ~68 |
+| 11:45 | Session end: 8 writes across 2 files (Game.tscn, ScoundrelGame.cs) | 11 reads | ~10280 tok |
+| 12:04 | Edited scenes/Game.tscn | 14→14 lines | ~90 |
+
+## Session: 2026-06-24 12:04
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 12:04 | Edited scripts/ScoundrelGame.cs | Insert() → Add() | ~66 |
+| 12:05 | Edited scene_tests/ScoundrelSceneTests.cs | added 14 condition(s) | ~1528 |
+
+| 12:05 | Fixed SlainPile z-order: layout DOWN→UP, offset_top 330→390; MoveToSlain: position=0→-1, Insert→Add | Game.tscn, ScoundrelGame.cs | Lowest-value kill now highest on screen AND highest z-index | ~120 |
+| 12:05 | Added 3 scene tests: WeaponedMonsterGoesToSlainPile, DiscardPileTopCardIsNewest, ExpiredWeaponFloorMonsterGoesToDiscard | ScoundrelSceneTests.cs | Covers slain-routing and discard-ordering bug scenario | ~180 |
+| 12:06 | Session end: 2 writes across 2 files (ScoundrelGame.cs, ScoundrelSceneTests.cs) | 1 reads | ~3819 tok |
+| 12:07 | Session end: 2 writes across 2 files (ScoundrelGame.cs, ScoundrelSceneTests.cs) | 1 reads | ~3819 tok |
+| 12:07 | Session end: 2 writes across 2 files (ScoundrelGame.cs, ScoundrelSceneTests.cs) | 1 reads | ~3819 tok |
