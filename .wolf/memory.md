@@ -61,3 +61,13 @@
 | 01:32 | Created tests/GameEngineTests.cs | — | ~4864 |
 | 01:33 | Edited ScoundrelWithHelp.csproj | 2→5 lines | ~26 |
 | 01:33 | Session end: 12 writes across 8 files (.gitignore, CardModel.cs, CardData.cs, ScoundrelGame.cs, GameEngine.cs) | 3 reads | ~7674 tok |
+| 01:34 | Session end: 12 writes across 8 files (.gitignore, CardModel.cs, CardData.cs, ScoundrelGame.cs, GameEngine.cs) | 3 reads | ~7674 tok |
+| 01:35 | Session end: 12 writes across 8 files (.gitignore, CardModel.cs, CardData.cs, ScoundrelGame.cs, GameEngine.cs) | 3 reads | ~7674 tok |
+| 01:50 | Created scripts/ScoundrelGame.cs | — | ~3323 |
+| 01:50 | Edited scripts/ScoundrelGame.cs | inline fix | ~27 |
+| 01:50 | Edited scripts/ScoundrelGame.cs | 2→1 lines | ~5 |
+| 01:50 | Edited scripts/ScoundrelGame.cs | 3→4 lines | ~29 |
+| 01:51 | Edited scripts/ScoundrelGame.cs | inline fix | ~24 |
+| 01:51 | Edited scripts/ScoundrelGame.cs | inline fix | ~15 |
+| 01:51 | Edited scripts/ScoundrelGame.cs | inline fix | ~15 |
+| 01:51 | Session end: 19 writes across 8 files (.gitignore, CardModel.cs, CardData.cs, ScoundrelGame.cs, GameEngine.cs) | 4 reads | ~15091 tok |

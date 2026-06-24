@@ -48,6 +48,22 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-06-24T05:28:26.774Z"
+    },
+    {
+      "id": "bug-004",
+      "timestamp": "2026-06-24T05:50:46.173Z",
+      "error_message": "Wrong reference: Collections should be Linq",
+      "file": "scripts/ScoundrelGame.cs",
+      "root_cause": "Used \"Collections\" instead of \"Linq\"",
+      "fix": "Changed Collections → Linq",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "cs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-24T05:50:46.173Z"
     }
   ]
 }

@@ -1,14 +1,15 @@
 using Godot;
 using Godot.Collections;
+using System.Linq;
+using SysCollections = System.Collections.Generic;
 
 /// <summary>
-/// Central game controller for Scoundrel solitaire.
-/// Owns all mutable game state; the GDScript card-framework handles visuals.
-/// Attached to the root Game node in Game.tscn.
+/// Godot bridge for Scoundrel. Owns node references and visual card movements.
+/// All game-state decisions are delegated to GameEngine.
 /// </summary>
 public partial class ScoundrelGame : Node
 {
-    // ── Node references (resolved in _Ready via GetNode) ──────────────────
+    // ── Node references ───────────────────────────────────────────────────
     private Node _cardManager = null!;
     private Node _deckPile = null!;
     private Node _discardPile = null!;
@@ -29,33 +30,26 @@ public partial class ScoundrelGame : Node
     private Button _helpButton = null!;
     private AcceptDialog _helpDialog = null!;
 
-    // ── Game state ────────────────────────────────────────────────────────
-    private int _health = ScoundrelRules.StartHealth;
+    // ── Game engine + Godot card bridge ───────────────────────────────────
+    private GameEngine _engine = null!;
+    // Maps card name (e.g. "ace_clubs") → its live GodotObject node
+    private readonly SysCollections.Dictionary<string, GodotObject> _godotCards = new();
 
-    // ── Suit tracking (cards still in play = deck + room + weapon slot) ───
+    // ── Suit tracking (UI labels only — not game logic) ───────────────────
     private int _inPlayClubs;
     private int _inPlaySpades;
     private int _inPlayHearts;
     private int _inPlayDiamonds;
 
-    private CardModel? _equippedWeapon;
-    // Weapon degrades: can only hit a monster WEAKER than the last one fought with this weapon.
-    private int _weaponFloor = int.MaxValue;
-
-    private bool _potionUsedThisRoom;
-    private bool _ranLastRoom;
-    private int _cardsTakenThisRoom;
-    private bool _gameOver;
-
     // ── Cached factory reference ──────────────────────────────────────────
     private GodotObject _cardFactory = null!;
 
-    // ── Card names (all 44 in deck order before shuffle) ─────────────────
+    // ── Card name tables ──────────────────────────────────────────────────
     private static readonly string[] Ranks =
         { "ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "jack", "queen", "king" };
-    private static readonly string[] MonsterSuits  = { "clubs", "spades" };
-    private static readonly string[] RedRanks      = { "2", "3", "4", "5", "6", "7", "8", "9", "10" };
-    private static readonly string[] RedSuits      = { "hearts", "diamonds" };
+    private static readonly string[] MonsterSuits = { "clubs", "spades" };
+    private static readonly string[] RedRanks     = { "2", "3", "4", "5", "6", "7", "8", "9", "10" };
+    private static readonly string[] RedSuits     = { "hearts", "diamonds" };
 
     // ── Godot lifecycle ───────────────────────────────────────────────────
     public override void _Ready()
@@ -83,239 +77,170 @@ public partial class ScoundrelGame : Node
         _cardFactory = (GodotObject)_cardManager.Get("card_factory");
 
         _roomContainer.Connect("card_selected", Callable.From<GodotObject>(OnCardSelected));
-        _runButton.Connect("pressed", Callable.From(OnRunPressed));
+        _runButton.Connect("pressed",     Callable.From(OnRunPressed));
         _nextRoomButton.Connect("pressed", Callable.From(OnNextRoomPressed));
-        _retryButton.Connect("pressed", Callable.From(OnRetryPressed));
-        _helpButton.Connect("pressed", Callable.From(OnHelpPressed));
-
-        _nextRoomButton.Visible = false;
+        _retryButton.Connect("pressed",   Callable.From(OnRetryPressed));
+        _helpButton.Connect("pressed",    Callable.From(OnHelpPressed));
 
         StartGame();
-        UpdateUI();
     }
 
     // ── Setup ─────────────────────────────────────────────────────────────
     private void StartGame()
     {
-        _health = ScoundrelRules.MaxHealth;
-        _equippedWeapon = null;
-        _weaponFloor = int.MaxValue;
-        _potionUsedThisRoom = false;
-        _ranLastRoom = false;
-        _cardsTakenThisRoom = 0;
-        _gameOver = false;
-        _statusLabel.Text = "";
-        _nextRoomButton.Visible = false;
-        _runButton.Disabled = false;
-
+        _godotCards.Clear();
         _inPlayClubs    = 13;
         _inPlaySpades   = 13;
         _inPlayHearts   = 9;
         _inPlayDiamonds = 9;
+        _statusLabel.Text = "";
 
         _roomContainer.Call("clear_cards");
         _deckPile.Call("clear_cards");
         _discardPile.Call("clear_cards");
         _weaponSlot.Call("clear_cards");
 
-        foreach (var suit in MonsterSuits)
-            foreach (var rank in Ranks)
-                _cardFactory.Call("create_card", $"{rank}_{suit}", _deckPile);
+        // Build the shuffled CardModel deck — GameEngine is authoritative for order.
+        var deck = BuildDeck();
+        var rng  = new System.Random();
+        deck = deck.OrderBy(_ => rng.Next()).ToList();
 
-        foreach (var suit in RedSuits)
-            foreach (var rank in RedRanks)
-                _cardFactory.Call("create_card", $"{rank}_{suit}", _deckPile);
-
-        _deckPile.Call("shuffle");
-        DealRoom();
-    }
-
-    // ── Room management ───────────────────────────────────────────────────
-    private void DealRoom()
-    {
-        _potionUsedThisRoom = false;
-        _cardsTakenThisRoom = 0;
-        _nextRoomButton.Visible = false;
-        ResetRoomCardTints();
-
-        int alreadyInRoom = (int)_roomContainer.Call("get_card_count");
-        int needed = 4 - alreadyInRoom;
-
-        for (int i = 0; i < needed; i++)
+        // Create matching Godot card nodes (all start in the deck pile).
+        foreach (var cardModel in deck)
         {
-            var top = (Array)_deckPile.Call("get_top_cards", 1);
-            if (top.Count == 0) break;
-            var card = top[0].AsGodotObject();
-            _roomContainer.Call("move_cards", new Array { card }, -1, false);
+            var godotCard = _cardFactory.Call("create_card", cardModel.Name, _deckPile).AsGodotObject();
+            _godotCards[cardModel.Name] = godotCard;
         }
 
-        if ((int)_roomContainer.Call("get_card_count") == 0)
-            Win();
-    }
-
-    private void AdvanceRoom()
-    {
-        _ranLastRoom = false;
-        DealRoom();
+        // Engine auto-deals room 1 in its constructor; sync Godot visuals to match.
+        _engine = new GameEngine(deck);
+        SyncRoomToGodot();
         UpdateUI();
     }
 
-    // ── Card selection (fired by RoomContainer on mouse press) ────────────
+    private SysCollections.List<CardModel> BuildDeck()
+    {
+        var deck = new SysCollections.List<CardModel>();
+        foreach (var suit in MonsterSuits)
+            foreach (var rank in Ranks)
+            {
+                var s = suit == "clubs" ? Suit.Clubs : Suit.Spades;
+                deck.Add(new CardModel(s, RankToInt(rank), $"{rank}_{suit}"));
+            }
+        foreach (var suit in RedSuits)
+            foreach (var rank in RedRanks)
+            {
+                var s = suit == "hearts" ? Suit.Hearts : Suit.Diamonds;
+                deck.Add(new CardModel(s, int.Parse(rank), $"{rank}_{suit}"));
+            }
+        return deck;
+    }
+
+    // ── Room sync ─────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Moves any engine.Room cards that aren't already in the Godot room container.
+    /// Called after every engine action that may have dealt new cards.
+    /// </summary>
+    private void SyncRoomToGodot()
+    {
+        ResetRoomCardTints();
+
+        var alreadyInRoom = ((Array)_roomContainer.Call("get_all_cards"))
+            .Select(v => v.AsGodotObject().Get("card_info").AsGodotDictionary()["name"].AsString())
+            .ToHashSet();
+
+        foreach (var cardModel in _engine.Room)
+        {
+            if (!alreadyInRoom.Contains(cardModel.Name))
+                _roomContainer.Call("move_cards", new Array { _godotCards[cardModel.Name] }, -1, false);
+        }
+    }
+
+    // ── Card selection ────────────────────────────────────────────────────
     private void OnCardSelected(GodotObject card)
     {
-        if (_gameOver) return;
+        if (_engine.IsOver) return;
 
-        var data = CardData.FromGodotCard(card);
+        var name = card.Get("card_info").AsGodotDictionary()["name"].AsString();
+        var cardModel = _engine.Room.FirstOrDefault(c => c.Name == name);
+        if (cardModel is null) return;
 
-        switch (data.Suit)
+        var oldWeapon          = _engine.EquippedWeapon;
+        bool potionUsedBefore  = _engine.PotionUsedThisRoom;
+        bool potionWastedBefore = _engine.PotionWastedThisRoom;
+
+        _engine.TakeCard(cardModel);
+
+        // Visual side-effects per card type
+        switch (cardModel.Suit)
         {
             case Suit.Clubs:
             case Suit.Spades:
-                ApplyMonsterDamage(data);
-                DecrementSuit(data);
+                DecrementSuit(cardModel);
                 MoveToDiscard(card);
                 break;
 
             case Suit.Hearts:
-                if (!_potionUsedThisRoom)
-                {
-                    _health = ScoundrelRules.Heal(_health, data.Rank);
-                    _potionUsedThisRoom = true;
-                    TintRemainingPotions();
-                }
-                else
-                {
+                if (!potionWastedBefore && _engine.PotionWastedThisRoom)
                     ShowBriefMessage("Potion wasted! (one per room)");
-                }
-                DecrementSuit(data);
+                else if (!potionUsedBefore && _engine.PotionUsedThisRoom)
+                    TintRemainingPotions();
+                DecrementSuit(cardModel);
                 MoveToDiscard(card);
                 break;
 
             case Suit.Diamonds:
-                EquipWeapon(card, data);
+                if (oldWeapon != null)
+                {
+                    DecrementSuit(oldWeapon);
+                    MoveToDiscard(_godotCards[oldWeapon.Name]);
+                }
+                ResetCardScale(card);
+                _weaponSlot.Call("move_cards", new Array { card }, -1, false);
                 break;
         }
 
-        _cardsTakenThisRoom++;
-        CheckRoomProgress();
+        if (_engine.GameOver) { ShowGameOver(); UpdateUI(); return; }
+        if (_engine.Won)      { ShowWin();      UpdateUI(); return; }
+
+        // Sync any new room cards the engine may have dealt (auto-advance).
+        SyncRoomToGodot();
         UpdateUI();
     }
 
-    private void ApplyMonsterDamage(CardModel data)
-    {
-        int damage = data.MonsterValue;
-
-        if (_equippedWeapon != null && ScoundrelRules.CanUseWeapon(data.MonsterValue, _weaponFloor))
-        {
-            damage = ScoundrelRules.CalcDamage(data.MonsterValue, _equippedWeapon.WeaponValue);
-            _weaponFloor = ScoundrelRules.NextWeaponFloor(data.MonsterValue);
-        }
-
-        _health = System.Math.Max(0, _health - damage);
-    }
-
-    private void EquipWeapon(GodotObject card, CardModel data)
-    {
-        // Move old weapon to discard
-        if (_equippedWeapon != null)
-        {
-            DecrementSuit(_equippedWeapon);
-            var old = (Array)_weaponSlot.Call("get_top_cards", 1);
-            if (old.Count > 0)
-                MoveToDiscard(old[0].AsGodotObject());
-        }
-
-        _equippedWeapon = data;
-        _weaponFloor = int.MaxValue;
-
-        ResetCardScale(card);
-        _weaponSlot.Call("move_cards", new Array { card }, -1, false);
-    }
-
-    private void CheckRoomProgress()
-    {
-        if (_health <= 0)
-        {
-            GameOver();
-            return;
-        }
-
-        int left = (int)_roomContainer.Call("get_card_count");
-
-        if (left == 0)
-        {
-            // All cards taken — advance immediately
-            int deckLeft = (int)_deckPile.Call("get_card_count");
-            if (deckLeft == 0)
-                Win();
-            else
-                AdvanceRoom();
-        }
-        else if (_cardsTakenThisRoom >= 3)
-        {
-            // Player may end room now (1 card carries over) or take the last card
-            _nextRoomButton.Visible = true;
-        }
-    }
-
     // ── Buttons ───────────────────────────────────────────────────────────
-    private void OnNextRoomPressed()
-    {
-        if (_gameOver) return;
-        AdvanceRoom();
-    }
-
     private void OnRunPressed()
     {
-        if (_gameOver || _ranLastRoom) return;
+        if (!_engine.CanRun) return;
 
-        var runCards = (Array)_roomContainer.Call("get_all_cards");
-        var monsters = new Array();
-        var others = new Array();
+        // Capture room Godot cards before engine clears them.
+        var roomGodotCards = _engine.Room.Select(c => _godotCards[c.Name]).ToList();
 
-        foreach (var cardVariant in runCards)
+        _engine.Run();
+
+        // Return old room cards to the deck pile (face-down, any position is fine).
+        foreach (var godotCard in roomGodotCards)
         {
-            var c = cardVariant.AsGodotObject();
-            ResetCardScale(c);
-            var data = CardData.FromGodotCard(c);
-            if (data.Suit == Suit.Clubs || data.Suit == Suit.Spades)
-                monsters.Add(c);
-            else
-                others.Add(c);
+            godotCard.Set("modulate", new Color(1f, 1f, 1f));
+            _deckPile.Call("move_cards", new Array { godotCard }, 0, false);
         }
 
-        // Potions and weapons settle to the bottom of the deck
-        foreach (var cardVariant in others)
-        {
-            var c = cardVariant.AsGodotObject();
-            c.Set("modulate", new Color(1f, 1f, 1f));
-            c.Set("show_front", false);
-            c.Set("can_be_interacted_with", false);
-            _deckPile.Call("move_cards", new Array { c }, 0, false);
-        }
+        SyncRoomToGodot();
+        UpdateUI();
+    }
 
-        // Monsters wander into random positions in the deck
-        int deckSize = (int)_deckPile.Call("get_card_count");
-        foreach (var cardVariant in monsters)
-        {
-            var c = cardVariant.AsGodotObject();
-            c.Set("modulate", new Color(1f, 1f, 1f));
-            c.Set("show_front", false);
-            c.Set("can_be_interacted_with", false);
-            int insertAt = (int)GD.RandRange(0L, (long)deckSize);
-            _deckPile.Call("move_cards", new Array { c }, insertAt, false);
-            deckSize++;
-        }
-
-        _ranLastRoom = true;
-        DealRoom();
+    private void OnNextRoomPressed()
+    {
+        if (!_engine.CanNextRoom) return;
+        _engine.NextRoom();
+        SyncRoomToGodot();
         UpdateUI();
     }
 
     private void OnRetryPressed()
     {
         StartGame();
-        UpdateUI();
     }
 
     private void OnHelpPressed()
@@ -323,34 +248,31 @@ public partial class ScoundrelGame : Node
         _helpDialog.PopupCentered();
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────
-    private void DecrementSuit(CardModel data)
+    // ── End states ────────────────────────────────────────────────────────
+    private void ShowGameOver()
     {
-        switch (data.Suit)
-        {
-            case Suit.Clubs:    _inPlayClubs--;    break;
-            case Suit.Spades:   _inPlaySpades--;   break;
-            case Suit.Hearts:   _inPlayHearts--;   break;
-            case Suit.Diamonds: _inPlayDiamonds--; break;
-        }
+        _statusLabel.Text = "YOU DIED";
+        foreach (var cardModel in _engine.Room)
+            _godotCards[cardModel.Name].Set("can_be_interacted_with", false);
     }
 
+    private void ShowWin()
+    {
+        _statusLabel.Text = "YOU WIN!";
+    }
+
+    // ── Visual helpers ────────────────────────────────────────────────────
     private void TintRemainingPotions()
     {
         var dimmed = new Color(0.55f, 0.55f, 0.55f);
-        foreach (var cardVar in (Array)_roomContainer.Call("get_all_cards"))
-        {
-            var c = cardVar.AsGodotObject();
-            var info = c.Get("card_info").AsGodotDictionary();
-            if (info["suit"].AsString() == "hearts")
-                c.Set("modulate", dimmed);
-        }
+        foreach (var cardModel in _engine.Room.Where(c => c.IsPotion))
+            _godotCards[cardModel.Name].Set("modulate", dimmed);
     }
 
     private void ResetRoomCardTints()
     {
-        foreach (var cardVar in (Array)_roomContainer.Call("get_all_cards"))
-            cardVar.AsGodotObject().Set("modulate", new Color(1f, 1f, 1f));
+        foreach (var cardModel in _engine.Room)
+            _godotCards[cardModel.Name].Set("modulate", new Color(1f, 1f, 1f));
     }
 
     private void MoveToDiscard(GodotObject card)
@@ -361,8 +283,17 @@ public partial class ScoundrelGame : Node
     }
 
     private static void ResetCardScale(GodotObject card)
+        => card.Set("scale", new Vector2(1f, 1f));
+
+    private void DecrementSuit(CardModel card)
     {
-        card.Set("scale", new Vector2(1f, 1f));
+        switch (card.Suit)
+        {
+            case Suit.Clubs:    _inPlayClubs--;    break;
+            case Suit.Spades:   _inPlaySpades--;   break;
+            case Suit.Hearts:   _inPlayHearts--;   break;
+            case Suit.Diamonds: _inPlayDiamonds--; break;
+        }
     }
 
     private void ShowBriefMessage(string text)
@@ -374,19 +305,20 @@ public partial class ScoundrelGame : Node
 
     private void UpdateUI()
     {
-        _healthLabel.Text = $"HP: {_health} / {ScoundrelRules.MaxHealth}";
+        _healthLabel.Text = $"HP: {_engine.Health} / {ScoundrelRules.MaxHealth}";
 
-        if (_equippedWeapon != null)
+        if (_engine.EquippedWeapon != null)
         {
-            string floor = _weaponFloor == int.MaxValue ? "any" : $"< {_weaponFloor}";
-            _weaponLabel.Text = $"Weapon: {_equippedWeapon.Name}  (next: {floor})";
+            string floor = _engine.WeaponFloor == int.MaxValue ? "any" : $"< {_engine.WeaponFloor}";
+            _weaponLabel.Text = $"Weapon: {_engine.EquippedWeapon.Name}  (next: {floor})";
         }
         else
         {
             _weaponLabel.Text = "Weapon: none";
         }
 
-        _runButton.Disabled = _ranLastRoom;
+        _runButton.Disabled     = !_engine.CanRun;
+        _nextRoomButton.Visible = _engine.CanNextRoom;
 
         int deckCount    = (int)_deckPile.Call("get_card_count");
         int discardCount = (int)_discardPile.Call("get_card_count");
@@ -399,23 +331,13 @@ public partial class ScoundrelGame : Node
         _diamondsLabel.Text = $"♦  {_inPlayDiamonds}";
     }
 
-    private void GameOver()
+    // ── Utilities ─────────────────────────────────────────────────────────
+    private static int RankToInt(string rank) => rank switch
     {
-        _gameOver = true;
-        _statusLabel.Text = "YOU DIED";
-        _runButton.Disabled = true;
-        _nextRoomButton.Visible = false;
-
-        // Freeze all room cards
-        foreach (var card in (Array)_roomContainer.Call("get_all_cards"))
-            card.AsGodotObject().Set("can_be_interacted_with", false);
-    }
-
-    private void Win()
-    {
-        _gameOver = true;
-        _statusLabel.Text = "YOU WIN!";
-        _runButton.Disabled = true;
-        _nextRoomButton.Visible = false;
-    }
+        "ace"   => 1,
+        "jack"  => 11,
+        "queen" => 12,
+        "king"  => 13,
+        _       => int.Parse(rank),
+    };
 }
