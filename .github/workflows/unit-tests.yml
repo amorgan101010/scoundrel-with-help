@@ -16,6 +16,9 @@ jobs:
         with:
           dotnet-version: '8.0'
 
+      - name: Create Godot NuGet stub
+        run: mkdir -p /usr/lib/godot-mono/GodotSharp/Tools/nupkgs
+
       - name: Restore
         run: dotnet restore tests/ScoundrelTests.csproj
 

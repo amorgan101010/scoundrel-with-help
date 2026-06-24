@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  GODOT_VERSION: "4.7.0"
+  GODOT_STATUS: "stable"
+
 jobs:
   scene-tests:
     name: gdUnit4 Scene Tests
@@ -14,21 +18,38 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Downloads Godot, runs gdUnit4 tests headlessly via Xvfb.
-      # If 4.7.0 isn't a listed stable release yet, change godot-status to 'dev' or 'rc'.
-      - uses: MikeSchulze/gdUnit4-action@v1
+      - uses: actions/setup-dotnet@v4
         with:
-          godot-version: '4.7.0'
-          godot-status: 'stable'
-          godot-net: 'true'
-          paths: |
-            res://scene_tests/
-          timeout: 10
-          report-name: scene-test-report
+          dotnet-version: '8.0'
 
-      - name: Upload test report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: scene-test-report
-          path: reports/
+      - name: Install Xvfb
+        run: sudo apt-get install -y --no-install-recommends xvfb
+
+      - name: Download Godot .NET
+        run: |
+          FILENAME="Godot_v${GODOT_VERSION}-${GODOT_STATUS}_mono_linux_x86_64.zip"
+          curl -fsSL "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-${GODOT_STATUS}/${FILENAME}" -o godot.zip
+          unzip -q godot.zip
+          GODOT_DIR="$GITHUB_WORKSPACE/Godot_v${GODOT_VERSION}-${GODOT_STATUS}_mono_linux_x86_64"
+          GODOT_BIN="$GODOT_DIR/Godot_v${GODOT_VERSION}-${GODOT_STATUS}_mono_linux_x86_64"
+          chmod +x "$GODOT_BIN"
+          echo "GODOT_DIR=$GODOT_DIR" >> $GITHUB_ENV
+          echo "GODOT_BIN=$GODOT_BIN" >> $GITHUB_ENV
+
+      - name: Point NuGet at downloaded GodotSharp
+        run: |
+          dotnet nuget update source GodotLocal \
+            --source "$GODOT_DIR/GodotSharp/Tools/nupkgs" \
+            --configfile NuGet.Config
+
+      - name: Build C# project
+        run: dotnet build ScoundrelWithHelp.csproj --configuration Debug --nologo -v quiet
+
+      - name: Reimport assets
+        run: xvfb-run "$GODOT_BIN" --path "$GITHUB_WORKSPACE" --import --quit 2>/dev/null || true
+
+      - name: Run scene tests
+        run: |
+          xvfb-run "$GODOT_BIN" --path "$GITHUB_WORKSPACE" \
+            -s res://addons/gdUnit4/bin/GdUnitCmdTool.gd \
+            -a res://scene_tests/
