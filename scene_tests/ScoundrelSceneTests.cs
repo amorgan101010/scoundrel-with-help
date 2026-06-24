@@ -63,6 +63,30 @@ public class ScoundrelSceneTests
         return rank == 1 ? 14 : rank;  // ace counts as 14
     }
 
+    // Simulate a real mouse click on a card using the scene runner's input API.
+    private async Task MouseClickCard(GodotObject card)
+    {
+        var pos = (Vector2)card.Get("global_position");
+        _runner!.SimulateMouseMove(pos);
+        await _runner!.AwaitMillis(100);  // let hover state register
+        _runner!.SimulateMouseButtonPressed(MouseButton.Left, false);
+        await _runner!.AwaitMillis(500);  // wait for game logic + animation
+    }
+
+    // Simulate a mouse drag: press on card, move 80 px right, release.
+    private async Task MouseDragCard(GodotObject card)
+    {
+        var pos = (Vector2)card.Get("global_position");
+        _runner!.SimulateMouseMove(pos);
+        await _runner!.AwaitMillis(100);
+        _runner!.SimulateMouseButtonPress(MouseButton.Left, false);
+        await _runner!.AwaitMillis(80);
+        _runner!.SimulateMouseMove(pos + new Vector2(80f, 0f));
+        await _runner!.AwaitMillis(80);
+        _runner!.SimulateMouseButtonRelease(MouseButton.Left);
+        await _runner!.AwaitMillis(500);
+    }
+
     // ── Tests ─────────────────────────────────────────────────────────────────
 
     [TestCase(Description = "Game starts with full HP, 40-card deck, no weapon, 4 room cards")]
@@ -261,6 +285,71 @@ public class ScoundrelSceneTests
         var topName  = topCards[0].AsGodotObject().Get("card_info").AsGodotDictionary()["name"].AsString();
         var expected = second.Get("card_info").AsGodotDictionary()["name"].AsString();
         AssertThat(topName).IsEqual(expected);
+    }
+
+    [TestCase(Description = "Real mouse click on a room card (via SimulateMouseButtonPressed) takes the card")]
+    public async Task MouseClickTakesCard()
+    {
+        var scene = _runner!.Scene();
+        var room  = scene.GetNode("UI/RoomContainer");
+
+        var cards = (GArray)room.Call("get_all_cards");
+        AssertThat(cards.Count).IsEqual(4);
+
+        await MouseClickCard(cards[0].AsGodotObject());
+
+        if (ParseHP(scene) <= 0) return;  // monster killed us — outcome valid but can't check room
+        var after = (GArray)room.Call("get_all_cards");
+        AssertThat(after.Count).IsEqual(3);
+    }
+
+    [TestCase(Description = "Dragging a room card and releasing it takes the card (same outcome as clicking)")]
+    public async Task MouseDragTakesCard()
+    {
+        var scene = _runner!.Scene();
+        var room  = scene.GetNode("UI/RoomContainer");
+
+        var cards = (GArray)room.Call("get_all_cards");
+        AssertThat(cards.Count).IsEqual(4);
+
+        await MouseDragCard(cards[0].AsGodotObject());
+
+        if (ParseHP(scene) <= 0) return;
+        var after = (GArray)room.Call("get_all_cards");
+        AssertThat(after.Count).IsEqual(3);
+    }
+
+    [TestCase(Description = "Drag and click produce identical game outcomes for the same card type")]
+    public async Task DragAndClickProduceSameOutcome()
+    {
+        // Test 1: click a card, record outcome.
+        var scene = _runner!.Scene();
+        var room  = scene.GetNode("UI/RoomContainer");
+
+        var cards = (GArray)room.Call("get_all_cards");
+        var card  = cards[0].AsGodotObject();
+        int hpBefore = ParseHP(scene);
+
+        await MouseClickCard(card);
+        int hpAfterClick = ParseHP(scene);
+        int deckAfterClick = (int)scene.GetNode("UI/DeckPile").Call("get_card_count");
+
+        // Reset for the drag test via Retry
+        scene.GetNode<Button>("UI/RetryButton").EmitSignal("pressed");
+        await _runner!.AwaitMillis(200);
+
+        // Test 2: drag the same-index card (different instance, same room slot).
+        var cards2 = (GArray)room.Call("get_all_cards");
+        var card2  = cards2[0].AsGodotObject();
+        AssertThat(ParseHP(scene)).IsEqual(hpBefore);  // HP reset
+
+        await MouseDragCard(card2);
+        int hpAfterDrag = ParseHP(scene);
+        int deckAfterDrag = (int)scene.GetNode("UI/DeckPile").Call("get_card_count");
+
+        // Both methods produce the same HP change and deck size.
+        AssertThat(hpAfterDrag).IsEqual(hpAfterClick);
+        AssertThat(deckAfterDrag).IsEqual(deckAfterClick);
     }
 
     [TestCase(Description = "After Run and animations settle, every room card is at a valid room slot position (regression: bug-014)")]
