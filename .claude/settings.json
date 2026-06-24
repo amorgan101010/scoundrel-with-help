@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(xwininfo *)"
+      "Bash(xwininfo *)",
+      "Bash(git push *)",
+      "Bash(git push)"
     ]
   },
   "hooks": {
