@@ -7,7 +7,7 @@
       "error_message": "Wrong reference: MaxHealth should be ScoundrelRules",
       "file": "scripts/ScoundrelGame.cs",
       "root_cause": "Used \"MaxHealth\" instead of \"ScoundrelRules\"",
-      "fix": "Changed MaxHealth \u2192 ScoundrelRules",
+      "fix": "Changed MaxHealth → ScoundrelRules",
       "tags": [
         "auto-detected",
         "wrong-reference",
@@ -23,7 +23,7 @@
       "error_message": "Wrong reference: CardData should be CardModel",
       "file": "scripts/ScoundrelGame.cs",
       "root_cause": "Used \"CardData\" instead of \"CardModel\"",
-      "fix": "Changed CardData \u2192 CardModel",
+      "fix": "Changed CardData → CardModel",
       "tags": [
         "auto-detected",
         "wrong-reference",
@@ -55,7 +55,7 @@
       "error_message": "Wrong reference: Collections should be Linq",
       "file": "scripts/ScoundrelGame.cs",
       "root_cause": "Used \"Collections\" instead of \"Linq\"",
-      "fix": "Changed Collections \u2192 Linq",
+      "fix": "Changed Collections → Linq",
       "tags": [
         "auto-detected",
         "wrong-reference",
@@ -71,7 +71,7 @@
       "error_message": "Wrong reference: Array should be GArray",
       "file": "scene_tests/ScoundrelSceneTests.cs",
       "root_cause": "Used \"Array\" instead of \"GArray\"",
-      "fix": "Changed Array \u2192 GArray",
+      "fix": "Changed Array → GArray",
       "tags": [
         "auto-detected",
         "wrong-reference",
@@ -103,7 +103,7 @@
       "error_message": "Significant refactor of ",
       "file": "scene_tests/ScoundrelSceneTests.cs",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 7\u21924 lines (2 removed)",
+      "fix": "Rewrote 7→4 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -187,6 +187,38 @@
       "related_bugs": [],
       "occurrences": 2,
       "last_seen": "2026-06-24"
+    },
+    {
+      "id": "bug-012",
+      "timestamp": "2026-06-24T15:34:01.370Z",
+      "error_message": "Significant refactor of ",
+      "file": "scenes/Game.tscn",
+      "root_cause": "5 lines replaced/restructured",
+      "fix": "Rewrote 40→55 lines (5 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tscn"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-24T15:34:01.370Z"
+    },
+    {
+      "id": "bug-013",
+      "timestamp": "2026-06-24T16:24:34.315Z",
+      "error_message": "Significant refactor of ",
+      "file": "scripts/ScoundrelGame.cs",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 7→17 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "cs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-24T16:24:34.315Z"
     }
   ]
 }

@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-24T16:05:16.593Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-24T16:24:34.306Z
 > Files: 521 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
@@ -620,7 +620,7 @@
 - `CardData.cs` — Class: CardData (~208 tok)
 - `CardModel.cs` — Godot-free card data record. Used by GameEngine and unit tests. (~126 tok)
 - `GameEngine.cs` — Pure C# game-state machine for Scoundrel. No Godot dependencies — fully integration-testable. Deck i (~1348 tok)
-- `ScoundrelGame.cs` — Godot bridge for Scoundrel. Owns node references and visual card movements. All game-state decisions (~3628 tok)
+- `ScoundrelGame.cs` — Godot bridge for Scoundrel. Owns node references and visual card movements. All game-state decisions (~3735 tok)
 - `ScoundrelRules.cs` — Pure game-logic functions for Scoundrel. No Godot dependencies — fully unit-testable. (~446 tok)
 
 ## tests/

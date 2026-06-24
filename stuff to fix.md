@@ -36,6 +36,18 @@ The monsters get attached to the weapon that slays them for a visual indicator o
 
 This will matter more with the extra rules below but the game needs some draggin and droppin.
 
+### Tooltips when hovering over cards
+
+Show how much damage you'll take and if it'll be modified by your weapon, and show how much you can heal with a potion. This will make the popup when a potion is wasted unnecessary.
+
+### A Main menu
+
+Will allow toggling between classic and extra rules, and some other stuff I have in mind
+
+### Enterable run seed
+
+That's something i have in mind for the main menu, and we'll want that for the tutorial.
+
 ### Extra Rules
 
 - The stuff in this youtube comment https://www.youtube.com/watch?v=7fP-QLtWQZs&lc=UgxnxBkhqD4AVqT_quF4AaABAg:
@@ -67,3 +79,7 @@ For when help is not enough!
 ### Add some CI/CD with github actions
 
 ### Endless mode
+
+### Multiplayer co-op
+
+Use two decks, have players roll to go first in each room and then take turns selecting cards in the room. Could probably expand it further with a bigger room.
