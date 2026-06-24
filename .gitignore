@@ -6,6 +6,7 @@
 
 # .NET build artifacts
 bin/
+!addons/gdUnit4/bin/
 obj/
 
 # gdUnit4 test reports and temp files
