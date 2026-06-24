@@ -28,6 +28,8 @@
 - [2026-06-24] **Scene test assertions must not assume card type in random room.** If asserting a specific suit exists (diamond, heart, monster), use early `return` (not `AssertThat(...).IsNotNull()`) to skip gracefully when the random deal doesn't include it.
 - [2026-06-24] **3 random monster cards can kill from full HP** (e.g. 9+5+6=20 damage). Tests clicking 3 cards must check `ParseHP(scene) <= 0` before asserting game-state conditions that require the player to be alive.
 
+- [2026-06-24] **`card.move()` early-return causes stale-tween bug (bug-014, FIXED).** `draggable_object.gd`'s `move()` early-returns when `global_position == target_destination`. After `OnRunPressed()` moves old room cards to deck, their deck-bound tweens start but `_process` hasn't run yet — the cards still sit at their old room-slot positions. If `SyncRoomToGodot()` immediately re-deals a card back to the same room slot, `card.move(room_slot_pos)` early-returns, leaving the deck tween running. That tween carries the card (logically in the room, face-up/interactive) to the deck area. **Fix:** in `SyncRoomToGodot()`, set `godotCard.Set("global_position", deckAnchor)` before calling `move_cards` on the room container, so global_position ≠ room_slot_pos and the stale deck tween is always killed.
+
 ## Decision Log
 
 <!-- Significant technical decisions with rationale. Why X was chosen over Y. -->

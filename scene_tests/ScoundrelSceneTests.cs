@@ -263,6 +263,52 @@ public class ScoundrelSceneTests
         AssertThat(topName).IsEqual(expected);
     }
 
+    [TestCase(Description = "After Run and animations settle, every room card is at a valid room slot position (regression: bug-014)")]
+    public async Task RunPositionsCardsAtRoomSlots()
+    {
+        var scene     = _runner!.Scene();
+        var runButton = scene.GetNode<Button>("UI/RunButton");
+        var room      = scene.GetNode("UI/RoomContainer");
+
+        runButton.EmitSignal("pressed");
+        // Default moving_speed = 2000 px/s; max travel ~1400 px → tween ≤ 700 ms.
+        // 1200 ms gives headroom for the initial deal tweens to also complete.
+        await _runner!.AwaitMillis(1200);
+
+        var roomPos = (Vector2)room.Get("global_position");
+        // Slot offsets from RoomContainer.gd: SLOTS = [V2(0,0), V2(170,0), V2(0,230), V2(170,230)]
+        Vector2[] validSlots =
+        {
+            roomPos,
+            roomPos + new Vector2(170f, 0f),
+            roomPos + new Vector2(0f,   230f),
+            roomPos + new Vector2(170f, 230f),
+        };
+
+        var roomCards = (GArray)room.Call("get_all_cards");
+        AssertThat(roomCards.Count).IsEqual(4);
+
+        var occupiedSlots = new bool[4];
+        foreach (var obj in roomCards)
+        {
+            var card    = obj.AsGodotObject();
+            var cardPos = (Vector2)card.Get("global_position");
+
+            int matchedSlot = -1;
+            for (int i = 0; i < validSlots.Length; i++)
+            {
+                if (cardPos.DistanceTo(validSlots[i]) < 2f)
+                {
+                    matchedSlot = i;
+                    break;
+                }
+            }
+            AssertThat(matchedSlot).IsNotEqual(-1);            // card must be at a valid slot
+            AssertThat(occupiedSlots[matchedSlot]).IsFalse();  // each slot occupied at most once
+            occupiedSlots[matchedSlot] = true;
+        }
+    }
+
     [TestCase(Description = "Monster taken when weapon floor is too low goes to discard, not slain")]
     public async Task ExpiredWeaponFloorMonsterGoesToDiscard()
     {

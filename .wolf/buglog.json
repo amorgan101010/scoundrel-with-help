@@ -219,6 +219,43 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-06-24T16:24:34.315Z"
+    },
+    {
+      "id": "bug-014",
+      "timestamp": "2026-06-24",
+      "error_message": "Run sometimes sends cards back to deck face-up and interactive; next room may not deal all 4 cards",
+      "file": "scripts/ScoundrelGame.cs (SyncRoomToGodot)",
+      "root_cause": "draggable_object.gd card.move() early-returns when global_position == target_destination. After OnRunPressed() moves old room cards to the deck, their tweens start but _process hasn't run yet — the cards still sit at their old room-slot positions. If SyncRoomToGodot() then re-deals one of those cards back to the same room slot, card.move(room_slot_pos) sees global_position == room_slot_pos and early-returns, leaving the deck-bound tween running. That tween carries the card (now logically in the room, face-up and interactive) to the deck position.",
+      "fix": "In SyncRoomToGodot(), set each new room card's global_position to _deckPile.global_position before calling move_cards on the room container. This ensures global_position != room_slot_pos, so card.move() always starts a fresh tween and kills the stale deck tween.",
+      "tags": [
+        "run",
+        "deck",
+        "card-state",
+        "deal",
+        "face-up",
+        "interactive",
+        "tween",
+        "move-early-return"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-24"
+    },
+    {
+      "id": "bug-015",
+      "timestamp": "2026-06-24T19:16:28.379Z",
+      "error_message": "Missing await",
+      "file": "scene_tests/ScoundrelSceneTests.cs",
+      "root_cause": "Async call without await — returned Promise instead of value",
+      "fix": "Added await to async call",
+      "tags": [
+        "auto-detected",
+        "async-fix",
+        "cs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-24T19:16:28.379Z"
     }
   ]
 }

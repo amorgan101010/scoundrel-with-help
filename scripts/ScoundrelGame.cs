@@ -152,6 +152,17 @@ public partial class ScoundrelGame : Node
     {
         ResetRoomCardTints();
 
+        // Anchor new cards at the deck pile position before moving them to the room.
+        // Without this, a card that was JUST moved to the deck in the same frame (its
+        // tween has started but _process hasn't run yet) still sits at its old room-slot
+        // position in global space. card.move() in draggable_object.gd would then see
+        // global_position == target and early-return, leaving the deck-bound tween
+        // running — stranding the card at the deck position while it's logically in
+        // the room (face-up and interactive). Pre-setting to the deck anchor ensures
+        // global_position != room_slot_pos, so the room tween always starts and the
+        // stale deck tween is killed.
+        var deckAnchor = (Vector2)_deckPile.Get("global_position");
+
         var alreadyInRoom = ((Array)_roomContainer.Call("get_all_cards"))
             .Select(v => v.AsGodotObject().Get("card_info").AsGodotDictionary()["name"].AsString())
             .ToHashSet();
@@ -159,7 +170,11 @@ public partial class ScoundrelGame : Node
         foreach (var cardModel in _engine.Room)
         {
             if (!alreadyInRoom.Contains(cardModel.Name))
-                _roomContainer.Call("move_cards", new Array { _godotCards[cardModel.Name] }, -1, false);
+            {
+                var godotCard = _godotCards[cardModel.Name];
+                godotCard.Set("global_position", deckAnchor);
+                _roomContainer.Call("move_cards", new Array { godotCard }, -1, false);
+            }
         }
     }
 

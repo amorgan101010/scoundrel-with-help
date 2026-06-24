@@ -434,6 +434,22 @@ public class RunTests
         Assert.That(engine.Deck.Count, Is.EqualTo(4)); // 4 (back) + 4 filler - 4 (dealt) = 4
         Assert.That(engine.Room.Count, Is.EqualTo(4));
     }
+
+    [Test]
+    public void Run_AlwaysDealsFourRoomCards_AcrossSeeds()
+    {
+        // Sweep seeds to cover the case where a run-returned card gets re-dealt to
+        // the same position it was just removed from (the scenario in bug-014).
+        var baseDeck = Enumerable.Range(0, 8)
+            .Select(i => i % 2 == 0 ? Cards.Potion(2) : Cards.Monster(3))
+            .ToArray();
+        for (int seed = 0; seed < 100; seed++)
+        {
+            var engine = new GameEngine(baseDeck.ToArray());
+            engine.Run(new Random(seed));
+            Assert.That(engine.Room.Count, Is.EqualTo(4), $"seed={seed}");
+        }
+    }
 }
 
 // ── Win / lose ────────────────────────────────────────────────────────────────

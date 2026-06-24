@@ -161,3 +161,26 @@
 | 12:24 | Edited scripts/ScoundrelGame.cs | modified MoveToSlain() | ~174 |
 | 12:25 | Session end: 4 writes across 3 files (ScoundrelGame.cs, ScoundrelSceneTests.cs, Game.tscn) | 2 reads | ~5665 tok |
 | 12:27 | Session end: 4 writes across 3 files (ScoundrelGame.cs, ScoundrelSceneTests.cs, Game.tscn) | 2 reads | ~5665 tok |
+| 12:30 | Session end: 4 writes across 3 files (ScoundrelGame.cs, ScoundrelSceneTests.cs, Game.tscn) | 2 reads | ~5665 tok |
+
+## Session: 2026-06-24 14:49
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 15:10 | Edited scripts/ScoundrelGame.cs | modified SyncRoomToGodot() | ~436 |
+
+## Session: 2026-06-24 (bug-014 fix)
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 15:11 | Fixed bug-014: stale deck tween in SyncRoomToGodot | scripts/ScoundrelGame.cs | Set global_position to deck anchor before move_cards; fixes face-up cards appearing in deck after Run | ~8000 |
+| 15:11 | Session end: 1 writes across 1 files (ScoundrelGame.cs) | 8 reads | ~18304 tok |
+
+## Session: 2026-06-24 15:14
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 15:16 | Edited scene_tests/ScoundrelSceneTests.cs | added 1 condition(s) | ~531 |
+| 15:16 | Edited tests/GameEngineTests.cs | modified Run_AlwaysDealsFourRoomCards_AcrossSeeds() | ~255 |
+| 15:16 | Added RunPositionsCardsAtRoomSlots scene test + Run_AlwaysDealsFourRoomCards_AcrossSeeds unit test | scene_tests/ScoundrelSceneTests.cs, tests/GameEngineTests.cs | 57/57 unit tests pass; scene test regression for bug-014 |
+| 15:17 | Session end: 2 writes across 2 files (ScoundrelSceneTests.cs, GameEngineTests.cs) | 2 reads | ~9006 tok |
