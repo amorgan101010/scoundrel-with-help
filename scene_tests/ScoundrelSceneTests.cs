@@ -492,6 +492,48 @@ public class ScoundrelSceneTests
         AssertThat(ParseHP(scene)).IsEqual(16);
     }
 
+    [TestCase(Description = "Dragging a void potion to the (hidden) left zone bounces it back without discarding")]
+    public async Task DragVoidPotionToLeftZoneBounces()
+    {
+        // 3 potions + 1 monster in Room 1 so we can drink one, then try to drag a void one left.
+        var potionDeck = new List<CardModel>
+        {
+            new CardModel(Suit.Clubs, 2, "2_clubs"),
+            new CardModel(Suit.Clubs, 3, "3_clubs"),
+            new CardModel(Suit.Clubs, 4, "4_clubs"),
+            new CardModel(Suit.Clubs, 5, "5_clubs"),
+            // Room 1 (dealt first)
+            new CardModel(Suit.Clubs,  6, "6_clubs"),
+            new CardModel(Suit.Hearts, 2, "2_hearts"),
+            new CardModel(Suit.Hearts, 3, "3_hearts"),
+            new CardModel(Suit.Hearts, 4, "4_hearts"),
+        };
+        var game = (ScoundrelGame)_runner!.Scene();
+        game.StartGameWithDeck(potionDeck);
+        await _runner!.AwaitMillis(1200u); // settle for real mouse input
+
+        var scene = _runner!.Scene();
+        var room  = scene.GetNode("UI/RoomContainer");
+
+        // Drink first potion via signal — PotionUsedThisRoom becomes true.
+        // Remaining hearts potions are now void; left zone highlight is hidden for them.
+        var firstPotion = FindRoomCard(scene, s => s == "hearts");
+        AssertThat(firstPotion).IsNotNull();
+        ClickCard(scene, firstPotion!);
+        await _runner!.AwaitMillis(200);
+
+        var voidPotion = FindRoomCard(scene, s => s == "hearts");
+        AssertThat(voidPotion).IsNotNull();
+
+        int countBefore = ((GArray)room.Call("get_all_cards")).Count;
+
+        // Drag void potion to the left zone — bug-053 caused it to be discarded here.
+        await MouseDragCard(voidPotion!, new Vector2(192f, 345f));
+
+        // Card must bounce back: room count unchanged.
+        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(countBefore);
+    }
+
     [TestCase(Description = "Dragging a monster to the left zone when weapon floor is exceeded bounces it back")]
     public async Task DragMonsterExceedingFloorToLeftZoneBounces()
     {
