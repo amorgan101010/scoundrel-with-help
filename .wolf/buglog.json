@@ -7,7 +7,7 @@
       "error_message": "Wrong reference: MaxHealth should be ScoundrelRules",
       "file": "scripts/ScoundrelGame.cs",
       "root_cause": "Used \"MaxHealth\" instead of \"ScoundrelRules\"",
-      "fix": "Changed MaxHealth → ScoundrelRules",
+      "fix": "Changed MaxHealth \u2192 ScoundrelRules",
       "tags": [
         "auto-detected",
         "wrong-reference",
@@ -23,7 +23,7 @@
       "error_message": "Wrong reference: CardData should be CardModel",
       "file": "scripts/ScoundrelGame.cs",
       "root_cause": "Used \"CardData\" instead of \"CardModel\"",
-      "fix": "Changed CardData → CardModel",
+      "fix": "Changed CardData \u2192 CardModel",
       "tags": [
         "auto-detected",
         "wrong-reference",
@@ -55,7 +55,7 @@
       "error_message": "Wrong reference: Collections should be Linq",
       "file": "scripts/ScoundrelGame.cs",
       "root_cause": "Used \"Collections\" instead of \"Linq\"",
-      "fix": "Changed Collections → Linq",
+      "fix": "Changed Collections \u2192 Linq",
       "tags": [
         "auto-detected",
         "wrong-reference",
@@ -71,7 +71,7 @@
       "error_message": "Wrong reference: Array should be GArray",
       "file": "scene_tests/ScoundrelSceneTests.cs",
       "root_cause": "Used \"Array\" instead of \"GArray\"",
-      "fix": "Changed Array → GArray",
+      "fix": "Changed Array \u2192 GArray",
       "tags": [
         "auto-detected",
         "wrong-reference",
@@ -103,7 +103,7 @@
       "error_message": "Significant refactor of ",
       "file": "scene_tests/ScoundrelSceneTests.cs",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 7→4 lines (2 removed)",
+      "fix": "Rewrote 7\u21924 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -194,7 +194,7 @@
       "error_message": "Significant refactor of ",
       "file": "scenes/Game.tscn",
       "root_cause": "5 lines replaced/restructured",
-      "fix": "Rewrote 40→55 lines (5 removed)",
+      "fix": "Rewrote 40\u219255 lines (5 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -210,7 +210,7 @@
       "error_message": "Significant refactor of ",
       "file": "scripts/ScoundrelGame.cs",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 7→17 lines (2 removed)",
+      "fix": "Rewrote 7\u219217 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -225,7 +225,7 @@
       "timestamp": "2026-06-24",
       "error_message": "Run sometimes sends cards back to deck face-up and interactive; next room may not deal all 4 cards",
       "file": "scripts/ScoundrelGame.cs (SyncRoomToGodot)",
-      "root_cause": "draggable_object.gd card.move() early-returns when global_position == target_destination. After OnRunPressed() moves old room cards to the deck, their tweens start but _process hasn't run yet — the cards still sit at their old room-slot positions. If SyncRoomToGodot() then re-deals one of those cards back to the same room slot, card.move(room_slot_pos) sees global_position == room_slot_pos and early-returns, leaving the deck-bound tween running. That tween carries the card (now logically in the room, face-up and interactive) to the deck position.",
+      "root_cause": "draggable_object.gd card.move() early-returns when global_position == target_destination. After OnRunPressed() moves old room cards to the deck, their tweens start but _process hasn't run yet \u2014 the cards still sit at their old room-slot positions. If SyncRoomToGodot() then re-deals one of those cards back to the same room slot, card.move(room_slot_pos) sees global_position == room_slot_pos and early-returns, leaving the deck-bound tween running. That tween carries the card (now logically in the room, face-up and interactive) to the deck position.",
       "fix": "In SyncRoomToGodot(), set each new room card's global_position to _deckPile.global_position before calling move_cards on the room container. This ensures global_position != room_slot_pos, so card.move() always starts a fresh tween and kills the stale deck tween.",
       "tags": [
         "run",
@@ -246,7 +246,7 @@
       "timestamp": "2026-06-24T19:16:28.379Z",
       "error_message": "Missing await",
       "file": "scene_tests/ScoundrelSceneTests.cs",
-      "root_cause": "Async call without await — returned Promise instead of value",
+      "root_cause": "Async call without await \u2014 returned Promise instead of value",
       "fix": "Added await to async call",
       "tags": [
         "auto-detected",
@@ -262,7 +262,7 @@
       "timestamp": "2026-06-24T19:55:04.452Z",
       "error_message": "Missing await",
       "file": "scene_tests/ScoundrelSceneTests.cs",
-      "root_cause": "Async call without await — returned Promise instead of value",
+      "root_cause": "Async call without await \u2014 returned Promise instead of value",
       "fix": "Added await to async call | Also: [TestCase(Description = \"Real mouse click on a room card (vi; public async Task MouseClickTakesCard()",
       "tags": [
         "auto-detected",
@@ -279,7 +279,7 @@
       "error_message": "Significant refactor of ",
       "file": "scene_tests/ScoundrelSceneTests.cs",
       "root_cause": "17 lines replaced/restructured",
-      "fix": "Rewrote 32→22 lines (17 removed) | Also: // Reset.; await _runner!.AwaitMillis(200);",
+      "fix": "Rewrote 32\u219222 lines (17 removed) | Also: // Reset.; await _runner!.AwaitMillis(200);",
       "tags": [
         "auto-detected",
         "refactor",
@@ -294,7 +294,7 @@
       "timestamp": "2026-06-24T20:04:22.000Z",
       "error_message": "MouseClickTakesCard FAILED: Expecting 3 but is 4 (room not reduced after click)",
       "file": "scene_tests/ScoundrelSceneTests.cs",
-      "root_cause": "SimulateMouseButtonPressed fires press+release atomically in the same frame — no idle frame for the card to enter HOLDING state and populate _holding_cards before release_holding_cards() runs. Cards in MOVING state (during re-deal animation after retry) also silently reject all input.",
+      "root_cause": "SimulateMouseButtonPressed fires press+release atomically in the same frame \u2014 no idle frame for the card to enter HOLDING state and populate _holding_cards before release_holding_cards() runs. Cards in MOVING state (during re-deal animation after retry) also silently reject all input.",
       "fix": "Changed MouseClickCard to use SimulateMouseButtonPress + AwaitIdleFrame + SimulateMouseButtonRelease. Changed DragAndClickProduceSameOutcome retry wait from 200ms to 1200ms.",
       "tags": [
         "scene-tests",
@@ -313,7 +313,7 @@
       "error_message": "Wrong reference: GreaterThanOrEqualTo should be EqualTo",
       "file": "tests/ScoundrelRulesTests.cs",
       "root_cause": "Used \"GreaterThanOrEqualTo\" instead of \"EqualTo\"",
-      "fix": "Changed GreaterThanOrEqualTo → EqualTo",
+      "fix": "Changed GreaterThanOrEqualTo \u2192 EqualTo",
       "tags": [
         "auto-detected",
         "wrong-reference",
@@ -329,7 +329,7 @@
       "error_message": "Significant refactor of ",
       "file": "scene_tests/ScoundrelSceneTests.cs",
       "root_cause": "3 lines replaced/restructured",
-      "fix": "Rewrote 7→10 lines (3 removed)",
+      "fix": "Rewrote 7\u219210 lines (3 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -345,7 +345,7 @@
       "error_message": "Wrong reference: 1200 should be 1200u",
       "file": "scene_tests/ScoundrelSceneTests.cs",
       "root_cause": "Used \"1200\" instead of \"1200u\"",
-      "fix": "Changed 1200 → 1200u",
+      "fix": "Changed 1200 \u2192 1200u",
       "tags": [
         "auto-detected",
         "wrong-reference",
@@ -361,7 +361,7 @@
       "error_message": "Significant refactor of ",
       "file": ".github/workflows/scene-tests.yml",
       "root_cause": "6 lines replaced/restructured",
-      "fix": "Rewrote 9→10 lines (6 removed)",
+      "fix": "Rewrote 9\u219210 lines (6 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -377,7 +377,7 @@
       "error_message": "Significant refactor of ",
       "file": ".github/workflows/scene-tests.yml",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 5→6 lines (2 removed)",
+      "fix": "Rewrote 5\u21926 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -393,7 +393,7 @@
       "error_message": "Significant refactor of ",
       "file": "../../../.claude/projects/-home-aileen-Repositories-godot-scoundrel-with-help/memory/project_scoundrel.md",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 3→18 lines (2 removed)",
+      "fix": "Rewrote 3\u219218 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -409,7 +409,7 @@
       "error_message": "Significant refactor of ",
       "file": "tests/GameEngineTests.cs",
       "root_cause": "10 lines replaced/restructured",
-      "fix": "Rewrote 15→17 lines (10 removed)",
+      "fix": "Rewrote 15\u219217 lines (10 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -425,7 +425,7 @@
       "error_message": "Significant refactor of ",
       "file": "scripts/ScoundrelGame.cs",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 6→4 lines (2 removed)",
+      "fix": "Rewrote 6\u21924 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -440,7 +440,7 @@
       "timestamp": "2026-06-25T00:11:50.985Z",
       "error_message": "Missing await",
       "file": "scene_tests/ScoundrelSceneTests.cs",
-      "root_cause": "Async call without await — returned Promise instead of value",
+      "root_cause": "Async call without await \u2014 returned Promise instead of value",
       "fix": "Added await to async call",
       "tags": [
         "auto-detected",
@@ -457,7 +457,7 @@
       "error_message": "Significant refactor of ",
       "file": "scenes/RoomContainer.gd",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 25→37 lines (2 removed)",
+      "fix": "Rewrote 25\u219237 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -489,7 +489,7 @@
       "error_message": "Significant refactor of ",
       "file": "../../../.claude/settings.json",
       "root_cause": "4 lines replaced/restructured",
-      "fix": "Rewrote 15→6 lines (4 removed)",
+      "fix": "Rewrote 15\u21926 lines (4 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -505,7 +505,7 @@
       "error_message": "Significant refactor of ",
       "file": "scripts/ScoundrelGame.cs",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 6→21 lines (2 removed) | Also: bool willUseWeapon     = cardModel.IsMonster; _engine.TakeCard(cardModel);",
+      "fix": "Rewrote 6\u219221 lines (2 removed) | Also: bool willUseWeapon     = cardModel.IsMonster; _engine.TakeCard(cardModel);",
       "tags": [
         "auto-detected",
         "refactor",
@@ -521,7 +521,7 @@
       "error_message": "Significant refactor of ",
       "file": "scene_tests/ScoundrelSceneTests.cs",
       "root_cause": "7 lines replaced/restructured",
-      "fix": "Rewrote 34→91 lines (7 removed)",
+      "fix": "Rewrote 34\u219291 lines (7 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -552,7 +552,7 @@
       "timestamp": "2026-06-25T01:25:38.970Z",
       "error_message": "Missing await",
       "file": "scene_tests/ScoundrelSceneTests.cs",
-      "root_cause": "Async call without await — returned Promise instead of value",
+      "root_cause": "Async call without await \u2014 returned Promise instead of value",
       "fix": "Added await to async call",
       "tags": [
         "auto-detected",
@@ -566,7 +566,7 @@
     {
       "id": "bug-035",
       "timestamp": "2026-06-24T00:00:00.000Z",
-      "error_message": "SCRIPT ERROR: Invalid call. Nonexistent function 'change_sensor_position_with_offset' in base 'Nil'. at: Pile._update_target_positions (pile.gd:104) — all mouse drags fail to land in LeftDropZone / RightDropZone (HP unchanged, room count unchanged)",
+      "error_message": "SCRIPT ERROR: Invalid call. Nonexistent function 'change_sensor_position_with_offset' in base 'Nil'. at: Pile._update_target_positions (pile.gd:104) \u2014 all mouse drags fail to land in LeftDropZone / RightDropZone (HP unchanged, room count unchanged)",
       "file": "scenes/Game.tscn, scenes/DropZoneContainer.gd (new)",
       "root_cause": "CardContainer._initialize_drop_zone() may not run in time (requires CardManager scene-root meta) leaving drop_zone==null. check_card_can_be_dropped() early-returns false when drop_zone==null, so no drag ever lands in either zone. align_drop_zone_with_top_card=true compounds the error by calling change_sensor_position_with_offset on the null drop_zone.",
       "fix": "Created scenes/DropZoneContainer.gd extending Pile. Overrides check_card_can_be_dropped with a plain get_global_rect().has_point(mouse) check, overrides _update_target_positions and _update_card_states as no-ops, overrides get_partition_index to return -1. LeftDropZone and RightDropZone in Game.tscn now use this script instead of pile.gd.",
@@ -603,7 +603,7 @@
       "error_message": "Significant refactor of ",
       "file": "scenes/DropZoneContainer.gd",
       "root_cause": "2 lines replaced/restructured",
-      "fix": "Rewrote 5→8 lines (2 removed)",
+      "fix": "Rewrote 5\u21928 lines (2 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -619,7 +619,7 @@
       "error_message": "Significant refactor of ",
       "file": "scenes/DropZoneContainer.gd",
       "root_cause": "5 lines replaced/restructured",
-      "fix": "Rewrote 8→5 lines (5 removed)",
+      "fix": "Rewrote 8\u21925 lines (5 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -666,7 +666,7 @@
       "timestamp": "2026-06-25T05:50:00.000Z",
       "error_message": "3 scene drag tests failing: MouseDragTakesCard, DragTakesCard_ClickDoesNot, DragMonsterToRightZoneIsBarehanded",
       "file": "scenes/RoomContainer.gd, scenes/DropZoneContainer.gd",
-      "root_cause": "gdUnit4 loads scenes via add_child (not change_scene_to_*), so get_tree().current_scene is null at _ready() time. CardContainer._ready() uses current_scene meta to find CardManager, fails silently, leaves card_manager=null. With card_manager=null, release_holding_cards() skips the _on_drag_dropped() call entirely, so no zone ever receives check_card_can_be_dropped(). All drags silently fail — card stays in room. Bounce tests passed coincidentally because their expected outcome (card stays) matched the broken outcome.",
+      "root_cause": "gdUnit4 loads scenes via add_child (not change_scene_to_*), so get_tree().current_scene is null at _ready() time. CardContainer._ready() uses current_scene meta to find CardManager, fails silently, leaves card_manager=null. With card_manager=null, release_holding_cards() skips the _on_drag_dropped() call entirely, so no zone ever receives check_card_can_be_dropped(). All drags silently fail \u2014 card stays in room. Bounce tests passed coincidentally because their expected outcome (card stays) matched the broken outcome.",
       "fix": "Added _ready() override and _retry_card_manager_registration deferred call to both RoomContainer.gd and DropZoneContainer.gd. Uses _find_card_manager_in_tree() to search the full scene tree for a CardManager node after all _ready() calls complete, then calls card_manager._add_card_container() to register properly.",
       "tags": [
         "scene-tests",
@@ -685,7 +685,7 @@
       "error_message": "Significant refactor of ",
       "file": "scene_tests/ScoundrelSceneTests.cs",
       "root_cause": "13 lines replaced/restructured",
-      "fix": "Rewrote 34→68 lines (13 removed)",
+      "fix": "Rewrote 34\u219268 lines (13 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -701,7 +701,7 @@
       "error_message": "Significant refactor of ",
       "file": "stuff to fix.md",
       "root_cause": "5 lines replaced/restructured",
-      "fix": "Rewrote 5→5 lines (5 removed)",
+      "fix": "Rewrote 5\u21925 lines (5 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -717,7 +717,7 @@
       "error_message": "Significant refactor of ",
       "file": "scripts/ScoundrelGame.cs",
       "root_cause": "5 lines replaced/restructured",
-      "fix": "Rewrote 5→8 lines (5 removed)",
+      "fix": "Rewrote 5\u21928 lines (5 removed)",
       "tags": [
         "auto-detected",
         "refactor",
@@ -732,7 +732,7 @@
       "timestamp": "2026-06-25T14:16:12.597Z",
       "error_message": "Missing await",
       "file": "scene_tests/ScoundrelSceneTests.cs",
-      "root_cause": "Async call without await — returned Promise instead of value",
+      "root_cause": "Async call without await \u2014 returned Promise instead of value",
       "fix": "Added await to async call",
       "tags": [
         "auto-detected",
@@ -764,7 +764,7 @@
       "timestamp": "2026-06-25T14:55:59.004Z",
       "error_message": "Missing await",
       "file": "scene_tests/ScoundrelSceneTests.cs",
-      "root_cause": "Async call without await — returned Promise instead of value",
+      "root_cause": "Async call without await \u2014 returned Promise instead of value",
       "fix": "Added await to async call",
       "tags": [
         "auto-detected",
@@ -794,9 +794,9 @@
     {
       "id": "bug-049",
       "timestamp": "2026-06-25",
-      "error_message": "PR review surfaced 'wasted-potion-drink plays no sound' as a gap; code was changed and a test added — both were wrong",
+      "error_message": "PR review surfaced 'wasted-potion-drink plays no sound' as a gap; code was changed and a test added \u2014 both were wrong",
       "file": "scripts/ScoundrelGame.cs, scene_tests/ScoundrelSceneTests.cs",
-      "root_cause": "Code reviewer analysis failed to account for the left-zone hide mechanic: OnCardDragStarted hides the left drop zone for void potions (PotionUsedThisRoom=true), making the 'activateCard=true, potionUsedBefore=true' path unreachable in normal play. The original bubbles condition (activateCard && !potionUsedBefore) was correct. The 'gap' only exists via ClickCard() which bypasses zone routing entirely — a test-only path that doesn't represent real gameplay.",
+      "root_cause": "Code reviewer analysis failed to account for the left-zone hide mechanic: OnCardDragStarted hides the left drop zone for void potions (PotionUsedThisRoom=true), making the 'activateCard=true, potionUsedBefore=true' path unreachable in normal play. The original bubbles condition (activateCard && !potionUsedBefore) was correct. The 'gap' only exists via ClickCard() which bypasses zone routing entirely \u2014 a test-only path that doesn't represent real gameplay.",
       "fix": "Reverted ScoundrelGame.cs Hearts sound condition to the original (activateCard && !potionUsedBefore). Removed WastedPotionDrink_PlaysBubblesSound test (tested an unreachable game state). Kept TakingLastRoomCard_PlaysCardDealtSound (that finding was valid).",
       "tags": [
         "false-finding",
@@ -805,7 +805,29 @@
         "zone-mechanics",
         "potion"
       ],
-      "related_bugs": ["bug-046", "bug-048"],
+      "related_bugs": [
+        "bug-046",
+        "bug-048"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-06-25"
+    },
+    {
+      "id": "bug-050",
+      "timestamp": "2026-06-25",
+      "error_message": "Linux Build CI fails: exit code 134 \u2014 'ERROR: Required Vulkan instance extension VK_KHR_surface not found.'",
+      "file": ".github/workflows/linux-build.yml",
+      "root_cause": "xvfb-run provides an X11 virtual display but not a Vulkan surface. Godot's export step tries to initialize the Vulkan renderer and crashes (SIGABRT/exit 134) because VK_KHR_surface is unavailable in the headless Xvfb environment. The import step works fine because it uses the same xvfb-run pattern as scene-tests.yml, but export tries to init the full renderer.",
+      "fix": "Add --headless flag to the export command: 'xvfb-run \"$GODOT_BIN\" --headless --path ... --export-release'. The --headless flag tells Godot to skip display server initialization entirely, bypassing Vulkan. May also be able to drop xvfb-run from just the export step and use plain '--headless' without it.",
+      "tags": [
+        "ci",
+        "linux-build",
+        "export",
+        "vulkan",
+        "headless",
+        "xvfb"
+      ],
+      "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-06-25"
     }
