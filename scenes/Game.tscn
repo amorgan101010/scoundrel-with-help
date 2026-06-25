@@ -178,6 +178,32 @@ offset_bottom = 108.0
 text = "WEAPON SLOT"
 horizontal_alignment = 1
 
+[node name="LeftDropZone" type="Control" parent="UI"]
+offset_left = 0.0
+offset_top = 70.0
+offset_right = 385.0
+offset_bottom = 620.0
+mouse_filter = 1
+script = ExtResource("4_pile")
+enable_drop_zone = true
+sensor_size = Vector2(385, 550)
+card_face_up = false
+allow_card_movement = false
+restrict_to_top_card = false
+
+[node name="RightDropZone" type="Control" parent="UI"]
+offset_left = 740.0
+offset_top = 70.0
+offset_right = 1120.0
+offset_bottom = 620.0
+mouse_filter = 1
+script = ExtResource("4_pile")
+enable_drop_zone = true
+sensor_size = Vector2(380, 550)
+card_face_up = false
+allow_card_movement = false
+restrict_to_top_card = false
+
 [node name="RunButton" type="Button" parent="UI"]
 offset_left = 390.0
 offset_top = 615.0

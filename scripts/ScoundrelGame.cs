@@ -16,6 +16,12 @@ public partial class ScoundrelGame : Node
     private Node _weaponSlot = null!;
     private Node _slainPile = null!;
     private Node _roomContainer = null!;
+    private Node _leftDropZone = null!;
+    private Node _rightDropZone = null!;
+
+    // ── Drop-zone highlight overlays (created at runtime) ─────────────────
+    private ColorRect _leftHighlight = null!;
+    private ColorRect _rightHighlight = null!;
     private Label _healthLabel = null!;
     private Label _weaponLabel = null!;
     private Label _statusLabel = null!;
@@ -63,6 +69,8 @@ public partial class ScoundrelGame : Node
         _weaponSlot     = GetNode<Node>("UI/WeaponSlot");
         _slainPile      = GetNode<Node>("UI/SlainPile");
         _roomContainer  = GetNode<Node>("UI/RoomContainer");
+        _leftDropZone   = GetNode<Node>("UI/LeftDropZone");
+        _rightDropZone  = GetNode<Node>("UI/RightDropZone");
         _healthLabel    = GetNode<Label>("UI/HealthLabel");
         _weaponLabel    = GetNode<Label>("UI/WeaponLabel");
         _statusLabel    = GetNode<Label>("UI/StatusLabel");
@@ -80,7 +88,13 @@ public partial class ScoundrelGame : Node
 
         _cardFactory = (GodotObject)_cardManager.Get("card_factory");
 
-        _roomContainer.Connect("card_selected", Callable.From<GodotObject>(OnCardSelected));
+        var ui = GetNode<CanvasLayer>("UI");
+        _leftHighlight  = AddZoneHighlight(ui, new Vector2(0, 70),   new Vector2(385, 550), new Color(0.25f, 0.8f, 0.25f, 0.25f));
+        _rightHighlight = AddZoneHighlight(ui, new Vector2(740, 70), new Vector2(380, 550), new Color(0.25f, 0.5f, 1.0f,  0.25f));
+
+        _roomContainer.Connect("card_drag_started", Callable.From<GodotObject>(OnCardDragStarted));
+        _roomContainer.Connect("card_drag_ended",   Callable.From(OnCardDragEnded));
+        _roomContainer.Connect("card_selected",     Callable.From<GodotObject>(OnCardSelected));
         _runButton.Connect("pressed",     Callable.From(OnRunPressed));
         _nextRoomButton.Connect("pressed", Callable.From(OnNextRoomPressed));
         _retryButton.Connect("pressed",   Callable.From(OnRetryPressed));
@@ -243,6 +257,19 @@ public partial class ScoundrelGame : Node
         UpdateUI();
     }
 
+    // ── Drag zone highlights ──────────────────────────────────────────────
+    private void OnCardDragStarted(GodotObject _card)
+    {
+        _leftHighlight.Visible  = true;
+        _rightHighlight.Visible = true;
+    }
+
+    private void OnCardDragEnded()
+    {
+        _leftHighlight.Visible  = false;
+        _rightHighlight.Visible = false;
+    }
+
     // ── Buttons ───────────────────────────────────────────────────────────
     private void OnRunPressed()
     {
@@ -391,6 +418,19 @@ public partial class ScoundrelGame : Node
     }
 
     // ── Utilities ─────────────────────────────────────────────────────────
+    private static ColorRect AddZoneHighlight(CanvasLayer parent, Vector2 pos, Vector2 size, Color color)
+    {
+        var rect = new ColorRect();
+        rect.Position    = pos;
+        rect.Size        = size;
+        rect.Color       = color;
+        rect.MouseFilter = Control.MouseFilterEnum.Ignore;
+        rect.ZIndex      = 5;
+        rect.Visible     = false;
+        parent.AddChild(rect);
+        return rect;
+    }
+
     private static int RankToInt(string rank) => rank switch
     {
         "ace"   => 1,

@@ -121,15 +121,17 @@ public class ScoundrelSceneTests
         await _runner!.AwaitMillis(500);  // wait for game logic + animation
     }
 
-    // Simulate a mouse drag: press on card, move 80 px right, release.
-    private async Task MouseDragCard(GodotObject card)
+    // Simulate a mouse drag: press on card, move to a drop zone, release.
+    // Default target is the RightDropZone (x:740-1120, y:70-620) centre.
+    private async Task MouseDragCard(GodotObject card, Vector2? dropTarget = null)
     {
-        var pos = (Vector2)card.Get("global_position");
+        var pos    = (Vector2)card.Get("global_position");
+        var target = dropTarget ?? new Vector2(850f, 300f); // RightDropZone centre
         _runner!.SimulateMouseMove(pos);
         await _runner!.AwaitMillis(100);
         _runner!.SimulateMouseButtonPress(MouseButton.Left, false);
         await _runner!.AwaitMillis(80);
-        _runner!.SimulateMouseMove(pos + new Vector2(80f, 0f));
+        _runner!.SimulateMouseMove(target);
         await _runner!.AwaitMillis(80);
         _runner!.SimulateMouseButtonRelease(MouseButton.Left);
         await _runner!.AwaitMillis(500);
@@ -334,8 +336,8 @@ public class ScoundrelSceneTests
         AssertThat(topName).IsEqual(expected);
     }
 
-    [TestCase(Description = "Real mouse click on a room card takes the card")]
-    public async Task MouseClickTakesCard()
+    [TestCase(Description = "Real mouse click on a room card does nothing (drag-only controls)")]
+    public async Task MouseClickDoesNotTakeCard()
     {
         await SetupFixedDeck(1200u);
         var scene = _runner!.Scene();
@@ -344,14 +346,15 @@ public class ScoundrelSceneTests
         var cards = (GArray)room.Call("get_all_cards");
         AssertThat(cards.Count).IsEqual(4);
 
-        // cards[0] is always 6_diamonds (weapon) in the fixed deck — 0 damage.
+        // cards[0] is always 6_diamonds (weapon) in the fixed deck.
         await MouseClickCard(cards[0].AsGodotObject());
 
+        // Room should still have 4 cards — a bare click is ignored.
         var after = (GArray)room.Call("get_all_cards");
-        AssertThat(after.Count).IsEqual(3);
+        AssertThat(after.Count).IsEqual(4);
     }
 
-    [TestCase(Description = "Dragging a room card and releasing it takes the card (same outcome as clicking)")]
+    [TestCase(Description = "Dragging a room card and releasing it takes the card")]
     public async Task MouseDragTakesCard()
     {
         await SetupFixedDeck(1200u);
@@ -368,26 +371,21 @@ public class ScoundrelSceneTests
         AssertThat(after.Count).IsEqual(3);
     }
 
-    [TestCase(Description = "Drag and click both take a room card (same room-count outcome)")]
-    public async Task DragAndClickProduceSameOutcome()
+    [TestCase(Description = "Drag to a zone takes the card; click leaves the room unchanged")]
+    public async Task DragTakesCard_ClickDoesNot()
     {
         await SetupFixedDeck(1200u);
         var scene = _runner!.Scene();
         var room  = scene.GetNode("UI/RoomContainer");
 
-        // Part 1: click takes a card (cards[0] = 6_diamonds, 0 damage).
+        // Part 1: click — room count must stay at 4 (no zone reached).
         var cards = (GArray)room.Call("get_all_cards");
         await MouseClickCard(cards[0].AsGodotObject());
-        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(3);
+        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(4);
 
-        // Reset to fixed deck and wait for re-deal animations.
-        var game = (ScoundrelGame)_runner!.Scene();
-        game.StartGameWithDeck(new List<CardModel>(FixedDeck));
-        await _runner!.AwaitMillis(1200);
-
-        // Part 2: drag takes a card (cards[0] = 6_diamonds again, 0 damage).
-        var cards2 = (GArray)room.Call("get_all_cards");
-        await MouseDragCard(cards2[0].AsGodotObject());
+        // Part 2: drag into RightDropZone — room count drops to 3.
+        // cards[0] is still 6_diamonds (weapon, 0 damage) since click didn't take it.
+        await MouseDragCard(cards[0].AsGodotObject());
         AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(3);
     }
 

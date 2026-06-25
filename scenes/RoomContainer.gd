@@ -3,14 +3,20 @@
 ## Cards occupy fixed slots so positions don't shift when one is taken.
 ## Incoming drops are disabled (enable_drop_zone=false in inspector);
 ## cards are moved here programmatically by ScoundrelGame.cs.
-## Emits card_selected(card) on click or drag-release so C# can handle game logic.
+##
+## Drag-only controls: card_selected fires only when a card lands in a registered
+## drop zone (LeftDropZone or RightDropZone). Cards released elsewhere return to
+## their room slot via the framework's return_card() tween. Bare clicks never fire
+## the signal because the mouse never reaches a zone sensor.
+##
+## card_drag_started / card_drag_ended let C# show/hide zone highlights.
 class_name RoomContainer
 extends CardContainer
 
+signal card_drag_started(card: Card)
+signal card_drag_ended()
 signal card_selected(card: Card)
 
-const SLOT_GAP_X := 170
-const SLOT_GAP_Y := 230
 const SLOTS: Array[Vector2] = [
 	Vector2(0, 0),
 	Vector2(170, 0),
@@ -22,16 +28,22 @@ const SLOTS: Array[Vector2] = [
 var _slot_of: Dictionary = {}
 
 
-## Override the base release so card_selected fires on mouse-up, before the
-## framework's return-to-slot tween has a chance to start. C# handles the
-## card immediately and kills the return tween by redirecting the card to its
-## real destination — all within the same frame, so no snap-back is visible.
+func on_card_pressed(card: Card) -> void:
+	card_drag_started.emit(card)
+
+
+## After super.release_holding_cards(), the framework has either:
+##   - moved the card to a drop-zone container  (card.card_container != self), or
+##   - called card.return_card() to tween it back to its room slot (card.card_container == self).
+## Only emit card_selected for the first case so bare clicks and off-zone drags are ignored.
 func release_holding_cards() -> void:
 	if _holding_cards.is_empty():
 		return
 	var card := _holding_cards[0] as Card
-	super.release_holding_cards()  # starts return tween + fires _on_drag_dropped
-	card_selected.emit(card)       # C# redirects card, killing the return tween
+	super.release_holding_cards()
+	card_drag_ended.emit()
+	if card.card_container != self:
+		card_selected.emit(card)
 
 
 func _update_target_positions() -> void:
