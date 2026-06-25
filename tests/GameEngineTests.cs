@@ -492,6 +492,34 @@ public class RunTests
     }
 
     [Test]
+    public void Run_PartialRoom_OnlyRemainingCardsSinkToBottom()
+    {
+        var m3 = Cards.Monster(3);
+        var m4 = Cards.Monster(4);
+        var w5 = Cards.Weapon(5);
+        var p6 = Cards.Potion(6);
+        var deck = new[]
+        {
+            Cards.Potion(2), Cards.Potion(2), Cards.Potion(2), Cards.Potion(2), // filler
+            m3, m4, w5, p6  // room 1 (top, dealt first)
+        };
+        var engine = new GameEngine(deck);
+
+        // Take one card — 3 remain in the room.
+        engine.TakeCard(p6);
+        Assert.That(engine.Room.Count, Is.EqualTo(3));
+
+        engine.Run();
+
+        // New room was dealt (4 cards).
+        Assert.That(engine.Room.Count, Is.EqualTo(4));
+        // Only the 3 remaining cards sank; the taken potion is NOT in the deck.
+        Assert.That(engine.Deck.Count, Is.EqualTo(3)); // 3 sank + 4 filler - 4 dealt
+        Assert.That(engine.Deck.Take(3), Is.EquivalentTo(new[] { m3, m4, w5 }));
+        Assert.That(engine.Deck, Does.Not.Contain(p6));
+    }
+
+    [Test]
     public void Run_PutsRoomCardsAtDeckBottom()
     {
         // 12-card deck: room3 (bottom), room2 (middle), room1 (top → dealt to room first)
