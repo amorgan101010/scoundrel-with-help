@@ -10,6 +10,10 @@ on:
 env:
   GODOT_DIR_NAME: "Godot_v4.7-stable_mono_linux_x86_64"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   scene-tests:
     name: gdUnit4 Scene Tests
@@ -17,15 +21,42 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect code changes
+        id: changed
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            BEFORE="${{ github.event.before }}"
+            if [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+              echo "run=true" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+            BASE="$BEFORE"
+            HEAD="${{ github.sha }}"
+          else
+            echo "run=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          CODE=$(git diff --name-only "$BASE" "$HEAD" \
+            | grep -v '^[.]' | grep -v '\.md$' | grep -v '^export_presets' || true)
+          [ -n "$CODE" ] && echo "run=true" >> $GITHUB_OUTPUT || echo "run=false" >> $GITHUB_OUTPUT
 
       - uses: actions/setup-dotnet@v4
+        if: steps.changed.outputs.run == 'true'
         with:
           dotnet-version: '8.0'
 
       - name: Install Xvfb
+        if: steps.changed.outputs.run == 'true'
         run: sudo apt-get install -y --no-install-recommends xvfb
 
       - name: Download Godot .NET
+        if: steps.changed.outputs.run == 'true'
         run: |
           curl -fsSL "https://downloads.godotengine.org/?version=4.7&flavor=stable&slug=mono_linux_x86_64.zip&platform=linux.64" -o godot.zip
           unzip -q godot.zip
@@ -38,18 +69,22 @@ jobs:
           echo "GODOT_BIN=$GODOT_BIN" >> $GITHUB_ENV
 
       - name: Point NuGet at downloaded GodotSharp
+        if: steps.changed.outputs.run == 'true'
         run: |
           dotnet nuget update source GodotLocal \
             --source "$GODOT_DIR/GodotSharp/Tools/nupkgs" \
             --configfile NuGet.Config
 
       - name: Build C# project
+        if: steps.changed.outputs.run == 'true'
         run: dotnet build ScoundrelWithHelp.csproj --configuration Debug --nologo -v quiet
 
       - name: Reimport assets
+        if: steps.changed.outputs.run == 'true'
         run: xvfb-run "$GODOT_BIN" --path "$GITHUB_WORKSPACE" --import --quit 2>/dev/null || true
 
       - name: Run scene tests
+        if: steps.changed.outputs.run == 'true'
         run: |
           xvfb-run "$GODOT_BIN" --path "$GITHUB_WORKSPACE" \
             -s res://addons/gdUnit4/bin/GdUnitCmdTool.gd \

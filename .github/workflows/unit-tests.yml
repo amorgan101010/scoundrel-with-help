@@ -3,6 +3,10 @@ name: Unit Tests
 on:
   push:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   unit-tests:
     name: C# Unit Tests
@@ -10,16 +14,34 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect code changes
+        id: changed
+        run: |
+          BEFORE="${{ github.event.before }}"
+          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            echo "run=true" >> $GITHUB_OUTPUT
+          else
+            CODE=$(git diff --name-only "$BEFORE" "${{ github.sha }}" \
+              | grep -v '^[.]' | grep -v '\.md$' | grep -v '^export_presets' || true)
+            [ -n "$CODE" ] && echo "run=true" >> $GITHUB_OUTPUT || echo "run=false" >> $GITHUB_OUTPUT
+          fi
 
       - uses: actions/setup-dotnet@v4
+        if: steps.changed.outputs.run == 'true'
         with:
           dotnet-version: '8.0'
 
       - name: Create Godot NuGet stub
+        if: steps.changed.outputs.run == 'true'
         run: sudo mkdir -p /usr/lib/godot-mono/GodotSharp/Tools/nupkgs
 
       - name: Restore
+        if: steps.changed.outputs.run == 'true'
         run: dotnet restore tests/ScoundrelTests.csproj
 
       - name: Test
+        if: steps.changed.outputs.run == 'true'
         run: dotnet test tests/ScoundrelTests.csproj --configuration Release --logger "console;verbosity=normal"
