@@ -38,7 +38,7 @@ public class GameEngine
 
     // ── Actions ───────────────────────────────────────────────────────────
 
-    public void TakeCard(CardModel card)
+    public void TakeCard(CardModel card, bool useWeapon = true)
     {
         if (IsOver) throw new InvalidOperationException("Game is over.");
         if (!_room.Remove(card)) throw new ArgumentException("Card is not in the room.");
@@ -47,7 +47,7 @@ public class GameEngine
         {
             case Suit.Clubs:
             case Suit.Spades:
-                ApplyMonsterDamage(card);
+                ApplyMonsterDamage(card, useWeapon);
                 _discard.Add(card);
                 break;
 
@@ -134,10 +134,10 @@ public class GameEngine
         }
     }
 
-    private void ApplyMonsterDamage(CardModel card)
+    private void ApplyMonsterDamage(CardModel card, bool useWeapon)
     {
         int damage = card.MonsterValue;
-        if (EquippedWeapon != null && ScoundrelRules.CanUseWeapon(card.MonsterValue, WeaponFloor))
+        if (useWeapon && EquippedWeapon != null && ScoundrelRules.CanUseWeapon(card.MonsterValue, WeaponFloor))
         {
             damage = ScoundrelRules.CalcDamage(card.MonsterValue, EquippedWeapon.WeaponValue);
             WeaponFloor = ScoundrelRules.NextWeaponFloor(card.MonsterValue);

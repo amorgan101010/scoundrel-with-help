@@ -169,6 +169,34 @@ public class MonsterCombatTests
     }
 
     [Test]
+    public void UseWeaponFalse_TakesFullDamageEvenWithWeaponEquipped()
+    {
+        var weapon  = Cards.Weapon(7);
+        var monster = Cards.Monster(10);
+        var engine  = Cards.RoomOf(weapon, monster, Cards.Potion(2), Cards.Potion(3));
+
+        engine.TakeCard(weapon);
+        int healthBefore = engine.Health;
+        engine.TakeCard(monster, useWeapon: false);
+
+        Assert.That(engine.Health, Is.EqualTo(healthBefore - 10)); // 10, not 10-7=3
+    }
+
+    [Test]
+    public void UseWeaponFalse_DoesNotUpdateWeaponFloor()
+    {
+        var weapon  = Cards.Weapon(7);
+        var monster = Cards.Monster(5);
+        var engine  = Cards.RoomOf(weapon, monster, Cards.Potion(2), Cards.Potion(3));
+
+        engine.TakeCard(weapon);
+        int floorBefore = engine.WeaponFloor;
+        engine.TakeCard(monster, useWeapon: false);
+
+        Assert.That(engine.WeaponFloor, Is.EqualTo(floorBefore)); // floor unchanged
+    }
+
+    [Test]
     public void NewWeapon_ResetsFloor()
     {
         var weapon1 = Cards.Weapon(5);

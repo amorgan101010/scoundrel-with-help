@@ -210,13 +210,39 @@ public partial class ScoundrelGame : Node
         var cardModel = _engine.Room.FirstOrDefault(c => c.Name == name);
         if (cardModel is null) return;
 
+        // Determine which zone accepted the drop (0 when emitted directly, e.g. in tests).
+        ulong containerId = card.Get("card_container").AsGodotObject().GetInstanceId();
+        bool droppedLeft  = containerId == _leftDropZone.GetInstanceId();
+        bool droppedRight = containerId == _rightDropZone.GetInstanceId();
+
+        // Validate routing when a real zone drop occurred.
+        if (droppedLeft || droppedRight)
+        {
+            if (cardModel.IsPotion && droppedLeft)
+            {
+                _roomContainer.Call("move_cards", new Array { card }, -1, false);
+                ShowBriefMessage("Potions go on the right!");
+                return;
+            }
+            if (cardModel.IsWeapon && droppedRight)
+            {
+                _roomContainer.Call("move_cards", new Array { card }, -1, false);
+                ShowBriefMessage("Weapons go on the left!");
+                return;
+            }
+        }
+
+        // Monster dropped into right zone = fight bare-handed (skip equipped weapon).
+        bool useWeapon = !(cardModel.IsMonster && droppedRight);
+
         var oldWeapon           = _engine.EquippedWeapon;
         bool potionWastedBefore = _engine.PotionWastedThisRoom;
-        bool willUseWeapon     = cardModel.IsMonster
+        bool willUseWeapon      = useWeapon
+            && cardModel.IsMonster
             && _engine.EquippedWeapon != null
             && ScoundrelRules.CanUseWeapon(cardModel.MonsterValue, _engine.WeaponFloor);
 
-        _engine.TakeCard(cardModel);
+        _engine.TakeCard(cardModel, useWeapon);
 
         // Visual side-effects per card type
         switch (cardModel.Suit)
@@ -258,10 +284,25 @@ public partial class ScoundrelGame : Node
     }
 
     // ── Drag zone highlights ──────────────────────────────────────────────
-    private void OnCardDragStarted(GodotObject _card)
+    private void OnCardDragStarted(GodotObject card)
     {
-        _leftHighlight.Visible  = true;
-        _rightHighlight.Visible = true;
+        var suit = card.Get("card_info").AsGodotDictionary()["suit"].AsString();
+        switch (suit)
+        {
+            case "clubs":
+            case "spades":
+                _leftHighlight.Visible  = true;   // can fight with weapon
+                _rightHighlight.Visible = true;   // can fight bare-handed
+                break;
+            case "hearts":
+                _leftHighlight.Visible  = false;  // potions only go right
+                _rightHighlight.Visible = true;
+                break;
+            case "diamonds":
+                _leftHighlight.Visible  = true;   // weapons only go left
+                _rightHighlight.Visible = false;
+                break;
+        }
     }
 
     private void OnCardDragEnded()

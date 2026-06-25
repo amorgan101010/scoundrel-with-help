@@ -354,7 +354,7 @@ public class ScoundrelSceneTests
         AssertThat(after.Count).IsEqual(4);
     }
 
-    [TestCase(Description = "Dragging a room card and releasing it takes the card")]
+    [TestCase(Description = "Dragging a weapon to the left zone equips it")]
     public async Task MouseDragTakesCard()
     {
         await SetupFixedDeck(1200u);
@@ -364,14 +364,14 @@ public class ScoundrelSceneTests
         var cards = (GArray)room.Call("get_all_cards");
         AssertThat(cards.Count).IsEqual(4);
 
-        // cards[0] is always 6_diamonds (weapon) in the fixed deck — 0 damage.
-        await MouseDragCard(cards[0].AsGodotObject());
+        // cards[0] is always 6_diamonds (weapon) — drag to LEFT zone (fight/equip side).
+        await MouseDragCard(cards[0].AsGodotObject(), new Vector2(192f, 345f));
 
         var after = (GArray)room.Call("get_all_cards");
         AssertThat(after.Count).IsEqual(3);
     }
 
-    [TestCase(Description = "Drag to a zone takes the card; click leaves the room unchanged")]
+    [TestCase(Description = "Drag to the correct zone takes the card; click leaves the room unchanged")]
     public async Task DragTakesCard_ClickDoesNot()
     {
         await SetupFixedDeck(1200u);
@@ -383,10 +383,67 @@ public class ScoundrelSceneTests
         await MouseClickCard(cards[0].AsGodotObject());
         AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(4);
 
-        // Part 2: drag into RightDropZone — room count drops to 3.
-        // cards[0] is still 6_diamonds (weapon, 0 damage) since click didn't take it.
-        await MouseDragCard(cards[0].AsGodotObject());
+        // Part 2: drag 6_diamonds (weapon) to LEFT zone — room count drops to 3.
+        await MouseDragCard(cards[0].AsGodotObject(), new Vector2(192f, 345f));
         AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(3);
+    }
+
+    [TestCase(Description = "Dragging a weapon to the right (discard) zone bounces it back")]
+    public async Task DragWeaponToRightZoneBounces()
+    {
+        await SetupFixedDeck(1200u);
+        var scene = _runner!.Scene();
+        var room  = scene.GetNode("UI/RoomContainer");
+
+        // cards[0] = 6_diamonds (weapon). Right zone (x 740-1120) is the discard side.
+        var cards = (GArray)room.Call("get_all_cards");
+        await MouseDragCard(cards[0].AsGodotObject(), new Vector2(850f, 300f));
+
+        // Card bounced back — room still has 4 cards and weapon slot is empty.
+        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(4);
+        AssertThat(scene.GetNode<Label>("UI/WeaponLabel").Text).IsEqual("Weapon: none");
+    }
+
+    [TestCase(Description = "Dragging a potion to the left (fight) zone bounces it back")]
+    public async Task DragPotionToLeftZoneBounces()
+    {
+        await SetupFixedDeck(1200u);
+        var scene = _runner!.Scene();
+        var room  = scene.GetNode("UI/RoomContainer");
+
+        // Find 5_hearts (potion). Left zone (x 0-385) is the fight/equip side.
+        var potion = FindRoomCard(scene, s => s == "hearts");
+        AssertThat(potion).IsNotNull();
+
+        int hpBefore = ParseHP(scene);
+        await MouseDragCard(potion!, new Vector2(192f, 345f));
+
+        // Card bounced back — room still has 4 cards and no HP was gained.
+        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(4);
+        AssertThat(ParseHP(scene)).IsEqual(hpBefore);
+    }
+
+    [TestCase(Description = "Dragging a monster to the right zone fights bare-handed, ignoring equipped weapon")]
+    public async Task DragMonsterToRightZoneIsBarehanded()
+    {
+        await SetupFixedDeck(1200u);
+        var scene = _runner!.Scene();
+
+        // Equip 6_diamonds via direct signal so the weapon floor is fresh.
+        var weapon = FindRoomCard(scene, s => s == "diamonds");
+        AssertThat(weapon).IsNotNull();
+        ClickCard(scene, weapon!);
+        await _runner!.AwaitMillis(800); // let weapon move animation finish
+
+        AssertThat(scene.GetNode<Label>("UI/WeaponLabel").Text).IsNotEqual("Weapon: none");
+
+        // Drag 4_clubs (monster, value 4) to RIGHT zone — bare-handed, no weapon applied.
+        var monster = FindRoomCard(scene, s => s == "clubs");
+        AssertThat(monster).IsNotNull();
+        await MouseDragCard(monster!, new Vector2(850f, 300f));
+
+        // With weapon (value 6): damage would be 0.  Bare-handed: damage = 4.
+        AssertThat(ParseHP(scene)).IsEqual(16);
     }
 
     [TestCase(Description = "After Run and animations settle, every room card is at a valid room slot position (regression: bug-014)")]
