@@ -17,6 +17,11 @@ reports/
 # Export builds
 builds/
 
-# Wolf ephemeral session/ledger files
+# Wolf runtime files — synced to origin manually, not on every commit
+.wolf/memory.md
+.wolf/buglog.json
+.wolf/anatomy.md
+.wolf/cerebrum.md
+.wolf/designqc-captures/
 .wolf/token-ledger.json
 .wolf/hooks/_session.json
