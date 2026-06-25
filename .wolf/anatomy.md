@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-25T02:08:51.810Z
-> Files: 535 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-25T02:11:55.376Z
+> Files: 536 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../../tmp/claude-1000/-home-aileen-Repositories-godot-scoundrel-with-help/694a1aee-797c-490b-8b5c-125b6336d599/scratchpad/
 
@@ -15,8 +15,9 @@
 ## ../../../.claude/projects/-home-aileen-Repositories-godot-scoundrel-with-help/memory/
 
 - `feedback_commit_workflow.md` (~189 tok)
+- `feedback_test_results.md` (~195 tok)
 - `feedback_tests_with_feature.md` (~169 tok)
-- `MEMORY.md` — Memory Index (~129 tok)
+- `MEMORY.md` — Memory Index (~166 tok)
 - `project_scoundrel.md` (~776 tok)
 
 ## ./

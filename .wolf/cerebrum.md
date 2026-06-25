@@ -7,6 +7,7 @@
 ## User Preferences
 
 - **Always write tests with the feature.** Every implementation commit must include tests covering the new behavior. Tests are not a follow-up — they ship in the same commit.
+- **Drop-zone-based card controls.** Cards must be dragged into LeftDropZone (left side) or RightDropZone (right side) to be taken. Cards dropped outside a zone return to their room slot. `ClickCard()` in tests still works (emits `card_selected` directly) for game-logic tests. Real-input tests must use `MouseDragCard` with a target position inside a zone (default: RightDropZone centre ~(850,300)). Bare clicks never fire `card_selected` because the mouse never reaches a zone sensor.
 
 ## Key Learnings
 
