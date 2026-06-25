@@ -6,6 +6,8 @@
 
 ## User Preferences
 
+- **Prefer merge commits over rebase or force-push.** Every action should be visible in history — revert commits, merge commits, etc. Never suggest force-pushing or rewriting history as a solution; suggest a new commit instead.
+
 - **Always write tests with the feature.** Every implementation commit must include tests covering the new behavior. Tests are not a follow-up — they ship in the same commit.
 - **Drop-zone-based card controls.** Cards must be dragged into LeftDropZone (left side, x:0-320) or RightDropZone (right side, x:820-1120) to be taken. Cards dropped in the room's safe gap (x:320-820) return to their slot. `ClickCard()` in tests still works (emits `card_selected` directly, bypasses zone routing entirely) for game-logic tests. Real-input tests must use `MouseDragCard` with a target position inside a zone (default: (850,300) is inside RightDropZone). Bare clicks never fire `card_selected` because the mouse never reaches a zone sensor.
 
