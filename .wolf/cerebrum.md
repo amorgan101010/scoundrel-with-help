@@ -6,6 +6,8 @@
 
 ## User Preferences
 
+- **Prefer merge commits over rebase or force-push.** Every action should be visible in history — revert commits, merge commits, etc. Never suggest force-pushing or rewriting history as a solution; suggest a new commit instead.
+
 - **Always write tests with the feature.** Every implementation commit must include tests covering the new behavior. Tests are not a follow-up — they ship in the same commit.
 - **Drop-zone-based card controls.** Cards must be dragged into LeftDropZone (left side, x:0-320) or RightDropZone (right side, x:820-1120) to be taken. Cards dropped in the room's safe gap (x:320-820) return to their slot. `ClickCard()` in tests still works (emits `card_selected` directly, bypasses zone routing entirely) for game-logic tests. Real-input tests must use `MouseDragCard` with a target position inside a zone (default: (850,300) is inside RightDropZone). Bare clicks never fire `card_selected` because the mouse never reaches a zone sensor.
 
@@ -47,6 +49,8 @@
 - [2026-06-24] **Test assertions must be exact, not permissive.** Never write `Is.GreaterThanOrEqualTo(0)` when the exact value is `0` (or any known value). Permissive assertions pass even when the implementation returns a wrong-but-still-valid value. Write the specific value the code should return.
 
 - [2026-06-24] **`ClickCard` (direct signal emit) vs `MouseClickCard` (real input).** `ClickCard` bypasses DraggableObject entirely and is appropriate for testing C# game-logic handlers in isolation. `MouseClickCard`/`MouseDragCard` test the real GDScript→C# input pathway and should be used when the interaction mechanism itself is under test. Don't use `ClickCard` for a test whose description says "clicking a card" if the signal routing is what you're verifying.
+
+- [2026-06-25] **Always `git stash` unstaged changes before switching branches or restoring files with `git checkout <ref> -- <path>`.** `git checkout <ref> -- <path>` overwrites the working tree silently — any unstaged changes to those files are gone. Stash first, then restore, then pop. Scratchpad copies are a safety net but not a substitute.
 
 ## Decision Log
 
