@@ -48,6 +48,8 @@
 
 - [2026-06-24] **`ClickCard` (direct signal emit) vs `MouseClickCard` (real input).** `ClickCard` bypasses DraggableObject entirely and is appropriate for testing C# game-logic handlers in isolation. `MouseClickCard`/`MouseDragCard` test the real GDScript→C# input pathway and should be used when the interaction mechanism itself is under test. Don't use `ClickCard` for a test whose description says "clicking a card" if the signal routing is what you're verifying.
 
+- [2026-06-25] **Always `git stash` unstaged changes before switching branches or restoring files with `git checkout <ref> -- <path>`.** `git checkout <ref> -- <path>` overwrites the working tree silently — any unstaged changes to those files are gone. Stash first, then restore, then pop. Scratchpad copies are a safety net but not a substitute.
+
 ## Decision Log
 
 <!-- Significant technical decisions with rationale. Why X was chosen over Y. -->
