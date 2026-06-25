@@ -475,3 +475,26 @@
 | 10:00 | Replaced DragWeaponToRightZoneBounces/DragPotionToLeftZoneBounces; added DragPotionToRightZoneDiscards | scene_tests/ScoundrelSceneTests.cs | 4 new scene tests covering both directions for potions and weapons | ~500 |
 | 10:00 | Added DiscardTests fixture (3 engine unit tests) | tests/GameEngineTests.cs | DiscardWeapon_NoActivate, DiscardPotion_NoActivate, DiscardPotion_CountsTowardMinTaken | ~200 |
 | 10:00 | Updated cerebrum zone-semantics entry; crossed out 5 items in stuff to fix.md | .wolf/cerebrum.md, stuff to fix.md | session complete | ~100 |
+| 09:55 | Session end: 13 writes across 6 files (GameEngine.cs, ScoundrelGame.cs, Game.tscn, GameEngineTests.cs, ScoundrelSceneTests.cs) | 6 reads | ~29020 tok |
+| 09:55 | Session end: 13 writes across 6 files (GameEngine.cs, ScoundrelGame.cs, Game.tscn, GameEngineTests.cs, ScoundrelSceneTests.cs) | 6 reads | ~29020 tok |
+| 10:00 | Edited scripts/ScoundrelGame.cs | 5→8 lines | ~182 |
+| 10:01 | Edited scripts/ScoundrelGame.cs | modified AddZoneLabel() | ~275 |
+| 10:01 | Session end: 15 writes across 6 files (GameEngine.cs, ScoundrelGame.cs, Game.tscn, GameEngineTests.cs, ScoundrelSceneTests.cs) | 6 reads | ~29454 tok |
+| 10:04 | Edited scripts/ScoundrelGame.cs | 8→11 lines | ~118 |
+| 10:04 | Session end: 16 writes across 6 files (GameEngine.cs, ScoundrelGame.cs, Game.tscn, GameEngineTests.cs, ScoundrelSceneTests.cs) | 6 reads | ~29581 tok |
+| 10:06 | Created VERSION | — | ~2 |
+| 10:07 | Created ../../../.claude/projects/-home-aileen-Repositories-godot-scoundrel-with-help/memory/feedback_branch_and_version_workflow.md | — | ~207 |
+| 10:07 | Edited ../../../.claude/projects/-home-aileen-Repositories-godot-scoundrel-with-help/memory/MEMORY.md | 1→2 lines | ~83 |
+| 10:07 | Session end: 19 writes across 9 files (GameEngine.cs, ScoundrelGame.cs, Game.tscn, GameEngineTests.cs, ScoundrelSceneTests.cs) | 8 reads | ~29897 tok |
+
+## Session: 2026-06-25 10:08
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 10:15 | Edited scripts/ScoundrelGame.cs | expanded (+11 lines) | ~177 |
+| 10:15 | Edited scripts/ScoundrelGame.cs | expanded (+7 lines) | ~152 |
+| 10:15 | Edited scripts/ScoundrelGame.cs | 3→4 lines | ~61 |
+| 10:15 | Edited scripts/ScoundrelGame.cs | added 2 condition(s) | ~423 |
+| 10:15 | Edited scripts/ScoundrelGame.cs | added 1 condition(s) | ~144 |
+| 10:15 | Edited scripts/ScoundrelGame.cs | modified CreateSfxPlayer() | ~114 |
+| 10:16 | Edited scene_tests/ScoundrelSceneTests.cs | modified DealingCards_PlaysCardDealtSound() | ~771 |

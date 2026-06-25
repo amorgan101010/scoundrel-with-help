@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-25T02:11:55.376Z
-> Files: 536 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-25T14:16:12.587Z
+> Files: 537 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../../tmp/claude-1000/-home-aileen-Repositories-godot-scoundrel-with-help/694a1aee-797c-490b-8b5c-125b6336d599/scratchpad/
 
@@ -14,17 +14,18 @@
 
 ## ../../../.claude/projects/-home-aileen-Repositories-godot-scoundrel-with-help/memory/
 
+- `feedback_branch_and_version_workflow.md` (~213 tok)
 - `feedback_commit_workflow.md` (~189 tok)
 - `feedback_test_results.md` (~195 tok)
 - `feedback_tests_with_feature.md` (~169 tok)
-- `MEMORY.md` — Memory Index (~166 tok)
+- `MEMORY.md` — Memory Index (~206 tok)
 - `project_scoundrel.md` (~776 tok)
 
 ## ./
 
 - `.editorconfig` — Editor configuration (~9 tok)
 - `.gitattributes` — Git attributes (~22 tok)
-- `.gitignore` — Git ignore rules (~53 tok)
+- `.gitignore` — Git ignore rules (~77 tok)
 - `blank_playfield.png.import` (~254 tok)
 - `CLAUDE.md` — OpenWolf (~1431 tok)
 - `export_presets.cfg` (~1089 tok)
@@ -39,8 +40,8 @@
 - `ScoundrelWithHelp.csproj` — /*.cs" /> (~117 tok)
 - `ScoundrelWithHelp.csproj.old` (~108 tok)
 - `ScoundrelWithHelp.sln` (~439 tok)
-- `stuff to fix.md` — Claude's To-Do (~1516 tok)
-- `VERSION` — Semantic version string, currently 0.3.0 (~5 tok)
+- `stuff to fix.md` — Claude's To-Do (~1645 tok)
+- `VERSION` (~2 tok)
 - `VERSION` (~2 tok)
 - `weirdly sized discard cards.png.import` (~263 tok)
 
@@ -632,26 +633,35 @@
 - `cardBack_blue3.png.import` (~263 tok)
 - `cardBack_blue4.png.import` (~263 tok)
 
+## samples/
+
+- `bubbles.wav` — SFX: potion drink (first potion per room)
+- `card_dealt.wav` — SFX: card dealt to room slot
+- `potion_discarded.wav` — SFX: potion discarded to right zone
+- `punch.wav` — SFX: monster combat (all types until sword-clash sample available)
+- `sword_drawn.wav` — SFX: weapon equipped
+- `weapon_discarded.wav` — SFX: weapon discarded to right zone
+
 ## scene_tests/
 
-- `ScoundrelSceneTests.cs` — Scene-level integration tests for Scoundrel. Run via the gdUnit4 test runner (editor toolbar or: god (~7871 tok)
+- `ScoundrelSceneTests.cs` — Scene-level integration tests for Scoundrel. Run via the gdUnit4 test runner (editor toolbar or: god (~9207 tok)
 
 ## scenes/
 
-- `DropZoneContainer.gd` — Extends Pile; overrides check_card_can_be_dropped with get_global_rect() mouse check; used by LeftDropZone + RightDropZone as a reliable drop sensor that doesn't depend on CardManager initialization order. (~120 tok)
-- `Game.tscn` (~2117 tok)
-- `RoomContainer.gd` — # 2×2 card grid for the Scoundrel dungeon room. (~722 tok)
+- `DropZoneContainer.gd` — Declares bypasses (~593 tok)
+- `Game.tscn` (~2156 tok)
+- `RoomContainer.gd` — # 2×2 card grid for the Scoundrel dungeon room. (~980 tok)
 
 ## scripts/
 
 - `CardData.cs` — Class: CardData (~208 tok)
 - `CardModel.cs` — Godot-free card data record. Used by GameEngine and unit tests. (~126 tok)
-- `GameEngine.cs` — Pure C# game-state machine for Scoundrel. No Godot dependencies — fully integration-testable. Deck i (~1325 tok)
-- `ScoundrelGame.cs` — Godot bridge for Scoundrel. Owns node references and visual card movements. All game-state decisions (~5581 tok)
+- `GameEngine.cs` — Pure C# game-state machine for Scoundrel. No Godot dependencies — fully integration-testable. Deck i (~1444 tok)
+- `ScoundrelGame.cs` — Godot bridge for Scoundrel. Owns node references and visual card movements. All game-state decisions (~6098 tok)
 - `ScoundrelRules.cs` — Pure game-logic functions for Scoundrel. No Godot dependencies — fully unit-testable. (~446 tok)
 
 ## tests/
 
-- `GameEngineTests.cs` — Class: CardModelTests (~7541 tok)
+- `GameEngineTests.cs` — Class: CardModelTests (~7969 tok)
 - `ScoundrelRulesTests.cs` — Class: MonsterValueTests (~1391 tok)
 - `ScoundrelTests.csproj` (~201 tok)

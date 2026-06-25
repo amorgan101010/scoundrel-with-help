@@ -55,6 +55,17 @@ public partial class ScoundrelGame : Node
     // ── Cached factory reference ──────────────────────────────────────────
     private GodotObject _cardFactory = null!;
 
+    // ── Sound effects ─────────────────────────────────────────────────────
+    private AudioStreamPlayer _sfxPunch = null!;
+    private AudioStreamPlayer _sfxBubbles = null!;
+    private AudioStreamPlayer _sfxPotionDiscard = null!;
+    private AudioStreamPlayer _sfxSwordDrawn = null!;
+    private AudioStreamPlayer _sfxWeaponDiscard = null!;
+    private AudioStreamPlayer _sfxCardDealt = null!;
+
+    // Set by PlaySfx; read by scene tests to assert which sound last played.
+    public string LastSfxPlayed { get; private set; } = "";
+
     // ── Card name tables ──────────────────────────────────────────────────
     private static readonly string[] Ranks =
         { "ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "jack", "queen", "king" };
@@ -98,6 +109,13 @@ public partial class ScoundrelGame : Node
         _rightHighlight = AddZoneHighlight(overlayLayer, new Vector2(820, 70), new Vector2(300, 550), new Color(0.25f, 0.5f, 1.0f,  0.30f));
         _leftLabel      = AddZoneLabel(overlayLayer, new Vector2(0, 70),   new Vector2(320, 550));
         _rightLabel     = AddZoneLabel(overlayLayer, new Vector2(820, 70), new Vector2(300, 550));
+
+        _sfxPunch         = CreateSfxPlayer("res://samples/punch.wav");
+        _sfxBubbles       = CreateSfxPlayer("res://samples/bubbles.wav");
+        _sfxPotionDiscard = CreateSfxPlayer("res://samples/potion_discarded.wav");
+        _sfxSwordDrawn    = CreateSfxPlayer("res://samples/sword_drawn.wav");
+        _sfxWeaponDiscard = CreateSfxPlayer("res://samples/weapon_discarded.wav");
+        _sfxCardDealt     = CreateSfxPlayer("res://samples/card_dealt.wav");
 
         _roomContainer.Connect("card_drag_started", Callable.From<GodotObject>(OnCardDragStarted));
         _roomContainer.Connect("card_drag_ended",   Callable.From(OnCardDragEnded));
@@ -194,6 +212,7 @@ public partial class ScoundrelGame : Node
             .Select(v => v.AsGodotObject().Get("card_info").AsGodotDictionary()["name"].AsString())
             .ToHashSet();
 
+        bool anyMoved = false;
         foreach (var cardModel in _engine.Room)
         {
             if (!alreadyInRoom.Contains(cardModel.Name))
@@ -201,8 +220,12 @@ public partial class ScoundrelGame : Node
                 var godotCard = _godotCards[cardModel.Name];
                 godotCard.Set("global_position", deckAnchor);
                 _roomContainer.Call("move_cards", new Array { godotCard }, -1, false);
+                anyMoved = true;
             }
         }
+
+        if (anyMoved)
+            PlaySfx(_sfxCardDealt, "card_dealt");
 
         if (_engine.PotionUsedThisRoom)
             TintRemainingPotions();
@@ -240,6 +263,7 @@ public partial class ScoundrelGame : Node
         bool activateCard = !((cardModel.IsPotion || cardModel.IsWeapon) && droppedRight);
 
         var oldWeapon           = _engine.EquippedWeapon;
+        bool potionUsedBefore   = _engine.PotionUsedThisRoom;
         bool potionWastedBefore = _engine.PotionWastedThisRoom;
         bool willUseWeapon      = useWeapon
             && cardModel.IsMonster
@@ -253,6 +277,7 @@ public partial class ScoundrelGame : Node
         {
             case Suit.Clubs:
             case Suit.Spades:
+                PlaySfx(_sfxPunch, "punch");
                 DecrementSuit(cardModel);
                 if (willUseWeapon)
                     MoveToSlain(card);
@@ -261,6 +286,10 @@ public partial class ScoundrelGame : Node
                 break;
 
             case Suit.Hearts:
+                if (activateCard && !potionUsedBefore)
+                    PlaySfx(_sfxBubbles, "bubbles");
+                else if (!activateCard)
+                    PlaySfx(_sfxPotionDiscard, "potion_discarded");
                 if (activateCard && !potionWastedBefore && _engine.PotionWastedThisRoom)
                     ShowBriefMessage("Potion wasted! (one per room)");
                 DecrementSuit(cardModel);
@@ -270,6 +299,7 @@ public partial class ScoundrelGame : Node
             case Suit.Diamonds:
                 if (activateCard)
                 {
+                    PlaySfx(_sfxSwordDrawn, "sword_drawn");
                     if (oldWeapon != null)
                     {
                         DecrementSuit(oldWeapon);
@@ -281,6 +311,7 @@ public partial class ScoundrelGame : Node
                 }
                 else
                 {
+                    PlaySfx(_sfxWeaponDiscard, "weapon_discarded");
                     DecrementSuit(cardModel);
                     MoveToDiscard(card);
                 }
@@ -497,6 +528,20 @@ public partial class ScoundrelGame : Node
     }
 
     // ── Utilities ─────────────────────────────────────────────────────────
+    private AudioStreamPlayer CreateSfxPlayer(string path)
+    {
+        var player = new AudioStreamPlayer();
+        player.Stream = GD.Load<AudioStream>(path);
+        AddChild(player);
+        return player;
+    }
+
+    private void PlaySfx(AudioStreamPlayer player, string name)
+    {
+        LastSfxPlayed = name;
+        player.Play();
+    }
+
     private static Label AddZoneLabel(Node parent, Vector2 pos, Vector2 size)
     {
         var label = new Label();

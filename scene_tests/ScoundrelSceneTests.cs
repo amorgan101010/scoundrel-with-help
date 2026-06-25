@@ -717,6 +717,84 @@ public class ScoundrelSceneTests
         AssertThat((Color)last[0].Get("modulate")).IsNotEqual(white);
     }
 
+    // ── Sound effect tests ────────────────────────────────────────────────────
+
+    [TestCase(Description = "Dealing cards plays the card-dealt sound")]
+    public async Task DealingCards_PlaysCardDealtSound()
+    {
+        await SetupFixedDeck();
+        var game = (ScoundrelGame)_runner!.Scene();
+        AssertThat(game.LastSfxPlayed).IsEqual("card_dealt");
+    }
+
+    [TestCase(Description = "Fighting a monster plays the punch sound")]
+    public async Task FightingMonster_PlaysPunchSound()
+    {
+        await SetupFixedDeck();
+        var scene = _runner!.Scene();
+
+        var monster = FindRoomCard(scene, s => s == "clubs");
+        AssertThat(monster).IsNotNull();
+        ClickCard(scene, monster!);
+        await _runner!.AwaitIdleFrame();
+
+        AssertThat(((ScoundrelGame)scene).LastSfxPlayed).IsEqual("punch");
+    }
+
+    [TestCase(Description = "Drinking a potion plays the bubbles sound")]
+    public async Task DrinkingPotion_PlaysBubblesSound()
+    {
+        await SetupFixedDeck();
+        var scene = _runner!.Scene();
+
+        var potion = FindRoomCard(scene, s => s == "hearts");
+        AssertThat(potion).IsNotNull();
+        ClickCard(scene, potion!);
+        await _runner!.AwaitIdleFrame();
+
+        AssertThat(((ScoundrelGame)scene).LastSfxPlayed).IsEqual("bubbles");
+    }
+
+    [TestCase(Description = "Discarding a potion to the right zone plays the potion-discard sound")]
+    public async Task DiscardingPotion_PlaysDiscardSound()
+    {
+        await SetupFixedDeck(1200u);
+        var scene = _runner!.Scene();
+
+        var potion = FindRoomCard(scene, s => s == "hearts");
+        AssertThat(potion).IsNotNull();
+        await MouseDragCard(potion!, new Vector2(850f, 300f));
+
+        AssertThat(((ScoundrelGame)scene).LastSfxPlayed).IsEqual("potion_discarded");
+    }
+
+    [TestCase(Description = "Equipping a weapon plays the sword-drawn sound")]
+    public async Task EquippingWeapon_PlaysSwordDrawnSound()
+    {
+        await SetupFixedDeck();
+        var scene = _runner!.Scene();
+
+        var weapon = FindRoomCard(scene, s => s == "diamonds");
+        AssertThat(weapon).IsNotNull();
+        ClickCard(scene, weapon!);
+        await _runner!.AwaitIdleFrame();
+
+        AssertThat(((ScoundrelGame)scene).LastSfxPlayed).IsEqual("sword_drawn");
+    }
+
+    [TestCase(Description = "Discarding a weapon to the right zone plays the weapon-discard sound")]
+    public async Task DiscardingWeapon_PlaysWeaponDiscardSound()
+    {
+        await SetupFixedDeck(1200u);
+        var scene = _runner!.Scene();
+
+        var weapon = FindRoomCard(scene, s => s == "diamonds");
+        AssertThat(weapon).IsNotNull();
+        await MouseDragCard(weapon!, new Vector2(850f, 300f));
+
+        AssertThat(((ScoundrelGame)scene).LastSfxPlayed).IsEqual("weapon_discarded");
+    }
+
     [TestCase(Description = "Taking all cards from the last room shows YOU WIN")]
     public async Task Win_ShowsWinState()
     {
