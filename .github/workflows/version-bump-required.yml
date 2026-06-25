@@ -16,7 +16,25 @@ jobs:
 
       - name: Verify VERSION was bumped
         run: |
-          DIFF=$(git diff "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}" -- VERSION)
+          BASE="${{ github.event.pull_request.base.sha }}"
+          HEAD="${{ github.event.pull_request.head.sha }}"
+
+          # Files that don't require a version bump when changed alone:
+          #   dot-directories/dotfiles (.github, .wolf, .godot, .gitignore, …)
+          #   markdown docs, export presets, .png.import sidecars
+          CODE_CHANGES=$(git diff --name-only "$BASE" "$HEAD" \
+            | grep -v '^[.]'             \
+            | grep -v '\.md$'            \
+            | grep -v '\.png\.import$'   \
+            | grep -v '^export_presets'  \
+          )
+
+          if [ -z "$CODE_CHANGES" ]; then
+            echo "Only non-code files changed — version bump not required."
+            exit 0
+          fi
+
+          DIFF=$(git diff "$BASE" "$HEAD" -- VERSION)
           if [ -z "$DIFF" ]; then
             echo "::error::VERSION file was not changed. All PRs to main must include a version bump."
             exit 1
