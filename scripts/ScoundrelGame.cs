@@ -91,10 +91,10 @@ public partial class ScoundrelGame : Node
         _cardFactory = (GodotObject)_cardManager.Get("card_factory");
 
         var ui = GetNode<CanvasLayer>("UI");
-        _leftHighlight  = AddZoneHighlight(ui, new Vector2(0, 70),   new Vector2(385, 550), new Color(0.25f, 0.8f, 0.25f, 0.25f));
-        _rightHighlight = AddZoneHighlight(ui, new Vector2(740, 70), new Vector2(380, 550), new Color(0.25f, 0.5f, 1.0f,  0.25f));
-        _leftLabel      = AddZoneLabel(ui, new Vector2(0, 70),   new Vector2(385, 550));
-        _rightLabel     = AddZoneLabel(ui, new Vector2(740, 70), new Vector2(380, 550));
+        _leftHighlight  = AddZoneHighlight(ui, new Vector2(0, 70),   new Vector2(320, 550), new Color(0.25f, 0.8f, 0.25f, 0.30f));
+        _rightHighlight = AddZoneHighlight(ui, new Vector2(820, 70), new Vector2(300, 550), new Color(0.25f, 0.5f, 1.0f,  0.30f));
+        _leftLabel      = AddZoneLabel(ui, new Vector2(0, 70),   new Vector2(320, 550));
+        _rightLabel     = AddZoneLabel(ui, new Vector2(820, 70), new Vector2(300, 550));
 
         _roomContainer.Connect("card_drag_started", Callable.From<GodotObject>(OnCardDragStarted));
         _roomContainer.Connect("card_drag_ended",   Callable.From(OnCardDragEnded));
@@ -219,36 +219,22 @@ public partial class ScoundrelGame : Node
         bool droppedLeft  = containerId == _leftDropZone.GetInstanceId();
         bool droppedRight = containerId == _rightDropZone.GetInstanceId();
 
-        // Validate routing when a real zone drop occurred.
-        if (droppedLeft || droppedRight)
+        // Monster + left zone: validate weapon usability before accepting.
+        if (cardModel.IsMonster && droppedLeft)
         {
-            if (cardModel.IsPotion && droppedLeft)
+            bool canUse = _engine.EquippedWeapon != null
+                && ScoundrelRules.CanUseWeapon(cardModel.MonsterValue, _engine.WeaponFloor);
+            if (!canUse)
             {
                 _roomContainer.Call("move_cards", new Array { card }, -1, false);
-                ShowBriefMessage("Potions go on the right!");
+                ShowBriefMessage("Weapon can't block that!");
                 return;
-            }
-            if (cardModel.IsWeapon && droppedRight)
-            {
-                _roomContainer.Call("move_cards", new Array { card }, -1, false);
-                ShowBriefMessage("Weapons go on the left!");
-                return;
-            }
-            if (cardModel.IsMonster && droppedLeft)
-            {
-                bool canUse = _engine.EquippedWeapon != null
-                    && ScoundrelRules.CanUseWeapon(cardModel.MonsterValue, _engine.WeaponFloor);
-                if (!canUse)
-                {
-                    _roomContainer.Call("move_cards", new Array { card }, -1, false);
-                    ShowBriefMessage("Weapon can't block that!");
-                    return;
-                }
             }
         }
 
-        // Monster dropped into right zone = fight bare-handed (skip equipped weapon).
-        bool useWeapon = !(cardModel.IsMonster && droppedRight);
+        // Monster right = bare-handed; potion/weapon right = discard without activating.
+        bool useWeapon   = !(cardModel.IsMonster && droppedRight);
+        bool activateCard = !((cardModel.IsPotion || cardModel.IsWeapon) && droppedRight);
 
         var oldWeapon           = _engine.EquippedWeapon;
         bool potionWastedBefore = _engine.PotionWastedThisRoom;
@@ -257,7 +243,7 @@ public partial class ScoundrelGame : Node
             && _engine.EquippedWeapon != null
             && ScoundrelRules.CanUseWeapon(cardModel.MonsterValue, _engine.WeaponFloor);
 
-        _engine.TakeCard(cardModel, useWeapon);
+        _engine.TakeCard(cardModel, useWeapon, activateCard);
 
         // Visual side-effects per card type
         switch (cardModel.Suit)
@@ -272,21 +258,29 @@ public partial class ScoundrelGame : Node
                 break;
 
             case Suit.Hearts:
-                if (!potionWastedBefore && _engine.PotionWastedThisRoom)
+                if (activateCard && !potionWastedBefore && _engine.PotionWastedThisRoom)
                     ShowBriefMessage("Potion wasted! (one per room)");
                 DecrementSuit(cardModel);
                 MoveToDiscard(card);
                 break;
 
             case Suit.Diamonds:
-                if (oldWeapon != null)
+                if (activateCard)
                 {
-                    DecrementSuit(oldWeapon);
-                    DiscardSlainCards();
-                    MoveToDiscard(_godotCards[oldWeapon.Name]);
+                    if (oldWeapon != null)
+                    {
+                        DecrementSuit(oldWeapon);
+                        DiscardSlainCards();
+                        MoveToDiscard(_godotCards[oldWeapon.Name]);
+                    }
+                    ResetCardScale(card);
+                    _weaponSlot.Call("move_cards", new Array { card }, -1, false);
                 }
-                ResetCardScale(card);
-                _weaponSlot.Call("move_cards", new Array { card }, -1, false);
+                else
+                {
+                    DecrementSuit(cardModel);
+                    MoveToDiscard(card);
+                }
                 break;
         }
 
@@ -315,29 +309,28 @@ public partial class ScoundrelGame : Node
                     && ScoundrelRules.CanUseWeapon(monsterValue, _engine.WeaponFloor);
 
                 _leftHighlight.Visible  = canUseWeapon;
-                _leftLabel.Text         = "Use Weapon";
+                _leftLabel.Text         = "Fight (Weapon)";
                 _leftLabel.Visible      = canUseWeapon;
                 _rightHighlight.Visible = true;
-                _rightLabel.Text        = "Bare-Handed";
+                _rightLabel.Text        = "Fight (Fists)";
                 _rightLabel.Visible     = true;
                 break;
             }
             case "hearts":
-            {
-                bool willHeal = !_engine.PotionUsedThisRoom;
-                _leftHighlight.Visible  = false;
-                _leftLabel.Visible      = false;
+                _leftHighlight.Visible  = true;
+                _leftLabel.Text         = "Drink";
+                _leftLabel.Visible      = true;
                 _rightHighlight.Visible = true;
-                _rightLabel.Text        = willHeal ? "Drink" : "Discard";
+                _rightLabel.Text        = "Discard";
                 _rightLabel.Visible     = true;
                 break;
-            }
             case "diamonds":
                 _leftHighlight.Visible  = true;
                 _leftLabel.Text         = "Equip";
                 _leftLabel.Visible      = true;
-                _rightHighlight.Visible = false;
-                _rightLabel.Visible     = false;
+                _rightHighlight.Visible = true;
+                _rightLabel.Text        = "Discard";
+                _rightLabel.Visible     = true;
                 break;
         }
     }
@@ -508,7 +501,7 @@ public partial class ScoundrelGame : Node
         label.AddThemeFontSizeOverride("font_size", 28);
         label.AddThemeColorOverride("font_color", new Color(1f, 1f, 1f, 0.9f));
         label.MouseFilter          = Control.MouseFilterEnum.Ignore;
-        label.ZIndex               = 6;
+        label.ZIndex               = 10001;
         label.Visible              = false;
         parent.AddChild(label);
         return label;
@@ -521,7 +514,7 @@ public partial class ScoundrelGame : Node
         rect.Size        = size;
         rect.Color       = color;
         rect.MouseFilter = Control.MouseFilterEnum.Ignore;
-        rect.ZIndex      = 5;
+        rect.ZIndex      = 10000;
         rect.Visible     = false;
         parent.AddChild(rect);
         return rect;

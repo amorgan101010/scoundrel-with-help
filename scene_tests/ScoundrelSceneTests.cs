@@ -134,7 +134,7 @@ public class ScoundrelSceneTests
     }
 
     // Simulate a mouse drag: press on card, move to a drop zone, release.
-    // Default target is the RightDropZone (x:740-1120, y:70-620) centre.
+    // Default target is inside the RightDropZone (x:820-1120, y:70-620).
     private async Task MouseDragCard(GodotObject card, Vector2? dropTarget = null)
     {
         var pos    = (Vector2)card.Get("global_position");
@@ -400,39 +400,73 @@ public class ScoundrelSceneTests
         AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(3);
     }
 
-    [TestCase(Description = "Dragging a weapon to the right (discard) zone bounces it back")]
-    public async Task DragWeaponToRightZoneBounces()
+    [TestCase(Description = "Dragging a weapon to the right zone discards it without equipping")]
+    public async Task DragWeaponToRightZoneDiscards()
     {
         await SetupFixedDeck(1200u);
         var scene = _runner!.Scene();
         var room  = scene.GetNode("UI/RoomContainer");
 
-        // cards[0] = 6_diamonds (weapon). Right zone (x 740-1120) is the discard side.
+        // cards[0] = 6_diamonds (weapon). Right zone (x:820-1120) is the discard side.
         var cards = (GArray)room.Call("get_all_cards");
         await MouseDragCard(cards[0].AsGodotObject(), new Vector2(850f, 300f));
 
-        // Card bounced back — room still has 4 cards and weapon slot is empty.
-        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(4);
+        // Card discarded — room has 3 cards, weapon slot still empty.
+        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(3);
         AssertThat(scene.GetNode<Label>("UI/WeaponLabel").Text).IsEqual("Weapon: none");
+        AssertThat((int)scene.GetNode("UI/DiscardPile").Call("get_card_count")).IsEqual(1);
     }
 
-    [TestCase(Description = "Dragging a potion to the left (fight) zone bounces it back")]
-    public async Task DragPotionToLeftZoneBounces()
+    [TestCase(Description = "Dragging a potion to the left zone drinks it, healing the player")]
+    public async Task DragPotionToLeftZoneDrinks()
     {
         await SetupFixedDeck(1200u);
         var scene = _runner!.Scene();
         var room  = scene.GetNode("UI/RoomContainer");
 
-        // Find 5_hearts (potion). Left zone (x 0-385) is the fight/equip side.
+        // Take 8_spades damage first so the heal is detectable (HP 20 → 12).
+        var monster = FindRoomCard(scene, s => s == "spades");
+        AssertThat(monster).IsNotNull();
+        ClickCard(scene, monster!);
+        await _runner!.AwaitMillis(200);
+
+        int hpAfterDamage = ParseHP(scene);
+        var potion = FindRoomCard(scene, s => s == "hearts"); // 5_hearts
+        AssertThat(potion).IsNotNull();
+
+        int potionRank = potion!.Get("card_info").AsGodotDictionary()["rank"].AsInt32();
+        int expectedHP = Math.Min(20, hpAfterDamage + potionRank);
+
+        // Drag left — LEFT zone is now "Drink"
+        await MouseDragCard(potion, new Vector2(192f, 345f));
+
+        AssertThat(ParseHP(scene)).IsEqual(expectedHP);
+        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(2);
+    }
+
+    [TestCase(Description = "Dragging a potion to the right zone discards it without healing")]
+    public async Task DragPotionToRightZoneDiscards()
+    {
+        await SetupFixedDeck(1200u);
+        var scene = _runner!.Scene();
+        var room  = scene.GetNode("UI/RoomContainer");
+
+        // Take damage so a heal would be detectable.
+        var monster = FindRoomCard(scene, s => s == "spades"); // 8_spades
+        AssertThat(monster).IsNotNull();
+        ClickCard(scene, monster!);
+        await _runner!.AwaitMillis(200);
+
+        int hpAfterDamage = ParseHP(scene);
         var potion = FindRoomCard(scene, s => s == "hearts");
         AssertThat(potion).IsNotNull();
 
-        int hpBefore = ParseHP(scene);
-        await MouseDragCard(potion!, new Vector2(192f, 345f));
+        // Drag right — RIGHT zone is now "Discard" (no healing)
+        await MouseDragCard(potion!, new Vector2(850f, 300f));
 
-        // Card bounced back — room still has 4 cards and no HP was gained.
-        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(4);
-        AssertThat(ParseHP(scene)).IsEqual(hpBefore);
+        // HP unchanged — potion discarded, not drunk.
+        AssertThat(ParseHP(scene)).IsEqual(hpAfterDamage);
+        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(2);
     }
 
     [TestCase(Description = "Dragging a monster to the right zone fights bare-handed, ignoring equipped weapon")]

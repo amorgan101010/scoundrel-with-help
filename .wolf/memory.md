@@ -430,3 +430,48 @@
 | 05:50 | Diagnosed 3 failing drag scene tests | RoomContainer.gd, DropZoneContainer.gd | Root cause: card_manager=null because gdUnit4 loads via add_child (current_scene=null), CardContainer._ready() meta lookup fails | ~2500 |
 | 05:55 | Fixed CardManager registration for gdUnit4 | RoomContainer.gd, DropZoneContainer.gd | Added _ready() override + deferred tree-search retry; 21/21 tests pass | ~800 |
 | 05:56 | Logged bug-041 | .wolf/buglog.json | Documented root cause and fix | ~200 |
+| 09:25 | Session end: 9 writes across 3 files (ScoundrelSceneTests.cs, DropZoneContainer.gd, RoomContainer.gd) | 7 reads | ~22251 tok |
+| 09:26 | Session end: 9 writes across 3 files (ScoundrelSceneTests.cs, DropZoneContainer.gd, RoomContainer.gd) | 11 reads | ~22727 tok |
+| 09:27 | Session end: 9 writes across 3 files (ScoundrelSceneTests.cs, DropZoneContainer.gd, RoomContainer.gd) | 11 reads | ~22727 tok |
+
+## Session: 2026-06-25 09:34
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-06-25 09:35
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-06-25 09:47
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 09:51 | Edited scripts/GameEngine.cs | added 1 condition(s) | ~378 |
+| 09:51 | Edited scripts/ScoundrelGame.cs | 5→5 lines | ~130 |
+| 09:51 | Edited scripts/ScoundrelGame.cs | modified if() | ~656 |
+| 09:51 | Edited scripts/ScoundrelGame.cs | 33→32 lines | ~373 |
+| 09:52 | Edited scripts/ScoundrelGame.cs | 6 → 10001 | ~12 |
+| 09:52 | Edited scripts/ScoundrelGame.cs | 5 → 10000 | ~9 |
+| 09:52 | Edited scenes/Game.tscn | 13→13 lines | ~92 |
+| 09:52 | Edited scenes/Game.tscn | 14→14 lines | ~98 |
+| 09:52 | Edited scenes/Game.tscn | modified MONSTERS() | ~336 |
+| 09:52 | Edited tests/GameEngineTests.cs | modified DiscardWeapon_NoActivate_GoesToDiscardNotEquipped() | ~450 |
+| 09:53 | Edited scene_tests/ScoundrelSceneTests.cs | 2→2 lines | ~40 |
+| 09:53 | Edited scene_tests/ScoundrelSceneTests.cs | modified DragWeaponToRightZoneDiscards() | ~791 |
+| 09:53 | Edited stuff to fix.md | 5→5 lines | ~161 |
+
+## Session: 2026-06-25 (stuff-to-fix pass)
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 10:00 | Added activateCard param to TakeCard (weapon/potion discard without effect) | scripts/GameEngine.cs | when false: card goes to discard, no suit effect, still counts toward MinCardsTaken | ~200 |
+| 10:00 | Rewired zone routing: LEFT=drink/equip/fight-weapon, RIGHT=discard/fight-fists | scripts/ScoundrelGame.cs | Removed potion/weapon bounce guards; activateCard derived from zone + suit | ~400 |
+| 10:00 | Updated drag labels: monsters "Fight (Weapon)"/"Fight (Fists)"; potions both zones visible | scripts/ScoundrelGame.cs | Fight word now in all monster labels | ~100 |
+| 10:00 | Bumped zone highlight ZIndex 5→10000, label 6→10001 | scripts/ScoundrelGame.cs | highlights guaranteed above all card z-index (max ~4000 during drag) | ~50 |
+| 10:00 | Narrowed DropZones: left x:0-320, right x:820-1120; matching highlight rects updated | scenes/Game.tscn, scripts/ScoundrelGame.cs | room gap 320-820 (was 385-740) | ~150 |
+| 10:00 | Updated help dialog text | scenes/Game.tscn | reflects all new controls | ~100 |
+| 10:00 | Replaced DragWeaponToRightZoneBounces/DragPotionToLeftZoneBounces; added DragPotionToRightZoneDiscards | scene_tests/ScoundrelSceneTests.cs | 4 new scene tests covering both directions for potions and weapons | ~500 |
+| 10:00 | Added DiscardTests fixture (3 engine unit tests) | tests/GameEngineTests.cs | DiscardWeapon_NoActivate, DiscardPotion_NoActivate, DiscardPotion_CountsTowardMinTaken | ~200 |
+| 10:00 | Updated cerebrum zone-semantics entry; crossed out 5 items in stuff to fix.md | .wolf/cerebrum.md, stuff to fix.md | session complete | ~100 |

@@ -38,35 +38,46 @@ public class GameEngine
 
     // ── Actions ───────────────────────────────────────────────────────────
 
-    public void TakeCard(CardModel card, bool useWeapon = true)
+    /// <param name="activateCard">
+    /// When false, the card is discarded without its type-specific effect
+    /// (no equip for weapons, no heal for potions). Useful for player-chosen discards.
+    /// </param>
+    public void TakeCard(CardModel card, bool useWeapon = true, bool activateCard = true)
     {
         if (IsOver) throw new InvalidOperationException("Game is over.");
         if (!_room.Remove(card)) throw new ArgumentException("Card is not in the room.");
 
-        switch (card.Suit)
+        if (!activateCard)
         {
-            case Suit.Clubs:
-            case Suit.Spades:
-                ApplyMonsterDamage(card, useWeapon);
-                _discard.Add(card);
-                break;
+            _discard.Add(card);
+        }
+        else
+        {
+            switch (card.Suit)
+            {
+                case Suit.Clubs:
+                case Suit.Spades:
+                    ApplyMonsterDamage(card, useWeapon);
+                    _discard.Add(card);
+                    break;
 
-            case Suit.Hearts:
-                if (!PotionUsedThisRoom)
-                {
-                    Health = ScoundrelRules.Heal(Health, card.PotionValue);
-                    PotionUsedThisRoom = true;
-                }
-                else
-                {
-                    PotionWastedThisRoom = true;
-                }
-                _discard.Add(card);
-                break;
+                case Suit.Hearts:
+                    if (!PotionUsedThisRoom)
+                    {
+                        Health = ScoundrelRules.Heal(Health, card.PotionValue);
+                        PotionUsedThisRoom = true;
+                    }
+                    else
+                    {
+                        PotionWastedThisRoom = true;
+                    }
+                    _discard.Add(card);
+                    break;
 
-            case Suit.Diamonds:
-                EquipWeapon(card);
-                break;
+                case Suit.Diamonds:
+                    EquipWeapon(card);
+                    break;
+            }
         }
 
         CardsTakenThisRoom++;

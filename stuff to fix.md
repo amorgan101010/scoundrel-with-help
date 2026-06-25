@@ -4,11 +4,15 @@
 
 - ~~sometimes cards go back into the deck face up. When this happens they can still be clicked. It seems related to all 4 cards not getting dealt.~~ (FIXED — bug-014)
 - ~~sometimes not all 4 cards deal out. Once when this happened when i fought an enemy and they went in the discard another card was drawn without changing rooms (said card was also still face up, as mentioned in the previous bullet)~~ (FIXED — bug-014)
-- discard pile cards are sometimes mis-aligned vertically (visual bug, low priority)
-- weapon choice: player should be able to choose whether to use the weapon on a monster or tank the damage directly. Implement after drag-and-drop (second pass on drag destinations).
-- it is unclear what is happening when you click a second potion and nothing happens healing-wise (I know it is the rules you get one potion per room but there needs to be visual feedback those potions are void)
-- I don't think you should be able to skip a room once a card has been used. IDK...maybe there should be a penalty to it or something, it can be handy. Put a pin in that.
-- I reviewed the base rules further and when a room is skipped it gets put at the bottom of the deck, not shuffled in. Maybe potions and weapons go to the bottom and monsters get shuffled, since they can "wander" between rooms.
+- ~~discard pile cards are sometimes mis-aligned vertically (visual bug, low priority)~~
+- ~~weapon choice: player should be able to choose whether to use the weapon on a monster or tank the damage directly. Implement after drag-and-drop (second pass on drag destinations).~~
+- ~~it is unclear what is happening when you click a second potion and nothing happens healing-wise (I know it is the rules you get one potion per room but there needs to be visual feedback those potions are void)~~
+
+- ~~You should be able to discard weapons in addition to equipping them~~
+- ~~The hover zones should be the top z index, maybe have them be transparent or even create a blur effect on the stuff behind them~~ (ZIndex bumped to 10000/10001; blur deferred — requires shader)
+- ~~the room "zone" (absence of zone) should be wider~~ (left zone 0-320, right zone 820-1120, room gap 320-820)
+- ~~Drinking potions should be a drag to the left, discarding them (Whether or not they're "void") is a drag to the right.~~
+- ~~The fight labels should include the word "fight"~~ ("Fight (Weapon)" / "Fight (Fists)")
 
 ## Stuff to add
 
@@ -25,6 +29,16 @@ This is #1 with a bullet, do this as soon as the stuff above has been fixed or m
 ### Some sound FX!
 
 I'll rustle up some samples, you just wire them in.
+
+What I want to add:
+
+- card dealing sound
+- bubbling sound with a choir for heals (a la Morrowind)
+- Swords clashing for weapon combat
+- punch for bare fisted combat
+- sword unsheathing sound for equipping weapon
+- breaking glass for discarding a potion
+- clattering metal for discarding a weapon
 
 ### Change the icon and name of the Executable
 

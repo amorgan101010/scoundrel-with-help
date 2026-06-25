@@ -191,20 +191,20 @@ visible = false
 layout_mode = 3
 anchors_preset = 0
 offset_top = 70.0
-offset_right = 385.0
+offset_right = 320.0
 offset_bottom = 620.0
 mouse_filter = 1
 script = ExtResource("6_dzc")
 card_face_up = false
 allow_card_movement = false
 restrict_to_top_card = false
-sensor_size = Vector2(385, 550)
+sensor_size = Vector2(320, 550)
 
 [node name="RightDropZone" type="Control" parent="UI" unique_id=1530563607]
 visible = false
 layout_mode = 3
 anchors_preset = 0
-offset_left = 740.0
+offset_left = 820.0
 offset_top = 70.0
 offset_right = 1120.0
 offset_bottom = 620.0
@@ -213,7 +213,7 @@ script = ExtResource("6_dzc")
 card_face_up = false
 allow_card_movement = false
 restrict_to_top_card = false
-sensor_size = Vector2(380, 550)
+sensor_size = Vector2(300, 550)
 
 [node name="RunButton" type="Button" parent="UI" unique_id=615236865]
 offset_left = 390.0
@@ -253,22 +253,24 @@ DECK: 44 cards (standard 52 minus red face cards & red aces).
 
 EACH ROOM: 4 cards are dealt face-up. You MUST take at least 3.
 Drag a card into a highlighted zone to take it:
-  LEFT ZONE (green) — equip weapons / fight monsters with your weapon.
-  RIGHT ZONE (blue) — drink potions / fight monsters bare-handed.
+  LEFT ZONE (green) — drink potions / equip weapons / fight with your weapon.
+  RIGHT ZONE (blue) — discard potions or weapons / fight monsters bare-handed.
 After 3 cards, 'Next Room' appears. The remaining card carries over.
 
 MONSTERS (Clubs & Spades):
   2-10 = face value, J=11, Q=12, K=13, A=14.
-  Drag LEFT: damage = monster - weapon (min 0); weapon degrades.
-  Drag RIGHT: take full damage, weapon floor is preserved.
+  Drag LEFT (Fight w/ Weapon): damage = monster - weapon (min 0); weapon degrades.
+  Drag RIGHT (Fight w/ Fists): take full damage, weapon floor is preserved.
 
 WEAPONS (Diamonds, 2-10 only):
   Drag LEFT to equip. Replaces current weapon (old weapon discarded).
+  Drag RIGHT to discard without equipping.
   Weapon value = card rank.
 
 POTIONS (Hearts, 2-10 only):
-  Drag RIGHT to heal. Restore HP equal to rank, capped at 20.
-  Only ONE potion heals per room (extras are discarded).
+  Drag LEFT to drink. Restore HP equal to rank, capped at 20.
+  Drag RIGHT to discard without drinking.
+  Only ONE potion heals per room (extras are wasted if drunk).
 
 RUN: Skip an entire room — all 4 cards sink to the bottom of the deck.
   Monsters regroup (and take the loot with them). Cannot run two rooms in a row.
