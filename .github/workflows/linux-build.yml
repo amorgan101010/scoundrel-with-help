@@ -1,4 +1,4 @@
-name: Linux Build
+name: Build and Release
 
 on:
   push:
@@ -13,9 +13,11 @@ env:
   GODOT_STABILITY: "stable"
 
 jobs:
-  linux-build:
-    name: Linux Build
+  build:
+    name: Build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
@@ -98,10 +100,36 @@ jobs:
             --export-release "Linux" "$GITHUB_WORKSPACE/builds/linux/Scoundrel_base_rules.x86_64" || true
           test -s "$GITHUB_WORKSPACE/builds/linux/Scoundrel_base_rules.x86_64"
 
-      - name: Upload artifact
+      - name: Export Windows build
+        if: steps.changed.outputs.build == 'true'
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/builds/windows"
+          xvfb-run "$GODOT_BIN" --path "$GITHUB_WORKSPACE" \
+            --export-release "Windows Desktop" "$GITHUB_WORKSPACE/builds/windows/Scoundrel_base_rules.exe" || true
+          test -s "$GITHUB_WORKSPACE/builds/windows/Scoundrel_base_rules.exe"
+
+      - name: Upload Linux artifact
         if: steps.changed.outputs.build == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: Scoundrel-linux-v${{ env.GAME_VERSION }}
           path: builds/linux/
           if-no-files-found: error
+
+      - name: Upload Windows artifact
+        if: steps.changed.outputs.build == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Scoundrel-windows-v${{ env.GAME_VERSION }}
+          path: builds/windows/
+          if-no-files-found: error
+
+      - name: Create GitHub Release
+        if: steps.changed.outputs.build == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.GAME_VERSION }}
+          name: Scoundrel v${{ env.GAME_VERSION }}
+          files: |
+            builds/linux/Scoundrel_base_rules.x86_64
+            builds/windows/Scoundrel_base_rules.exe

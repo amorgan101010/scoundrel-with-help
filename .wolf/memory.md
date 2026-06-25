@@ -4,6 +4,7 @@
 > Old sessions are consolidated by the daemon weekly.
 
 | 19:30 | Fix Linux Build CI: add `|| true` to export command — Godot crashes on shutdown after successful savepack | .github/workflows/linux-build.yml | fixed (bug-051) | ~300 |
+| 19:45 | Add Windows build + GitHub Release to CI; renamed workflow "Build and Release" | .github/workflows/linux-build.yml | macOS pending preset | ~200 |
 
 | 20:44 | Removed click-based card controls — drag only | scenes/RoomContainer.gd, scene_tests/ScoundrelSceneTests.cs | on_card_pressed records press pos; release_holding_cards skips card_selected if drag < 10px; 3 tests updated | ~300 tok |
 
@@ -556,3 +557,9 @@
 | Time | Action | File(s) | Outcome | ~Tokens |
 |------|--------|---------|---------|--------|
 | 15:28 | Edited .github/workflows/linux-build.yml | 7→7 lines | ~113 |
+| 15:32 | Session end: 1 writes across 1 files (linux-build.yml) | 1 reads | ~1245 tok |
+| 15:32 | Edited .github/workflows/linux-build.yml | inline fix | ~23 |
+| 15:32 | Session end: 2 writes across 1 files (linux-build.yml) | 1 reads | ~1268 tok |
+| 15:35 | Session end: 2 writes across 1 files (linux-build.yml) | 1 reads | ~1270 tok |
+| 15:35 | Session end: 2 writes across 1 files (linux-build.yml) | 1 reads | ~1270 tok |
+| 15:40 | Created .github/workflows/linux-build.yml | — | ~1463 |
