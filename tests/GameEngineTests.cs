@@ -76,6 +76,17 @@ public class MonsterCombatTests
     }
 
     [Test]
+    public void FightingMonster_AddsMonsterToDiscard()
+    {
+        var monster = Cards.Monster(8);
+        var engine  = Cards.RoomOf(monster, Cards.Potion(2), Cards.Weapon(5), Cards.Potion(3));
+
+        engine.TakeCard(monster);
+
+        Assert.That(engine.Discard, Contains.Item(monster));
+    }
+
+    [Test]
     public void FightAce_MonsterValueIs14()
     {
         var ace    = Cards.Monster(1);
@@ -98,6 +109,20 @@ public class MonsterCombatTests
 
         // Damage = 10 - 7 = 3
         Assert.That(engine.Health, Is.EqualTo(ScoundrelRules.StartHealth - 3));
+    }
+
+    [Test]
+    public void FightWithWeapon_StrongerThanMonster_ZeroDamage()
+    {
+        var weapon  = Cards.Weapon(8);
+        var monster = Cards.Monster(3);
+        var engine  = Cards.RoomOf(weapon, monster, Cards.Potion(2), Cards.Potion(3));
+
+        engine.TakeCard(weapon);
+        int healthBefore = engine.Health;
+        engine.TakeCard(monster);
+
+        Assert.That(engine.Health, Is.EqualTo(healthBefore));
     }
 
     [Test]
@@ -397,6 +422,26 @@ public class RoomProgressTests
     }
 
     [Test]
+    public void NextRoom_ResetsCardsTakenThisRoom()
+    {
+        var deck = new[]
+        {
+            Cards.Potion(2), Cards.Potion(2), Cards.Potion(2), Cards.Potion(2), // room 2
+            Cards.Potion(3), Cards.Potion(4), Cards.Potion(5), Cards.Potion(6)  // room 1
+        };
+        var engine = new GameEngine(deck);
+
+        engine.TakeCard(engine.Room[0]);
+        engine.TakeCard(engine.Room[0]);
+        engine.TakeCard(engine.Room[0]);
+        Assert.That(engine.CardsTakenThisRoom, Is.EqualTo(3));
+
+        engine.NextRoom();
+
+        Assert.That(engine.CardsTakenThisRoom, Is.EqualTo(0));
+    }
+
+    [Test]
     public void NextRoom_BeforeMinCardsTaken_Throws()
     {
         var engine = Cards.RoomOf(
@@ -520,6 +565,25 @@ public class RunTests
     }
 
     [Test]
+    public void Run_ResetsPotionUsedThisRoom()
+    {
+        var p5 = Cards.Potion(5);
+        var deck = new[]
+        {
+            Cards.Monster(2), Cards.Monster(2), Cards.Monster(2), Cards.Monster(2), // room 2
+            Cards.Monster(3), Cards.Weapon(4), Cards.Monster(5), p5                 // room 1
+        };
+        var engine = new GameEngine(deck);
+
+        engine.TakeCard(p5);
+        Assert.That(engine.PotionUsedThisRoom, Is.True);
+
+        engine.Run();
+
+        Assert.That(engine.PotionUsedThisRoom, Is.False);
+    }
+
+    [Test]
     public void Run_PutsRoomCardsAtDeckBottom()
     {
         // 12-card deck: room3 (bottom), room2 (middle), room1 (top → dealt to room first)
@@ -560,6 +624,31 @@ public class WinLoseTests
 
         Assert.That(engine.Won, Is.True);
         Assert.That(engine.GameOver, Is.False);
+    }
+
+    [Test]
+    public void TakeLastCard_InPartialFinalRoom_Wins()
+    {
+        // 5-card deck: room 1 gets 4, the 5th card is alone in room 2.
+        var finalCard = Cards.Potion(2);
+        var deck = new[]
+        {
+            finalCard,
+            Cards.Potion(3), Cards.Potion(4), Cards.Potion(5), Cards.Potion(6) // room 1
+        };
+        var engine = new GameEngine(deck);
+
+        engine.TakeCard(engine.Room[0]);
+        engine.TakeCard(engine.Room[0]);
+        engine.TakeCard(engine.Room[0]);
+        engine.TakeCard(engine.Room[0]); // auto-deals room 2 (just finalCard)
+
+        Assert.That(engine.Room.Count, Is.EqualTo(1));
+        Assert.That(engine.Room[0], Is.EqualTo(finalCard));
+
+        engine.TakeCard(finalCard);
+
+        Assert.That(engine.Won, Is.True);
     }
 
     [Test]
