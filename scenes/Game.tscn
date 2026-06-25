@@ -1,22 +1,23 @@
-[gd_scene load_steps=6 format=3 uid="uid://dscndrlgame1"]
+[gd_scene format=3 uid="uid://dscndrlgame1"]
 
-[ext_resource type="Script" path="res://scripts/ScoundrelGame.cs" id="1_gm"]
+[ext_resource type="Script" uid="uid://c5ryt8as5ww3d" path="res://scripts/ScoundrelGame.cs" id="1_gm"]
 [ext_resource type="Script" uid="uid://clqgq1n7v0ar" path="res://addons/card-framework/card_manager.gd" id="2_cm"]
 [ext_resource type="PackedScene" uid="uid://bscndrlcfact1" path="res://scenes/ScoundrelCardFactory.tscn" id="3_cf"]
 [ext_resource type="Script" uid="uid://6ams8uvg43gu" path="res://addons/card-framework/pile.gd" id="4_pile"]
-[ext_resource type="Script" path="res://scenes/RoomContainer.gd" id="5_room"]
+[ext_resource type="Script" uid="uid://nge5xs0pqlvl" path="res://scenes/RoomContainer.gd" id="5_room"]
 
-[node name="Game" type="Node"]
+[node name="Game" type="Node" unique_id=1067270305]
 script = ExtResource("1_gm")
 
-[node name="CardManager" type="Control" parent="."]
+[node name="CardManager" type="Control" parent="." unique_id=380227774]
+layout_mode = 3
+anchors_preset = 0
 script = ExtResource("2_cm")
 card_factory_scene = ExtResource("3_cf")
-card_size = Vector2(150, 210)
 
-[node name="UI" type="CanvasLayer" parent="."]
+[node name="UI" type="CanvasLayer" parent="." unique_id=910405530]
 
-[node name="Background" type="ColorRect" parent="UI"]
+[node name="Background" type="ColorRect" parent="UI" unique_id=1419269026]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -24,7 +25,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.13, 0.2, 0.13, 1)
 
-[node name="HealthLabel" type="Label" parent="UI"]
+[node name="HealthLabel" type="Label" parent="UI" unique_id=1000776137]
 offset_left = 30.0
 offset_top = 30.0
 offset_right = 280.0
@@ -32,7 +33,7 @@ offset_bottom = 60.0
 theme_override_font_sizes/font_size = 22
 text = "HP: 20 / 20"
 
-[node name="WeaponLabel" type="Label" parent="UI"]
+[node name="WeaponLabel" type="Label" parent="UI" unique_id=180637555]
 offset_left = 30.0
 offset_top = 62.0
 offset_right = 400.0
@@ -40,7 +41,7 @@ offset_bottom = 90.0
 theme_override_font_sizes/font_size = 16
 text = "Weapon: none"
 
-[node name="StatusLabel" type="Label" parent="UI"]
+[node name="StatusLabel" type="Label" parent="UI" unique_id=927201028]
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
@@ -51,45 +52,50 @@ offset_bottom = 60.0
 grow_horizontal = 2
 theme_override_font_sizes/font_size = 36
 horizontal_alignment = 1
-text = ""
 
-[node name="WeaponSlot" type="Control" parent="UI"]
+[node name="WeaponSlot" type="Control" parent="UI" unique_id=249709180]
+layout_mode = 3
+anchors_preset = 0
 offset_left = 30.0
 offset_top = 110.0
 offset_right = 180.0
 offset_bottom = 320.0
 mouse_filter = 1
 script = ExtResource("4_pile")
-enable_drop_zone = false
-card_face_up = true
 allow_card_movement = false
 restrict_to_top_card = false
+enable_drop_zone = false
 
-[node name="DeckPile" type="Control" parent="UI"]
+[node name="DeckPile" type="Control" parent="UI" unique_id=2038153143]
+layout_mode = 3
+anchors_preset = 0
 offset_left = 940.0
 offset_top = 48.0
 offset_right = 1090.0
 offset_bottom = 258.0
 mouse_filter = 1
 script = ExtResource("4_pile")
-enable_drop_zone = false
 card_face_up = false
 allow_card_movement = false
 restrict_to_top_card = false
+enable_drop_zone = false
 
-[node name="DiscardPile" type="Control" parent="UI"]
+[node name="DiscardPile" type="Control" parent="UI" unique_id=44963075]
+layout_mode = 3
+anchors_preset = 0
 offset_left = 940.0
 offset_top = 325.0
 offset_right = 1090.0
 offset_bottom = 535.0
 mouse_filter = 1
 script = ExtResource("4_pile")
-enable_drop_zone = false
-card_face_up = true
 allow_card_movement = false
 restrict_to_top_card = false
+enable_drop_zone = false
 
-[node name="RoomContainer" type="Control" parent="UI"]
+[node name="RoomContainer" type="Control" parent="UI" unique_id=355512689]
+layout_mode = 3
+anchors_preset = 0
 offset_left = 390.0
 offset_top = 130.0
 offset_right = 730.0
@@ -98,7 +104,7 @@ mouse_filter = 1
 script = ExtResource("5_room")
 enable_drop_zone = false
 
-[node name="DeckLabel" type="Label" parent="UI"]
+[node name="DeckLabel" type="Label" parent="UI" unique_id=409472614]
 offset_left = 940.0
 offset_top = 262.0
 offset_right = 1090.0
@@ -106,7 +112,7 @@ offset_bottom = 288.0
 text = "DECK"
 horizontal_alignment = 1
 
-[node name="DiscardLabel" type="Label" parent="UI"]
+[node name="DiscardLabel" type="Label" parent="UI" unique_id=1489401123]
 offset_left = 940.0
 offset_top = 550.0
 offset_right = 1090.0
@@ -114,31 +120,32 @@ offset_bottom = 576.0
 text = "DISCARD"
 horizontal_alignment = 1
 
-[node name="SlainPile" type="Control" parent="UI"]
+[node name="SlainPile" type="Control" parent="UI" unique_id=962705258]
+layout_mode = 3
+anchors_preset = 0
 offset_left = 30.0
 offset_top = 330.0
 offset_right = 180.0
 offset_bottom = 345.0
 mouse_filter = 1
 script = ExtResource("4_pile")
-enable_drop_zone = false
-card_face_up = true
-allow_card_movement = false
-restrict_to_top_card = false
-layout = 1
 stack_display_gap = 20
 max_stack_display = 4
+layout = 1
+allow_card_movement = false
+restrict_to_top_card = false
+enable_drop_zone = false
 
-[node name="InPlayHeader" type="Label" parent="UI"]
+[node name="InPlayHeader" type="Label" parent="UI" unique_id=1772774764]
 offset_left = 215.0
 offset_top = 335.0
 offset_right = 385.0
 offset_bottom = 356.0
-theme_override_font_sizes/font_size = 13
 theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 13
 text = "IN PLAY:"
 
-[node name="ClubsLabel" type="Label" parent="UI"]
+[node name="ClubsLabel" type="Label" parent="UI" unique_id=173415]
 offset_left = 215.0
 offset_top = 358.0
 offset_right = 385.0
@@ -146,7 +153,7 @@ offset_bottom = 382.0
 theme_override_font_sizes/font_size = 16
 text = "♣  13"
 
-[node name="SpadesLabel" type="Label" parent="UI"]
+[node name="SpadesLabel" type="Label" parent="UI" unique_id=710810895]
 offset_left = 215.0
 offset_top = 386.0
 offset_right = 385.0
@@ -154,7 +161,7 @@ offset_bottom = 410.0
 theme_override_font_sizes/font_size = 16
 text = "♠  13"
 
-[node name="HeartsLabel" type="Label" parent="UI"]
+[node name="HeartsLabel" type="Label" parent="UI" unique_id=1783802266]
 offset_left = 215.0
 offset_top = 414.0
 offset_right = 385.0
@@ -162,7 +169,7 @@ offset_bottom = 438.0
 theme_override_font_sizes/font_size = 16
 text = "♥  9"
 
-[node name="DiamondsLabel" type="Label" parent="UI"]
+[node name="DiamondsLabel" type="Label" parent="UI" unique_id=576063759]
 offset_left = 215.0
 offset_top = 442.0
 offset_right = 385.0
@@ -170,7 +177,7 @@ offset_bottom = 466.0
 theme_override_font_sizes/font_size = 16
 text = "♦  9"
 
-[node name="WeaponLabel2" type="Label" parent="UI"]
+[node name="WeaponLabel2" type="Label" parent="UI" unique_id=1589601194]
 offset_left = 30.0
 offset_top = 82.0
 offset_right = 180.0
@@ -178,62 +185,65 @@ offset_bottom = 108.0
 text = "WEAPON SLOT"
 horizontal_alignment = 1
 
-[node name="LeftDropZone" type="Control" parent="UI"]
-offset_left = 0.0
+[node name="LeftDropZone" type="Control" parent="UI" unique_id=1365540473]
+visible = false
+layout_mode = 3
+anchors_preset = 0
 offset_top = 70.0
 offset_right = 385.0
 offset_bottom = 620.0
 mouse_filter = 1
 script = ExtResource("4_pile")
-enable_drop_zone = true
-sensor_size = Vector2(385, 550)
 card_face_up = false
 allow_card_movement = false
 restrict_to_top_card = false
+sensor_size = Vector2(385, 550)
 
-[node name="RightDropZone" type="Control" parent="UI"]
+[node name="RightDropZone" type="Control" parent="UI" unique_id=1530563607]
+visible = false
+layout_mode = 3
+anchors_preset = 0
 offset_left = 740.0
 offset_top = 70.0
 offset_right = 1120.0
 offset_bottom = 620.0
 mouse_filter = 1
 script = ExtResource("4_pile")
-enable_drop_zone = true
-sensor_size = Vector2(380, 550)
 card_face_up = false
 allow_card_movement = false
 restrict_to_top_card = false
+sensor_size = Vector2(380, 550)
 
-[node name="RunButton" type="Button" parent="UI"]
+[node name="RunButton" type="Button" parent="UI" unique_id=615236865]
 offset_left = 390.0
 offset_top = 615.0
 offset_right = 555.0
 offset_bottom = 650.0
 text = "RUN (skip room)"
 
-[node name="NextRoomButton" type="Button" parent="UI"]
+[node name="NextRoomButton" type="Button" parent="UI" unique_id=1785200382]
+visible = false
 offset_left = 565.0
 offset_top = 615.0
 offset_right = 730.0
 offset_bottom = 650.0
 text = "Next Room →"
-visible = false
 
-[node name="RetryButton" type="Button" parent="UI"]
+[node name="RetryButton" type="Button" parent="UI" unique_id=1426019074]
 offset_left = 800.0
 offset_top = 615.0
 offset_right = 960.0
 offset_bottom = 650.0
 text = "↺ New Game"
 
-[node name="HelpButton" type="Button" parent="UI"]
+[node name="HelpButton" type="Button" parent="UI" unique_id=1844877452]
 offset_left = 970.0
 offset_top = 615.0
 offset_right = 1040.0
 offset_bottom = 650.0
 text = "? Help"
 
-[node name="HelpDialog" type="AcceptDialog" parent="UI"]
+[node name="HelpDialog" type="AcceptDialog" parent="UI" unique_id=2005807090]
 title = "How to Play Scoundrel"
 size = Vector2i(480, 420)
 dialog_text = "GOAL: Survive the dungeon. Start with 20 HP.
@@ -241,24 +251,26 @@ dialog_text = "GOAL: Survive the dungeon. Start with 20 HP.
 DECK: 44 cards (standard 52 minus red face cards & red aces).
 
 EACH ROOM: 4 cards are dealt face-up. You MUST take at least 3.
-Click a card to take it. After 3 cards, 'Next Room' appears — the
-remaining card carries into the next room. You may take all 4.
+Drag a card into a highlighted zone to take it:
+  LEFT ZONE (green) — equip weapons / fight monsters with your weapon.
+  RIGHT ZONE (blue) — drink potions / fight monsters bare-handed.
+After 3 cards, 'Next Room' appears. The remaining card carries over.
 
 MONSTERS (Clubs & Spades):
-  2-10 = face value damage, J=11, Q=12, K=13, A=14.
-  With a weapon: damage = monster - weapon (minimum 0).
-  Weapon degrades: next use must be vs. a WEAKER monster.
+  2-10 = face value, J=11, Q=12, K=13, A=14.
+  Drag LEFT: damage = monster - weapon (min 0); weapon degrades.
+  Drag RIGHT: take full damage, weapon floor is preserved.
 
 WEAPONS (Diamonds, 2-10 only):
-  Click to equip. Replaces your current weapon.
-  Old weapon is discarded. Weapon value = card rank.
+  Drag LEFT to equip. Replaces current weapon (old weapon discarded).
+  Weapon value = card rank.
 
 POTIONS (Hearts, 2-10 only):
-  Restore HP equal to rank, capped at 20.
+  Drag RIGHT to heal. Restore HP equal to rank, capped at 20.
   Only ONE potion heals per room (extras are discarded).
 
-RUN: Skip an entire room — monsters shuffle back into the deck,
-  potions and weapons sink to the bottom. Cannot run two rooms in a row.
+RUN: Skip an entire room — all 4 cards shuffle back into the deck.
+  Cannot run two rooms in a row.
 
 DEATH: Reach 0 HP.
 WIN: Clear the deck."
