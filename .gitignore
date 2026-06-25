@@ -3,6 +3,7 @@
 /android/
 .exe
 .zip
+samples/scratchpad/**
 
 # .NET build artifacts
 bin/

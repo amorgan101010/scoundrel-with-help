@@ -1,0 +1,154 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  GODOT_DIR_NAME: "Godot_v4.7-stable_mono_linux_x86_64"
+  GODOT_VERSION: "4.7"
+  GODOT_STABILITY: "stable"
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect VERSION change
+        id: changed
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            DIFF=$(git diff "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}" -- VERSION)
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            BEFORE="${{ github.event.before }}"
+            if [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+              DIFF="initial"
+            else
+              DIFF=$(git diff "$BEFORE" "${{ github.sha }}" -- VERSION)
+            fi
+          else
+            DIFF="manual"
+          fi
+          if [ -n "$DIFF" ]; then
+            echo "build=true" >> $GITHUB_OUTPUT
+            echo "GAME_VERSION=$(cat VERSION)" >> $GITHUB_ENV
+          else
+            echo "build=false" >> $GITHUB_OUTPUT
+          fi
+
+      - uses: actions/setup-dotnet@v4
+        if: steps.changed.outputs.build == 'true'
+        with:
+          dotnet-version: '8.0'
+
+      - name: Install Xvfb
+        if: steps.changed.outputs.build == 'true'
+        run: sudo apt-get install -y --no-install-recommends xvfb mesa-vulkan-drivers
+
+      - name: Download Godot .NET
+        if: steps.changed.outputs.build == 'true'
+        run: |
+          curl -fsSL "https://downloads.godotengine.org/?version=4.7&flavor=stable&slug=mono_linux_x86_64.zip&platform=linux.64" -o godot.zip
+          unzip -q godot.zip
+          GODOT_DIR="$GITHUB_WORKSPACE/${GODOT_DIR_NAME}"
+          GODOT_BIN=$(find "$GODOT_DIR" -maxdepth 1 -name 'Godot_*' -type f | head -1)
+          chmod +x "$GODOT_BIN"
+          echo "GODOT_DIR=$GODOT_DIR" >> $GITHUB_ENV
+          echo "GODOT_BIN=$GODOT_BIN" >> $GITHUB_ENV
+
+      - name: Download export templates
+        if: steps.changed.outputs.build == 'true'
+        run: |
+          curl -fsSL \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-${GODOT_STABILITY}/Godot_v${GODOT_VERSION}-${GODOT_STABILITY}_export_templates.tpz" \
+            -o templates.tpz
+          TEMPLATES_DIR="$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.${GODOT_STABILITY}.mono"
+          mkdir -p "$TEMPLATES_DIR"
+          unzip -q templates.tpz -d /tmp/templates_extract
+          mv /tmp/templates_extract/templates/* "$TEMPLATES_DIR/"
+
+      - name: Point NuGet at downloaded GodotSharp
+        if: steps.changed.outputs.build == 'true'
+        run: |
+          dotnet nuget update source GodotLocal \
+            --source "$GODOT_DIR/GodotSharp/Tools/nupkgs" \
+            --configfile NuGet.Config
+
+      - name: Build C# project
+        if: steps.changed.outputs.build == 'true'
+        run: dotnet build ScoundrelWithHelp.csproj --configuration Release --nologo -v quiet
+
+      - name: Reimport assets
+        if: steps.changed.outputs.build == 'true'
+        run: xvfb-run "$GODOT_BIN" --path "$GITHUB_WORKSPACE" --import --quit 2>/dev/null || true
+
+      - name: Export Linux build
+        if: steps.changed.outputs.build == 'true'
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/builds/linux"
+          OUT="$GITHUB_WORKSPACE/builds/linux/Scoundrel.$GAME_VERSION.linux.x86_64"
+          xvfb-run "$GODOT_BIN" --path "$GITHUB_WORKSPACE" \
+            --export-release "Linux" "$OUT" || true
+          test -s "$OUT"
+
+      - name: Export Windows build
+        if: steps.changed.outputs.build == 'true'
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/builds/windows"
+          OUT="$GITHUB_WORKSPACE/builds/windows/Scoundrel.$GAME_VERSION.windows.x86_64.exe"
+          xvfb-run "$GODOT_BIN" --path "$GITHUB_WORKSPACE" \
+            --export-release "Windows Desktop" "$OUT" || true
+          test -s "$OUT"
+
+      - name: Upload Linux artifact
+        if: steps.changed.outputs.build == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Scoundrel.${{ env.GAME_VERSION }}.linux.x86_64
+          path: builds/linux/
+          if-no-files-found: error
+
+      - name: Export macOS build
+        if: steps.changed.outputs.build == 'true'
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/builds/macos"
+          OUT="$GITHUB_WORKSPACE/builds/macos/Scoundrel.$GAME_VERSION.macos.arm64.zip"
+          xvfb-run "$GODOT_BIN" --path "$GITHUB_WORKSPACE" \
+            --export-release "macOS" "$OUT" || true
+          test -s "$OUT"
+
+      - name: Upload macOS artifact
+        if: steps.changed.outputs.build == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Scoundrel.${{ env.GAME_VERSION }}.macos.arm64
+          path: builds/macos/
+          if-no-files-found: error
+
+      - name: Upload Windows artifact
+        if: steps.changed.outputs.build == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Scoundrel.${{ env.GAME_VERSION }}.windows.x86_64
+          path: builds/windows/
+          if-no-files-found: error
+
+      - name: Create GitHub Release
+        if: steps.changed.outputs.build == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.GAME_VERSION }}
+          name: Scoundrel v${{ env.GAME_VERSION }}
+          files: |
+            builds/linux/Scoundrel.${{ env.GAME_VERSION }}.linux.x86_64
+            builds/windows/Scoundrel.${{ env.GAME_VERSION }}.windows.x86_64.exe

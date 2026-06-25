@@ -678,6 +678,179 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-06-25T05:50:00.000Z"
+    },
+    {
+      "id": "bug-042",
+      "timestamp": "2026-06-25T13:53:27.962Z",
+      "error_message": "Significant refactor of ",
+      "file": "scene_tests/ScoundrelSceneTests.cs",
+      "root_cause": "13 lines replaced/restructured",
+      "fix": "Rewrote 34\u219268 lines (13 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "cs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-25T13:53:27.962Z"
+    },
+    {
+      "id": "bug-043",
+      "timestamp": "2026-06-25T13:53:38.107Z",
+      "error_message": "Significant refactor of ",
+      "file": "stuff to fix.md",
+      "root_cause": "5 lines replaced/restructured",
+      "fix": "Rewrote 5\u21925 lines (5 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-25T13:53:38.107Z"
+    },
+    {
+      "id": "bug-044",
+      "timestamp": "2026-06-25T14:00:53.645Z",
+      "error_message": "Significant refactor of ",
+      "file": "scripts/ScoundrelGame.cs",
+      "root_cause": "5 lines replaced/restructured",
+      "fix": "Rewrote 5\u21928 lines (5 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "cs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-25T14:00:53.645Z"
+    },
+    {
+      "id": "bug-045",
+      "timestamp": "2026-06-25T14:16:12.597Z",
+      "error_message": "Missing await",
+      "file": "scene_tests/ScoundrelSceneTests.cs",
+      "root_cause": "Async call without await \u2014 returned Promise instead of value",
+      "fix": "Added await to async call",
+      "tags": [
+        "auto-detected",
+        "async-fix",
+        "cs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-25T14:16:12.597Z"
+    },
+    {
+      "id": "bug-046",
+      "timestamp": "2026-06-25T14:55:39.936Z",
+      "error_message": "Wrong condition in logic",
+      "file": "scripts/ScoundrelGame.cs",
+      "root_cause": "Condition was: if (activateCard && !potionUsedBefore)",
+      "fix": "Changed to: if (activateCard)",
+      "tags": [
+        "auto-detected",
+        "logic-fix",
+        "cs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-25T14:55:39.936Z"
+    },
+    {
+      "id": "bug-047",
+      "timestamp": "2026-06-25T14:55:59.004Z",
+      "error_message": "Missing await",
+      "file": "scene_tests/ScoundrelSceneTests.cs",
+      "root_cause": "Async call without await \u2014 returned Promise instead of value",
+      "fix": "Added await to async call",
+      "tags": [
+        "auto-detected",
+        "async-fix",
+        "cs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-25T14:55:59.004Z"
+    },
+    {
+      "id": "bug-048",
+      "timestamp": "2026-06-25T15:00:51.333Z",
+      "error_message": "Wrong condition in logic",
+      "file": "scripts/ScoundrelGame.cs",
+      "root_cause": "Condition was: if (activateCard)",
+      "fix": "Changed to: if (activateCard && !potionUsedBefore)",
+      "tags": [
+        "auto-detected",
+        "logic-fix",
+        "cs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-25T15:00:51.333Z"
+    },
+    {
+      "id": "bug-049",
+      "timestamp": "2026-06-25",
+      "error_message": "PR review surfaced 'wasted-potion-drink plays no sound' as a gap; code was changed and a test added \u2014 both were wrong",
+      "file": "scripts/ScoundrelGame.cs, scene_tests/ScoundrelSceneTests.cs",
+      "root_cause": "Code reviewer analysis failed to account for the left-zone hide mechanic: OnCardDragStarted hides the left drop zone for void potions (PotionUsedThisRoom=true), making the 'activateCard=true, potionUsedBefore=true' path unreachable in normal play. The original bubbles condition (activateCard && !potionUsedBefore) was correct. The 'gap' only exists via ClickCard() which bypasses zone routing entirely \u2014 a test-only path that doesn't represent real gameplay.",
+      "fix": "Reverted ScoundrelGame.cs Hearts sound condition to the original (activateCard && !potionUsedBefore). Removed WastedPotionDrink_PlaysBubblesSound test (tested an unreachable game state). Kept TakingLastRoomCard_PlaysCardDealtSound (that finding was valid).",
+      "tags": [
+        "false-finding",
+        "sound-effects",
+        "review",
+        "zone-mechanics",
+        "potion"
+      ],
+      "related_bugs": [
+        "bug-046",
+        "bug-048"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-06-25"
+    },
+    {
+      "id": "bug-050",
+      "timestamp": "2026-06-25",
+      "error_message": "Linux Build CI fails: exit code 134 \u2014 'ERROR: Required Vulkan instance extension VK_KHR_surface not found.'",
+      "file": ".github/workflows/linux-build.yml",
+      "root_cause": "xvfb-run provides an X11 virtual display but not a Vulkan surface. Godot's export step tries to initialize the Vulkan renderer and crashes (SIGABRT/exit 134) because VK_KHR_surface is unavailable in the headless Xvfb environment. The import step works fine because it uses the same xvfb-run pattern as scene-tests.yml, but export tries to init the full renderer.",
+      "fix": "Add --headless flag to the export command: 'xvfb-run \"$GODOT_BIN\" --headless --path ... --export-release'. The --headless flag tells Godot to skip display server initialization entirely, bypassing Vulkan. May also be able to drop xvfb-run from just the export step and use plain '--headless' without it.",
+      "tags": [
+        "ci",
+        "linux-build",
+        "export",
+        "vulkan",
+        "headless",
+        "xvfb"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-25"
+    },
+    {
+      "id": "bug-051",
+      "timestamp": "2026-06-25",
+      "error_message": "Linux Build CI fails: exit code 134 \u2014 'Aborted (core dumped)' after successful export. GdUnit4 plugin unloads then Godot crashes on shutdown.",
+      "file": ".github/workflows/linux-build.yml",
+      "root_cause": "Godot 4.7 mono crashes (SIGABRT) during shutdown under xvfb-run after a successful --export-release. The savepack completes 100% and the output file is written to disk, but Godot crashes when unloading the GdUnit4 plugin during exit. The non-zero exit code from xvfb-run fails the CI step before test -f can verify the file exists.",
+      "fix": "Added '|| true' to the xvfb-run export command so the crash exit code is ignored. The 'test -f' check that follows verifies the output file was actually created. This is safe because the savepack completes before the crash.",
+      "tags": [
+        "ci",
+        "linux-build",
+        "export",
+        "shutdown-crash",
+        "sigabrt",
+        "gdunit4"
+      ],
+      "related_bugs": [
+        "bug-050"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-06-25"
     }
   ]
 }

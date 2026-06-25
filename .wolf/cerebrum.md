@@ -24,6 +24,8 @@
 <!-- Mistakes made and corrected. Each entry prevents the same mistake recurring. -->
 <!-- Format: [YYYY-MM-DD] Description of what went wrong and what to do instead. -->
 
+- [2026-06-25] **Void potions can ONLY be discarded (right zone); the left zone is hidden for them.** `OnCardDragStarted` hides the left drop zone when `PotionUsedThisRoom=true`. This makes `activateCard=true, potionUsedBefore=true` unreachable in normal gameplay — only `ClickCard()` (test helper that bypasses zones) can hit it. Do NOT treat `ClickCard()` paths as representative of real game states when analyzing sound/effect logic.
+
 - [2026-06-24] **gdUnit4 C# tests: always add `[RequireGodotRuntime]` on scene test classes.** Without it, `ISceneRunner.Load()` runs on a thread-pool thread and crashes with "AddChild only allowed from main thread." `[RequireGodotRuntime]` routes test hooks through Godot's SynchronizationContext.
 - [2026-06-24] **After every `dotnet build`, run `godot --import` before running tests.** The Godot global script class cache (`.godot/global_script_class_cache.cfg`) is cleared on rebuild, causing `GdUnitTestCIRunner: type not found`. The `run_scene_tests.sh` script does this automatically.
 - [2026-06-24] **NuGet deps don't auto-copy to Godot's output dir.** Add `<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>` to `ScoundrelWithHelp.csproj` — without it, `GdUnit4Api.dll`, `Mono.Cecil.dll`, `Newtonsoft.Json.dll` etc. must be manually copied each time.

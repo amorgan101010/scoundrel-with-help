@@ -3,6 +3,9 @@
 > Chronological action log. Hooks and AI append to this file automatically.
 > Old sessions are consolidated by the daemon weekly.
 
+| 19:30 | Fix Linux Build CI: add `|| true` to export command — Godot crashes on shutdown after successful savepack | .github/workflows/linux-build.yml | fixed (bug-051) | ~300 |
+| 19:45 | Add Windows build + GitHub Release to CI; renamed workflow "Build and Release" | .github/workflows/linux-build.yml | macOS pending preset | ~200 |
+
 | 20:44 | Removed click-based card controls — drag only | scenes/RoomContainer.gd, scene_tests/ScoundrelSceneTests.cs | on_card_pressed records press pos; release_holding_cards skips card_selected if drag < 10px; 3 tests updated | ~300 tok |
 
 ## Session: 2026-06-24 00:28
@@ -475,3 +478,88 @@
 | 10:00 | Replaced DragWeaponToRightZoneBounces/DragPotionToLeftZoneBounces; added DragPotionToRightZoneDiscards | scene_tests/ScoundrelSceneTests.cs | 4 new scene tests covering both directions for potions and weapons | ~500 |
 | 10:00 | Added DiscardTests fixture (3 engine unit tests) | tests/GameEngineTests.cs | DiscardWeapon_NoActivate, DiscardPotion_NoActivate, DiscardPotion_CountsTowardMinTaken | ~200 |
 | 10:00 | Updated cerebrum zone-semantics entry; crossed out 5 items in stuff to fix.md | .wolf/cerebrum.md, stuff to fix.md | session complete | ~100 |
+| 09:55 | Session end: 13 writes across 6 files (GameEngine.cs, ScoundrelGame.cs, Game.tscn, GameEngineTests.cs, ScoundrelSceneTests.cs) | 6 reads | ~29020 tok |
+| 09:55 | Session end: 13 writes across 6 files (GameEngine.cs, ScoundrelGame.cs, Game.tscn, GameEngineTests.cs, ScoundrelSceneTests.cs) | 6 reads | ~29020 tok |
+| 10:00 | Edited scripts/ScoundrelGame.cs | 5→8 lines | ~182 |
+| 10:01 | Edited scripts/ScoundrelGame.cs | modified AddZoneLabel() | ~275 |
+| 10:01 | Session end: 15 writes across 6 files (GameEngine.cs, ScoundrelGame.cs, Game.tscn, GameEngineTests.cs, ScoundrelSceneTests.cs) | 6 reads | ~29454 tok |
+| 10:04 | Edited scripts/ScoundrelGame.cs | 8→11 lines | ~118 |
+| 10:04 | Session end: 16 writes across 6 files (GameEngine.cs, ScoundrelGame.cs, Game.tscn, GameEngineTests.cs, ScoundrelSceneTests.cs) | 6 reads | ~29581 tok |
+| 10:06 | Created VERSION | — | ~2 |
+| 10:07 | Created ../../../.claude/projects/-home-aileen-Repositories-godot-scoundrel-with-help/memory/feedback_branch_and_version_workflow.md | — | ~207 |
+| 10:07 | Edited ../../../.claude/projects/-home-aileen-Repositories-godot-scoundrel-with-help/memory/MEMORY.md | 1→2 lines | ~83 |
+| 10:07 | Session end: 19 writes across 9 files (GameEngine.cs, ScoundrelGame.cs, Game.tscn, GameEngineTests.cs, ScoundrelSceneTests.cs) | 8 reads | ~29897 tok |
+
+## Session: 2026-06-25 10:08
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 10:15 | Edited scripts/ScoundrelGame.cs | expanded (+11 lines) | ~177 |
+| 10:15 | Edited scripts/ScoundrelGame.cs | expanded (+7 lines) | ~152 |
+| 10:15 | Edited scripts/ScoundrelGame.cs | 3→4 lines | ~61 |
+| 10:15 | Edited scripts/ScoundrelGame.cs | added 2 condition(s) | ~423 |
+| 10:15 | Edited scripts/ScoundrelGame.cs | added 1 condition(s) | ~144 |
+| 10:15 | Edited scripts/ScoundrelGame.cs | modified CreateSfxPlayer() | ~114 |
+| 10:16 | Edited scene_tests/ScoundrelSceneTests.cs | modified DealingCards_PlaysCardDealtSound() | ~771 |
+| 10:17 | Session end: 7 writes across 2 files (ScoundrelGame.cs, ScoundrelSceneTests.cs) | 5 reads | ~19745 tok |
+| 10:19 | Edited scripts/ScoundrelGame.cs | 6→7 lines | ~136 |
+| 10:19 | Session end: 8 writes across 2 files (ScoundrelGame.cs, ScoundrelSceneTests.cs) | 5 reads | ~19891 tok |
+| 10:29 | Created VERSION | — | ~2 |
+| 10:30 | Session end: 9 writes across 3 files (ScoundrelGame.cs, ScoundrelSceneTests.cs, VERSION) | 6 reads | ~19895 tok |
+| 10:34 | Session end: 9 writes across 3 files (ScoundrelGame.cs, ScoundrelSceneTests.cs, VERSION) | 6 reads | ~19895 tok |
+| 10:35 | Session end: 9 writes across 3 files (ScoundrelGame.cs, ScoundrelSceneTests.cs, VERSION) | 6 reads | ~19895 tok |
+| 10:47 | Session end: 9 writes across 3 files (ScoundrelGame.cs, ScoundrelSceneTests.cs, VERSION) | 8 reads | ~21744 tok |
+| 10:49 | Created ../../../.claude/projects/-home-aileen-Repositories-godot-scoundrel-with-help/memory/feedback_pr_comments.md | — | ~173 |
+| 10:49 | Edited ../../../.claude/projects/-home-aileen-Repositories-godot-scoundrel-with-help/memory/MEMORY.md | 1→2 lines | ~79 |
+| 10:49 | Session end: 11 writes across 5 files (ScoundrelGame.cs, ScoundrelSceneTests.cs, VERSION, feedback_pr_comments.md, MEMORY.md) | 9 reads | ~22015 tok |
+
+## Session: 2026-06-25 10:54
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 10:55 | Edited scripts/ScoundrelGame.cs | 3→2 lines | ~33 |
+| 10:55 | Edited scripts/ScoundrelGame.cs | 5→5 lines | ~55 |
+| 10:55 | Edited scene_tests/ScoundrelSceneTests.cs | added 1 condition(s) | ~871 |
+| 10:57 | Session end: 3 writes across 2 files (ScoundrelGame.cs, ScoundrelSceneTests.cs) | 2 reads | ~16343 tok |
+| 11:00 | Edited scripts/ScoundrelGame.cs | 2→3 lines | ~49 |
+| 11:00 | Edited scripts/ScoundrelGame.cs | added 1 condition(s) | ~66 |
+| 11:01 | Edited scene_tests/ScoundrelSceneTests.cs | removed 40 lines | ~29 |
+| 11:03 | Session end: 6 writes across 2 files (ScoundrelGame.cs, ScoundrelSceneTests.cs) | 2 reads | ~17316 tok |
+| 11:04 | Session end: 6 writes across 2 files (ScoundrelGame.cs, ScoundrelSceneTests.cs) | 2 reads | ~16895 tok |
+| 11:07 | Edited ../../../.claude/projects/-home-aileen-Repositories-godot-scoundrel-with-help/memory/feedback_pr_comments.md | 1→3 lines | ~137 |
+| 11:07 | Session end: 7 writes across 3 files (ScoundrelGame.cs, ScoundrelSceneTests.cs, feedback_pr_comments.md) | 3 reads | ~17042 tok |
+| 11:11 | Session end: 7 writes across 3 files (ScoundrelGame.cs, ScoundrelSceneTests.cs, feedback_pr_comments.md) | 3 reads | ~17042 tok |
+| 11:12 | Session end: 7 writes across 3 files (ScoundrelGame.cs, ScoundrelSceneTests.cs, feedback_pr_comments.md) | 3 reads | ~17042 tok |
+| 11:12 | Session end: 7 writes across 3 files (ScoundrelGame.cs, ScoundrelSceneTests.cs, feedback_pr_comments.md) | 3 reads | ~17042 tok |
+
+## Session: 2026-06-25 11:21
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 11:24 | Created .github/workflows/linux-build.yml | .github/workflows/linux-build.yml | pending | ~1126 |
+| session | Fixed branch protection: wrong check contexts → gdUnit4 Scene Tests / C# Unit Tests; wrote linux-build.yml (VERSION-gated, skips build on no-VERSION-change PRs); Linux Build check to be required after first passing run | .github/workflows/linux-build.yml | complete | ~800 |
+| 11:26 | Session end: 1 writes across 1 files (linux-build.yml) | 1 reads | ~1618 tok |
+| 11:27 | Created .github/workflows/version-bump-required.yml | — | ~185 |
+| 11:28 | Session end: 2 writes across 2 files (linux-build.yml, version-bump-required.yml) | 1 reads | ~1803 tok |
+| 11:31 | Session end: 2 writes across 2 files (linux-build.yml, version-bump-required.yml) | 1 reads | ~1803 tok |
+| 11:31 | Edited .github/workflows/linux-build.yml | 2→2 lines | ~46 |
+| 11:31 | Session end: 3 writes across 2 files (linux-build.yml, version-bump-required.yml) | 1 reads | ~1849 tok |
+| 11:34 | Edited .github/workflows/linux-build.yml | inline fix | ~25 |
+| 11:34 | Edited .github/workflows/linux-build.yml | inline fix | ~18 |
+| 11:34 | Session end: 5 writes across 2 files (linux-build.yml, version-bump-required.yml) | 1 reads | ~1892 tok |
+| 11:36 | Edited .github/workflows/unit-tests.yml | 3→5 lines | ~20 |
+| 11:37 | Edited .github/workflows/unit-tests.yml | removed 5 lines | ~4 |
+| 11:37 | Session end: 7 writes across 3 files (linux-build.yml, version-bump-required.yml, unit-tests.yml) | 2 reads | ~2092 tok |
+| 11:39 | Session end: 7 writes across 3 files (linux-build.yml, version-bump-required.yml, unit-tests.yml) | 3 reads | ~3224 tok |
+
+## Session: 2026-06-25 15:23
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 15:28 | Edited .github/workflows/linux-build.yml | 7→7 lines | ~113 |
+| 15:32 | Session end: 1 writes across 1 files (linux-build.yml) | 1 reads | ~1245 tok |
+| 15:32 | Edited .github/workflows/linux-build.yml | inline fix | ~23 |
+| 15:32 | Session end: 2 writes across 1 files (linux-build.yml) | 1 reads | ~1268 tok |
+| 15:35 | Session end: 2 writes across 1 files (linux-build.yml) | 1 reads | ~1270 tok |
+| 15:35 | Session end: 2 writes across 1 files (linux-build.yml) | 1 reads | ~1270 tok |
+| 15:40 | Created .github/workflows/linux-build.yml | — | ~1463 |
