@@ -498,3 +498,7 @@
 | 10:15 | Edited scripts/ScoundrelGame.cs | added 1 condition(s) | ~144 |
 | 10:15 | Edited scripts/ScoundrelGame.cs | modified CreateSfxPlayer() | ~114 |
 | 10:16 | Edited scene_tests/ScoundrelSceneTests.cs | modified DealingCards_PlaysCardDealtSound() | ~771 |
+| 10:17 | Session end: 7 writes across 2 files (ScoundrelGame.cs, ScoundrelSceneTests.cs) | 5 reads | ~19745 tok |
+| 10:19 | Edited scripts/ScoundrelGame.cs | 6→7 lines | ~136 |
+| 10:19 | Session end: 8 writes across 2 files (ScoundrelGame.cs, ScoundrelSceneTests.cs) | 5 reads | ~19891 tok |
+| 10:29 | Created VERSION | — | ~2 |

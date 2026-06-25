@@ -112,7 +112,9 @@ public partial class ScoundrelGame : Node
 
         _sfxPunch         = CreateSfxPlayer("res://samples/punch.wav");
         _sfxBubbles       = CreateSfxPlayer("res://samples/bubbles.wav");
+        _sfxBubbles.VolumeDb = 8f;
         _sfxPotionDiscard = CreateSfxPlayer("res://samples/potion_discarded.wav");
+        _sfxPotionDiscard.VolumeDb = -7f;
         _sfxSwordDrawn    = CreateSfxPlayer("res://samples/sword_drawn.wav");
         _sfxWeaponDiscard = CreateSfxPlayer("res://samples/weapon_discarded.wav");
         _sfxCardDealt     = CreateSfxPlayer("res://samples/card_dealt.wav");

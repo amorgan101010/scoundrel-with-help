@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-25T14:16:12.587Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-25T14:29:14.452Z
 > Files: 537 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../../tmp/claude-1000/-home-aileen-Repositories-godot-scoundrel-with-help/694a1aee-797c-490b-8b5c-125b6336d599/scratchpad/
@@ -635,12 +635,6 @@
 
 ## samples/
 
-- `bubbles.wav` — SFX: potion drink (first potion per room)
-- `card_dealt.wav` — SFX: card dealt to room slot
-- `potion_discarded.wav` — SFX: potion discarded to right zone
-- `punch.wav` — SFX: monster combat (all types until sword-clash sample available)
-- `sword_drawn.wav` — SFX: weapon equipped
-- `weapon_discarded.wav` — SFX: weapon discarded to right zone
 
 ## scene_tests/
 
@@ -657,7 +651,7 @@
 - `CardData.cs` — Class: CardData (~208 tok)
 - `CardModel.cs` — Godot-free card data record. Used by GameEngine and unit tests. (~126 tok)
 - `GameEngine.cs` — Pure C# game-state machine for Scoundrel. No Godot dependencies — fully integration-testable. Deck i (~1444 tok)
-- `ScoundrelGame.cs` — Godot bridge for Scoundrel. Owns node references and visual card movements. All game-state decisions (~6098 tok)
+- `ScoundrelGame.cs` — Godot bridge for Scoundrel. Owns node references and visual card movements. All game-state decisions (~6109 tok)
 - `ScoundrelRules.cs` — Pure game-logic functions for Scoundrel. No Godot dependencies — fully unit-testable. (~446 tok)
 
 ## tests/
