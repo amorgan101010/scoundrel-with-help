@@ -297,3 +297,18 @@
 | 19:56 | Edited tests/GameEngineTests.cs | 2→2 lines | ~12 |
 | 19:56 | Edited tests/GameEngineTests.cs | modified Run_AfterWon_Throws() | ~147 |
 | 19:56 | Session end: 9 writes across 2 files (GameEngine.cs, GameEngineTests.cs) | 4 reads | ~9945 tok |
+| 19:59 | Session end: 9 writes across 2 files (GameEngine.cs, GameEngineTests.cs) | 4 reads | ~9945 tok |
+| 20:00 | Created ../../../../../tmp/claude-1000/-home-aileen-Repositories-godot-scoundrel-with-help/694a1aee-797c-490b-8b5c-125b6336d599/scratchpad/commit_msg.txt | — | ~109 |
+| 20:00 | Session end: 10 writes across 3 files (GameEngine.cs, GameEngineTests.cs, commit_msg.txt) | 4 reads | ~10061 tok |
+
+## Session: 2026-06-25 20:01
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 20:11 | Edited scripts/ScoundrelGame.cs | 3→2 lines | ~33 |
+| 20:11 | Edited scripts/ScoundrelGame.cs | 6→4 lines | ~58 |
+| 20:11 | Edited scripts/ScoundrelGame.cs | added 1 condition(s) | ~119 |
+| 20:11 | Edited scene_tests/ScoundrelSceneTests.cs | added 3 condition(s) | ~796 |
+| 20:11 | Fixed voided potion visual feedback: moved TintRemainingPotions into SyncRoomToGodot based on PotionUsedThisRoom state; ResetRoomCardTints no longer clobbers tints | ScoundrelGame.cs, ScoundrelSceneTests.cs | 83/83 unit tests pass |
+| 20:12 | Session end: 4 writes across 2 files (ScoundrelGame.cs, ScoundrelSceneTests.cs) | 2 reads | ~11249 tok |
+| 20:19 | Created ../../../../../tmp/claude-1000/-home-aileen-Repositories-godot-scoundrel-with-help/694a1aee-797c-490b-8b5c-125b6336d599/scratchpad/commit_msg2.txt | — | ~139 |

@@ -182,6 +182,9 @@ public partial class ScoundrelGame : Node
                 _roomContainer.Call("move_cards", new Array { godotCard }, -1, false);
             }
         }
+
+        if (_engine.PotionUsedThisRoom)
+            TintRemainingPotions();
     }
 
     // ── Card selection ────────────────────────────────────────────────────
@@ -193,8 +196,7 @@ public partial class ScoundrelGame : Node
         var cardModel = _engine.Room.FirstOrDefault(c => c.Name == name);
         if (cardModel is null) return;
 
-        var oldWeapon          = _engine.EquippedWeapon;
-        bool potionUsedBefore  = _engine.PotionUsedThisRoom;
+        var oldWeapon           = _engine.EquippedWeapon;
         bool potionWastedBefore = _engine.PotionWastedThisRoom;
         bool willUseWeapon     = cardModel.IsMonster
             && _engine.EquippedWeapon != null
@@ -217,8 +219,6 @@ public partial class ScoundrelGame : Node
             case Suit.Hearts:
                 if (!potionWastedBefore && _engine.PotionWastedThisRoom)
                     ShowBriefMessage("Potion wasted! (one per room)");
-                else if (!potionUsedBefore && _engine.PotionUsedThisRoom)
-                    TintRemainingPotions();
                 DecrementSuit(cardModel);
                 MoveToDiscard(card);
                 break;

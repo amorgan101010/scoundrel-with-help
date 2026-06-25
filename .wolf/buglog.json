@@ -418,6 +418,38 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-06-24T23:56:19.483Z"
+    },
+    {
+      "id": "bug-026",
+      "timestamp": "2026-06-25T00:11:27.819Z",
+      "error_message": "Significant refactor of ",
+      "file": "scripts/ScoundrelGame.cs",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 6→4 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "cs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-25T00:11:27.819Z"
+    },
+    {
+      "id": "bug-027",
+      "timestamp": "2026-06-25T00:11:50.985Z",
+      "error_message": "Missing await",
+      "file": "scene_tests/ScoundrelSceneTests.cs",
+      "root_cause": "Async call without await — returned Promise instead of value",
+      "fix": "Added await to async call",
+      "tags": [
+        "auto-detected",
+        "async-fix",
+        "cs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-25T00:11:50.985Z"
     }
   ]
 }

@@ -521,6 +521,76 @@ public class ScoundrelSceneTests
         AssertThat(scene.GetNode<Button>("UI/RunButton").Disabled).IsTrue();
     }
 
+    [TestCase(Description = "Taking first potion tints remaining room potions; wasted potion keeps tint")]
+    public async Task PotionVoidedVisualFeedback()
+    {
+        // 3 potions + 1 monster in Room 1; monster value 6 is never lethal from 20 HP.
+        var potionDeck = new List<CardModel>
+        {
+            // Room 2 padding (never reached)
+            new CardModel(Suit.Clubs, 2, "2_clubs"),
+            new CardModel(Suit.Clubs, 3, "3_clubs"),
+            new CardModel(Suit.Clubs, 4, "4_clubs"),
+            new CardModel(Suit.Clubs, 5, "5_clubs"),
+            // Room 1 (dealt first)
+            new CardModel(Suit.Clubs,  6, "6_clubs"),
+            new CardModel(Suit.Hearts, 2, "2_hearts"),
+            new CardModel(Suit.Hearts, 3, "3_hearts"),
+            new CardModel(Suit.Hearts, 4, "4_hearts"),
+        };
+        var game = (ScoundrelGame)_runner!.Scene();
+        game.StartGameWithDeck(potionDeck);
+        await _runner!.AwaitMillis(200);
+
+        var scene = _runner!.Scene();
+        var room  = scene.GetNode("UI/RoomContainer");
+        var white = new Color(1f, 1f, 1f);
+
+        var allPotions = new List<GodotObject>();
+        foreach (var obj in (GArray)room.Call("get_all_cards"))
+        {
+            var card = obj.AsGodotObject();
+            if (card.Get("card_info").AsGodotDictionary()["suit"].AsString() == "hearts")
+                allPotions.Add(card);
+        }
+        AssertThat(allPotions.Count).IsEqual(3);
+
+        // All potions start untinted.
+        foreach (var p in allPotions)
+            AssertThat((Color)p.Get("modulate")).IsEqual(white);
+
+        // Take first potion — remaining 2 should be tinted.
+        ClickCard(scene, allPotions[0]);
+        await _runner!.AwaitIdleFrame();
+
+        var remaining = new List<GodotObject>();
+        foreach (var obj in (GArray)room.Call("get_all_cards"))
+        {
+            var card = obj.AsGodotObject();
+            if (card.Get("card_info").AsGodotDictionary()["suit"].AsString() == "hearts")
+                remaining.Add(card);
+        }
+        AssertThat(remaining.Count).IsEqual(2);
+        foreach (var p in remaining)
+            AssertThat((Color)p.Get("modulate")).IsNotEqual(white);
+
+        // Take second potion (wasted) — status message shown and last potion still tinted.
+        ClickCard(scene, remaining[0]);
+        await _runner!.AwaitIdleFrame();
+
+        AssertThat(scene.GetNode<Label>("UI/StatusLabel").Text).IsEqual("Potion wasted! (one per room)");
+
+        var last = new List<GodotObject>();
+        foreach (var obj in (GArray)room.Call("get_all_cards"))
+        {
+            var card = obj.AsGodotObject();
+            if (card.Get("card_info").AsGodotDictionary()["suit"].AsString() == "hearts")
+                last.Add(card);
+        }
+        AssertThat(last.Count).IsEqual(1);
+        AssertThat((Color)last[0].Get("modulate")).IsNotEqual(white);
+    }
+
     [TestCase(Description = "Taking all cards from the last room shows YOU WIN")]
     public async Task Win_ShowsWinState()
     {

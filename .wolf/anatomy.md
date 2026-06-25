@@ -1,7 +1,12 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-24T23:56:29.306Z
-> Files: 530 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-25T00:19:32.730Z
+> Files: 532 tracked | Anatomy hits: 0 | Misses: 0
+
+## ../../../../../tmp/claude-1000/-home-aileen-Repositories-godot-scoundrel-with-help/694a1aee-797c-490b-8b5c-125b6336d599/scratchpad/
+
+- `commit_msg.txt` (~102 tok)
+- `commit_msg2.txt` (~130 tok)
 
 ## ../../../.claude/projects/-home-aileen-Repositories-godot-scoundrel-with-help/memory/
 
@@ -623,7 +628,7 @@
 
 ## scene_tests/
 
-- `ScoundrelSceneTests.cs` — Scene-level integration tests for Scoundrel. Run via the gdUnit4 test runner (editor toolbar or: god (~6100 tok)
+- `ScoundrelSceneTests.cs` — Scene-level integration tests for Scoundrel. Run via the gdUnit4 test runner (editor toolbar or: god (~6874 tok)
 
 ## scenes/
 
@@ -635,7 +640,7 @@
 - `CardData.cs` — Class: CardData (~208 tok)
 - `CardModel.cs` — Godot-free card data record. Used by GameEngine and unit tests. (~126 tok)
 - `GameEngine.cs` — Pure C# game-state machine for Scoundrel. No Godot dependencies — fully integration-testable. Deck i (~1308 tok)
-- `ScoundrelGame.cs` — Godot bridge for Scoundrel. Owns node references and visual card movements. All game-state decisions (~4071 tok)
+- `ScoundrelGame.cs` — Godot bridge for Scoundrel. Owns node references and visual card movements. All game-state decisions (~4044 tok)
 - `ScoundrelRules.cs` — Pure game-logic functions for Scoundrel. No Godot dependencies — fully unit-testable. (~446 tok)
 
 ## tests/
