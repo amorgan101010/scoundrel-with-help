@@ -269,8 +269,8 @@ POTIONS (Hearts, 2-10 only):
   Drag RIGHT to heal. Restore HP equal to rank, capped at 20.
   Only ONE potion heals per room (extras are discarded).
 
-RUN: Skip an entire room — all 4 cards shuffle back into the deck.
-  Cannot run two rooms in a row.
+RUN: Skip an entire room — all 4 cards sink to the bottom of the deck.
+  Monsters regroup (and take the loot with them). Cannot run two rooms in a row.
 
 DEATH: Reach 0 HP.
 WIN: Clear the deck."
