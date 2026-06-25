@@ -28,6 +28,33 @@ const SLOTS: Array[Vector2] = [
 var _slot_of: Dictionary = {}
 
 
+func _ready() -> void:
+	super._ready()
+	# gdUnit4 loads scenes via add_child rather than change_scene_to_*, leaving
+	# get_tree().current_scene null. CardContainer._ready() uses current_scene meta
+	# to find CardManager, so it fails silently — card_manager stays null and
+	# _on_drag_dropped is never called. Retry after the frame once all _ready()
+	# calls are done so we can search the full tree for the CardManager.
+	if card_manager == null:
+		_retry_card_manager_registration.call_deferred()
+
+func _retry_card_manager_registration() -> void:
+	if card_manager != null:
+		return
+	card_manager = _find_card_manager_in_tree(get_tree().get_root())
+	if card_manager != null:
+		card_manager._add_card_container(unique_id, self)
+
+static func _find_card_manager_in_tree(node: Node) -> CardManager:
+	if node is CardManager:
+		return node
+	for child in node.get_children():
+		var found := _find_card_manager_in_tree(child)
+		if found != null:
+			return found
+	return null
+
+
 func on_card_pressed(card: Card) -> void:
 	card_drag_started.emit(card)
 

@@ -386,3 +386,47 @@
 | 22:11 | Created ../../../.claude/projects/-home-aileen-Repositories-godot-scoundrel-with-help/memory/feedback_test_results.md | — | ~188 |
 | 22:11 | Edited ../../../.claude/projects/-home-aileen-Repositories-godot-scoundrel-with-help/memory/MEMORY.md | 1→2 lines | ~72 |
 | 22:11 | Session end: 7 writes across 5 files (DropZoneContainer.gd, Game.tscn, run_scene_tests.sh, feedback_test_results.md, MEMORY.md) | 9 reads | ~25067 tok |
+| 22:12 | Session end: 7 writes across 5 files (DropZoneContainer.gd, Game.tscn, run_scene_tests.sh, feedback_test_results.md, MEMORY.md) | 9 reads | ~25067 tok |
+| 22:12 | Edited .gitignore | 2→6 lines | ~30 |
+| 22:13 | Session end: 8 writes across 6 files (DropZoneContainer.gd, Game.tscn, run_scene_tests.sh, feedback_test_results.md, MEMORY.md) | 10 reads | ~25152 tok |
+
+## Session: 2026-06-25 22:21
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-06-25 00:40
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-06-25 00:40
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-06-25 00:41
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-06-25 01:20
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 01:22 | Edited scene_tests/ScoundrelSceneTests.cs | added 1 condition(s) | ~235 |
+| 01:31 | Edited scenes/DropZoneContainer.gd | modified check_card_can_be_dropped() | ~84 |
+| 01:33 | Edited scenes/RoomContainer.gd | modified release_holding_cards() | ~85 |
+| 01:40 | Edited scenes/DropZoneContainer.gd | modified check_card_can_be_dropped() | ~52 |
+| 01:40 | Edited scenes/RoomContainer.gd | modified release_holding_cards() | ~19 |
+| 01:40 | Edited scenes/RoomContainer.gd | 1→2 lines | ~9 |
+| 01:40 | Edited scenes/RoomContainer.gd | 3→2 lines | ~13 |
+| 01:40 | Edited scenes/RoomContainer.gd | modified _ready() | ~297 |
+| 01:40 | Edited scenes/DropZoneContainer.gd | modified _ready() | ~472 |
+
+## Session: 2026-06-25 (drag fix session)
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+| 05:50 | Diagnosed 3 failing drag scene tests | RoomContainer.gd, DropZoneContainer.gd | Root cause: card_manager=null because gdUnit4 loads via add_child (current_scene=null), CardContainer._ready() meta lookup fails | ~2500 |
+| 05:55 | Fixed CardManager registration for gdUnit4 | RoomContainer.gd, DropZoneContainer.gd | Added _ready() override + deferred tree-search retry; 21/21 tests pass | ~800 |
+| 05:56 | Logged bug-041 | .wolf/buglog.json | Documented root cause and fix | ~200 |

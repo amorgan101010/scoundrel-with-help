@@ -59,9 +59,21 @@ public class ScoundrelSceneTests
     }
 
     [AfterTest]
-    public void Teardown()
+    public async Task Teardown()
     {
-        _runner?.Dispose();
+        if (_runner != null)
+        {
+            // Move the simulated mouse off-screen before tearing down the scene.
+            // Card.hovering_card_count and Card.holding_card_count are GDScript static
+            // vars — they are NOT reset when a scene is freed. If a card is left in
+            // HOVERING state (which happens when _on_drag_dropped restores mouse_filter
+            // while the mouse is still inside the card, firing a spurious mouse_entered),
+            // the count stays at 1 across scene reloads and _can_start_hovering() returns
+            // false in every subsequent test, silently breaking all drags.
+            _runner.SimulateMouseMove(new Vector2(-1000f, -1000f));
+            await _runner.AwaitIdleFrame();
+            _runner.Dispose();
+        }
         _runner = null;
     }
 
