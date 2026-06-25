@@ -15,3 +15,7 @@ reports/
 
 # Export builds
 builds/
+
+# Wolf ephemeral session/ledger files
+.wolf/token-ledger.json
+.wolf/hooks/_session.json
