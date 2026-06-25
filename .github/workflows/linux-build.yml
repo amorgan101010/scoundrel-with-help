@@ -96,23 +96,25 @@ jobs:
         if: steps.changed.outputs.build == 'true'
         run: |
           mkdir -p "$GITHUB_WORKSPACE/builds/linux"
+          OUT="$GITHUB_WORKSPACE/builds/linux/Scoundrel.$GAME_VERSION.linux.x86_64"
           xvfb-run "$GODOT_BIN" --path "$GITHUB_WORKSPACE" \
-            --export-release "Linux" "$GITHUB_WORKSPACE/builds/linux/Scoundrel_base_rules.x86_64" || true
-          test -s "$GITHUB_WORKSPACE/builds/linux/Scoundrel_base_rules.x86_64"
+            --export-release "Linux" "$OUT" || true
+          test -s "$OUT"
 
       - name: Export Windows build
         if: steps.changed.outputs.build == 'true'
         run: |
           mkdir -p "$GITHUB_WORKSPACE/builds/windows"
+          OUT="$GITHUB_WORKSPACE/builds/windows/Scoundrel.$GAME_VERSION.windows.x86_64.exe"
           xvfb-run "$GODOT_BIN" --path "$GITHUB_WORKSPACE" \
-            --export-release "Windows Desktop" "$GITHUB_WORKSPACE/builds/windows/Scoundrel_base_rules.exe" || true
-          test -s "$GITHUB_WORKSPACE/builds/windows/Scoundrel_base_rules.exe"
+            --export-release "Windows Desktop" "$OUT" || true
+          test -s "$OUT"
 
       - name: Upload Linux artifact
         if: steps.changed.outputs.build == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: Scoundrel-linux-v${{ env.GAME_VERSION }}
+          name: Scoundrel.${{ env.GAME_VERSION }}.linux.x86_64
           path: builds/linux/
           if-no-files-found: error
 
@@ -120,7 +122,7 @@ jobs:
         if: steps.changed.outputs.build == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: Scoundrel-windows-v${{ env.GAME_VERSION }}
+          name: Scoundrel.${{ env.GAME_VERSION }}.windows.x86_64
           path: builds/windows/
           if-no-files-found: error
 
@@ -131,6 +133,6 @@ jobs:
           tag_name: v${{ env.GAME_VERSION }}
           name: Scoundrel v${{ env.GAME_VERSION }}
           files: |
-            builds/linux/Scoundrel_base_rules.x86_64
-            builds/windows/Scoundrel_base_rules.exe
-            builds/macos/Scoundrel_base_rules.zip
+            builds/linux/Scoundrel.${{ env.GAME_VERSION }}.linux.x86_64
+            builds/windows/Scoundrel.${{ env.GAME_VERSION }}.windows.x86_64.exe
+            builds/macos/Scoundrel.${{ env.GAME_VERSION }}.macos.arm64.zip
