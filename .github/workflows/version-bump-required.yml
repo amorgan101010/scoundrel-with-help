@@ -21,11 +21,10 @@ jobs:
 
           # Files that don't require a version bump when changed alone:
           #   dot-directories/dotfiles (.github, .wolf, .godot, .gitignore, …)
-          #   markdown docs, export presets, .png.import sidecars
+          #   markdown docs, export presets
           CODE_CHANGES=$(git diff --name-only "$BASE" "$HEAD" \
             | grep -v '^[.]'             \
             | grep -v '\.md$'            \
-            | grep -v '\.png\.import$'   \
             | grep -v '^export_presets'  \
           )
 
