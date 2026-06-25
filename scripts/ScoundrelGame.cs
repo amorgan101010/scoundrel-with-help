@@ -19,9 +19,11 @@ public partial class ScoundrelGame : Node
     private Node _leftDropZone = null!;
     private Node _rightDropZone = null!;
 
-    // ── Drop-zone highlight overlays (created at runtime) ─────────────────
+    // ── Drop-zone overlays (highlights + labels, created at runtime) ─────
     private ColorRect _leftHighlight = null!;
     private ColorRect _rightHighlight = null!;
+    private Label _leftLabel = null!;
+    private Label _rightLabel = null!;
     private Label _healthLabel = null!;
     private Label _weaponLabel = null!;
     private Label _statusLabel = null!;
@@ -91,6 +93,8 @@ public partial class ScoundrelGame : Node
         var ui = GetNode<CanvasLayer>("UI");
         _leftHighlight  = AddZoneHighlight(ui, new Vector2(0, 70),   new Vector2(385, 550), new Color(0.25f, 0.8f, 0.25f, 0.25f));
         _rightHighlight = AddZoneHighlight(ui, new Vector2(740, 70), new Vector2(380, 550), new Color(0.25f, 0.5f, 1.0f,  0.25f));
+        _leftLabel      = AddZoneLabel(ui, new Vector2(0, 70),   new Vector2(385, 550));
+        _rightLabel     = AddZoneLabel(ui, new Vector2(740, 70), new Vector2(380, 550));
 
         _roomContainer.Connect("card_drag_started", Callable.From<GodotObject>(OnCardDragStarted));
         _roomContainer.Connect("card_drag_ended",   Callable.From(OnCardDragEnded));
@@ -230,6 +234,17 @@ public partial class ScoundrelGame : Node
                 ShowBriefMessage("Weapons go on the left!");
                 return;
             }
+            if (cardModel.IsMonster && droppedLeft)
+            {
+                bool canUse = _engine.EquippedWeapon != null
+                    && ScoundrelRules.CanUseWeapon(cardModel.MonsterValue, _engine.WeaponFloor);
+                if (!canUse)
+                {
+                    _roomContainer.Call("move_cards", new Array { card }, -1, false);
+                    ShowBriefMessage("Weapon can't block that!");
+                    return;
+                }
+            }
         }
 
         // Monster dropped into right zone = fight bare-handed (skip equipped weapon).
@@ -283,24 +298,46 @@ public partial class ScoundrelGame : Node
         UpdateUI();
     }
 
-    // ── Drag zone highlights ──────────────────────────────────────────────
+    // ── Drag zone highlights + labels ────────────────────────────────────
     private void OnCardDragStarted(GodotObject card)
     {
-        var suit = card.Get("card_info").AsGodotDictionary()["suit"].AsString();
+        var info = card.Get("card_info").AsGodotDictionary();
+        var suit = info["suit"].AsString();
+
         switch (suit)
         {
             case "clubs":
             case "spades":
-                _leftHighlight.Visible  = true;   // can fight with weapon
-                _rightHighlight.Visible = true;   // can fight bare-handed
-                break;
-            case "hearts":
-                _leftHighlight.Visible  = false;  // potions only go right
+            {
+                int rank         = info["rank"].AsInt32();
+                int monsterValue = rank == 1 ? 14 : rank;
+                bool canUseWeapon = _engine.EquippedWeapon != null
+                    && ScoundrelRules.CanUseWeapon(monsterValue, _engine.WeaponFloor);
+
+                _leftHighlight.Visible  = canUseWeapon;
+                _leftLabel.Text         = "Use Weapon";
+                _leftLabel.Visible      = canUseWeapon;
                 _rightHighlight.Visible = true;
+                _rightLabel.Text        = "Bare-Handed";
+                _rightLabel.Visible     = true;
                 break;
+            }
+            case "hearts":
+            {
+                bool willHeal = !_engine.PotionUsedThisRoom;
+                _leftHighlight.Visible  = false;
+                _leftLabel.Visible      = false;
+                _rightHighlight.Visible = true;
+                _rightLabel.Text        = willHeal ? "Drink" : "Discard";
+                _rightLabel.Visible     = true;
+                break;
+            }
             case "diamonds":
-                _leftHighlight.Visible  = true;   // weapons only go left
+                _leftHighlight.Visible  = true;
+                _leftLabel.Text         = "Equip";
+                _leftLabel.Visible      = true;
                 _rightHighlight.Visible = false;
+                _rightLabel.Visible     = false;
                 break;
         }
     }
@@ -309,6 +346,8 @@ public partial class ScoundrelGame : Node
     {
         _leftHighlight.Visible  = false;
         _rightHighlight.Visible = false;
+        _leftLabel.Visible      = false;
+        _rightLabel.Visible     = false;
     }
 
     // ── Buttons ───────────────────────────────────────────────────────────
@@ -459,6 +498,22 @@ public partial class ScoundrelGame : Node
     }
 
     // ── Utilities ─────────────────────────────────────────────────────────
+    private static Label AddZoneLabel(CanvasLayer parent, Vector2 pos, Vector2 size)
+    {
+        var label = new Label();
+        label.Position             = pos;
+        label.Size                 = size;
+        label.HorizontalAlignment  = HorizontalAlignment.Center;
+        label.VerticalAlignment    = VerticalAlignment.Center;
+        label.AddThemeFontSizeOverride("font_size", 28);
+        label.AddThemeColorOverride("font_color", new Color(1f, 1f, 1f, 0.9f));
+        label.MouseFilter          = Control.MouseFilterEnum.Ignore;
+        label.ZIndex               = 6;
+        label.Visible              = false;
+        parent.AddChild(label);
+        return label;
+    }
+
     private static ColorRect AddZoneHighlight(CanvasLayer parent, Vector2 pos, Vector2 size, Color color)
     {
         var rect = new ColorRect();

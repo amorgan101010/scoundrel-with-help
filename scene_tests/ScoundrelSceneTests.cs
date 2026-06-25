@@ -446,6 +446,31 @@ public class ScoundrelSceneTests
         AssertThat(ParseHP(scene)).IsEqual(16);
     }
 
+    [TestCase(Description = "Dragging a monster to the left zone when weapon floor is exceeded bounces it back")]
+    public async Task DragMonsterExceedingFloorToLeftZoneBounces()
+    {
+        await SetupFixedDeck(1200u);
+        var scene = _runner!.Scene();
+
+        // Equip 6_diamonds (value 6), then fight 4_clubs with weapon (floor → 4).
+        ClickCard(scene, FindRoomCard(scene, s => s == "diamonds")!);
+        await _runner!.AwaitMillis(400);
+        ClickCard(scene, FindRoomCard(scene, s => s == "clubs")!);
+        await _runner!.AwaitMillis(800);
+
+        // 8_spades has value 8; CanUseWeapon(8, floor=4) = false → left zone blocked.
+        var monster = FindRoomCard(scene, s => s == "spades");
+        AssertThat(monster).IsNotNull();
+        int hpBefore = ParseHP(scene);
+
+        await MouseDragCard(monster!, new Vector2(192f, 345f)); // LEFT zone centre
+
+        // Card bounced back — room unchanged, no damage taken.
+        var room = scene.GetNode("UI/RoomContainer");
+        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(2); // hearts + spades remain
+        AssertThat(ParseHP(scene)).IsEqual(hpBefore);
+    }
+
     [TestCase(Description = "After Run and animations settle, every room card is at a valid room slot position (regression: bug-014)")]
     public async Task RunPositionsCardsAtRoomSlots()
     {
