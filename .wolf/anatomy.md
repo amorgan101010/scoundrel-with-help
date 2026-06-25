@@ -1,24 +1,19 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-24T20:41:09.260Z
-> Files: 526 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-24T23:56:29.306Z
+> Files: 530 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../.claude/projects/-home-aileen-Repositories-godot-scoundrel-with-help/memory/
 
 - `feedback_tests_with_feature.md` (~169 tok)
 - `MEMORY.md` — Memory Index (~99 tok)
-
-## .github/workflows/
-
-- `unit-tests.yml` — GitHub Actions: dotnet test on every push, no Godot required (~80 tok)
-- `scene-tests.yml` — GitHub Actions: gdUnit4 scene tests via MikeSchulze/gdUnit4-action on main/PRs (~90 tok)
+- `project_scoundrel.md` (~776 tok)
 
 ## ./
 
-- `VERSION` — Semantic version string, currently 0.3.0 (~5 tok)
 - `.editorconfig` — Editor configuration (~9 tok)
 - `.gitattributes` — Git attributes (~22 tok)
-- `.gitignore` — Git ignore rules (~47 tok)
+- `.gitignore` — Git ignore rules (~53 tok)
 - `blank_playfield.png.import` (~254 tok)
 - `CLAUDE.md` — OpenWolf (~1431 tok)
 - `export_presets.cfg` (~1089 tok)
@@ -34,12 +29,13 @@
 - `ScoundrelWithHelp.csproj.old` (~108 tok)
 - `ScoundrelWithHelp.sln` (~439 tok)
 - `stuff to fix.md` — Claude's To-Do (~1516 tok)
+- `VERSION` — Semantic version string, currently 0.3.0 (~5 tok)
 - `VERSION` (~2 tok)
 - `weirdly sized discard cards.png.import` (~263 tok)
 
 ## .claude/
 
-- `settings.json` (~461 tok)
+- `settings.json` (~476 tok)
 
 ## .claude/rules/
 
@@ -47,7 +43,9 @@
 
 ## .github/workflows/
 
+- `scene-tests.yml` — CI: Scene Tests (~492 tok)
 - `scene-tests.yml` — CI: Scene Tests (~230 tok)
+- `unit-tests.yml` — CI: Unit Tests (~164 tok)
 - `unit-tests.yml` — CI: Unit Tests (~132 tok)
 
 ## .godot/
@@ -636,12 +634,12 @@
 
 - `CardData.cs` — Class: CardData (~208 tok)
 - `CardModel.cs` — Godot-free card data record. Used by GameEngine and unit tests. (~126 tok)
-- `GameEngine.cs` — Pure C# game-state machine for Scoundrel. No Godot dependencies — fully integration-testable. Deck i (~1348 tok)
+- `GameEngine.cs` — Pure C# game-state machine for Scoundrel. No Godot dependencies — fully integration-testable. Deck i (~1308 tok)
 - `ScoundrelGame.cs` — Godot bridge for Scoundrel. Owns node references and visual card movements. All game-state decisions (~4071 tok)
 - `ScoundrelRules.cs` — Pure game-logic functions for Scoundrel. No Godot dependencies — fully unit-testable. (~446 tok)
 
 ## tests/
 
-- `GameEngineTests.cs` — Class: CardModelTests (~6258 tok)
+- `GameEngineTests.cs` — Class: CardModelTests (~6295 tok)
 - `ScoundrelRulesTests.cs` — Class: MonsterValueTests (~1391 tok)
 - `ScoundrelTests.csproj` (~201 tok)

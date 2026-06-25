@@ -393,7 +393,7 @@ public class RunTests
         var engine = new GameEngine(deck);
 
         int deckBefore = engine.Deck.Count; // 4 (8 total, 4 dealt to room)
-        engine.Run(new Random(0));
+        engine.Run();
 
         Assert.That(engine.Room.Count, Is.EqualTo(4));      // new room dealt
         Assert.That(engine.Deck.Count, Is.EqualTo(deckBefore)); // same deck size (4 back in, 4 dealt out)
@@ -405,7 +405,7 @@ public class RunTests
         var deck = Enumerable.Range(0, 8).Select(_ => Cards.Monster(2)).ToArray();
         var engine = new GameEngine(deck);
 
-        engine.Run(new Random(0));
+        engine.Run();
 
         Assert.That(engine.RanLastRoom, Is.True);
         Assert.That(engine.CanRun, Is.False);
@@ -417,9 +417,9 @@ public class RunTests
         var deck = Enumerable.Range(0, 16).Select(_ => Cards.Monster(2)).ToArray();
         var engine = new GameEngine(deck);
 
-        engine.Run(new Random(0));
+        engine.Run();
 
-        Assert.Throws<InvalidOperationException>(() => engine.Run(new Random(0)));
+        Assert.Throws<InvalidOperationException>(() => engine.Run());
     }
 
     [Test]
@@ -428,7 +428,7 @@ public class RunTests
         var deck = Enumerable.Range(0, 16).Select(_ => Cards.Monster(2)).ToArray();
         var engine = new GameEngine(deck);
 
-        engine.Run(new Random(0)); // run room 1
+        engine.Run(); // run room 1
 
         // take 3 cards in room 2 to unlock NextRoom
         engine.TakeCard(engine.Room[0]);
@@ -456,7 +456,7 @@ public class RunTests
         // Room is dealt; deck has 4 filler cards
         Assert.That(engine.Deck.Count, Is.EqualTo(4));
 
-        engine.Run(new Random(0));
+        engine.Run();
 
         // The 4 room cards went back to deck, then 4 were dealt to new room
         Assert.That(engine.Deck.Count, Is.EqualTo(4)); // 4 (back) + 4 filler - 4 (dealt) = 4
@@ -464,19 +464,21 @@ public class RunTests
     }
 
     [Test]
-    public void Run_AlwaysDealsFourRoomCards_AcrossSeeds()
+    public void Run_PutsRoomCardsAtDeckBottom()
     {
-        // Sweep seeds to cover the case where a run-returned card gets re-dealt to
-        // the same position it was just removed from (the scenario in bug-014).
-        var baseDeck = Enumerable.Range(0, 8)
-            .Select(i => i % 2 == 0 ? Cards.Potion(2) : Cards.Monster(3))
-            .ToArray();
-        for (int seed = 0; seed < 100; seed++)
-        {
-            var engine = new GameEngine(baseDeck.ToArray());
-            engine.Run(new Random(seed));
-            Assert.That(engine.Room.Count, Is.EqualTo(4), $"seed={seed}");
-        }
+        // 12-card deck: room3 (bottom), room2 (middle), room1 (top → dealt to room first)
+        var room1 = new[] { Cards.Monster(3), Cards.Monster(4), Cards.Weapon(5), Cards.Potion(6) };
+        var room2 = new[] { Cards.Potion(2),  Cards.Potion(2),  Cards.Potion(2),  Cards.Potion(2)  };
+        var room3 = new[] { Cards.Monster(7), Cards.Monster(8), Cards.Monster(9), Cards.Monster(10) };
+        var deck = room3.Concat(room2).Concat(room1).ToArray();
+        var engine = new GameEngine(deck);
+
+        engine.Run();
+
+        // room2 is now the new room (previously the top of the remaining deck).
+        // room1 cards returned to index 0 (bottom); room3 cards sit above them.
+        Assert.That(engine.Deck.Take(4),  Is.EquivalentTo(room1));
+        Assert.That(engine.Deck.Skip(4),  Is.EquivalentTo(room3));
     }
 }
 
@@ -579,7 +581,7 @@ public class FullScenarioTests
         var engine = new GameEngine(deck);
 
         // Room 1: run
-        engine.Run(new Random(42));
+        engine.Run();
         Assert.That(engine.RanLastRoom, Is.True);
 
         // Room 2: take 3 cards, advance (can't run — RanLastRoom)
@@ -656,7 +658,7 @@ public class BadPathTests
         engine.TakeCard(engine.Room.First(c => c.IsMonster));
         Assert.That(engine.GameOver, Is.True);
 
-        Assert.Throws<InvalidOperationException>(() => engine.Run(new Random(0)));
+        Assert.Throws<InvalidOperationException>(() => engine.Run());
     }
 
     [Test]
@@ -670,6 +672,6 @@ public class BadPathTests
         engine.TakeCard(engine.Room[0]);
         Assert.That(engine.Won, Is.True);
 
-        Assert.Throws<InvalidOperationException>(() => engine.Run(new Random(0)));
+        Assert.Throws<InvalidOperationException>(() => engine.Run());
     }
 }

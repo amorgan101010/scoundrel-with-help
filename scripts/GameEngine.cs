@@ -102,23 +102,17 @@ public class GameEngine
     }
 
     /// <summary>
-    /// Shuffle all room cards back into the deck and deal a new room.
+    /// Return all room cards to the bottom of the deck and deal a new room.
     /// Cannot be used two rooms in a row.
     /// </summary>
-    public void Run(Random? rng = null)
+    public void Run()
     {
         if (IsOver) throw new InvalidOperationException("Game is over.");
         if (RanLastRoom) throw new InvalidOperationException("Cannot run two rooms in a row.");
 
-        rng ??= Random.Shared;
         var runCards = _room.ToList();
         _room.Clear();
-
-        foreach (var card in runCards)
-        {
-            int pos = rng.Next(_deck.Count + 1);
-            _deck.Insert(pos, card);
-        }
+        _deck.InsertRange(0, runCards);
 
         RanLastRoom = true;
         DealRoom();

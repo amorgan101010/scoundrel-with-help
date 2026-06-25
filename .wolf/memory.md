@@ -243,3 +243,57 @@
 | 16:41 | Created VERSION | — | ~2 |
 | 16:41 | Added GitHub Actions CI (unit-tests + scene-tests) and VERSION file; tagged v0.3.0 | .github/workflows/, VERSION | created | ~800 |
 | 16:42 | Session end: 3 writes across 3 files (unit-tests.yml, scene-tests.yml, VERSION) | 3 reads | ~1859 tok |
+| 16:43 | Session end: 3 writes across 3 files (unit-tests.yml, scene-tests.yml, VERSION) | 3 reads | ~1859 tok |
+| 16:43 | Session end: 3 writes across 3 files (unit-tests.yml, scene-tests.yml, VERSION) | 3 reads | ~1859 tok |
+| 16:45 | Saved project note: automate release builds on version tags (future work, post-CI-setup) | .wolf/memory.md | noted | ~20 |
+| 16:45 | Edited ../../../.claude/projects/-home-aileen-Repositories-godot-scoundrel-with-help/memory/project_scoundrel.md | 1→3 lines | ~96 |
+| 16:45 | Session end: 4 writes across 4 files (unit-tests.yml, scene-tests.yml, VERSION, project_scoundrel.md) | 4 reads | ~1961 tok |
+| 16:47 | Session end: 4 writes across 4 files (unit-tests.yml, scene-tests.yml, VERSION, project_scoundrel.md) | 4 reads | ~1961 tok |
+| 16:57 | Edited .github/workflows/unit-tests.yml | 2→5 lines | ~52 |
+| 16:57 | Created .github/workflows/scene-tests.yml | — | ~498 |
+| 16:57 | Session end: 6 writes across 4 files (unit-tests.yml, scene-tests.yml, VERSION, project_scoundrel.md) | 9 reads | ~4235 tok |
+| 17:03 | Edited .github/workflows/scene-tests.yml | 9→10 lines | ~110 |
+| 17:04 | Created .github/workflows/scene-tests.yml | — | ~587 |
+| 17:05 | Created .github/workflows/scene-tests.yml | — | ~461 |
+| 17:05 | Session end: 9 writes across 4 files (unit-tests.yml, scene-tests.yml, VERSION, project_scoundrel.md) | 9 reads | ~5875 tok |
+| 17:06 | Edited .github/workflows/scene-tests.yml | 2→3 lines | ~30 |
+| 17:06 | Session end: 10 writes across 4 files (unit-tests.yml, scene-tests.yml, VERSION, project_scoundrel.md) | 9 reads | ~5905 tok |
+| 17:07 | Edited .github/workflows/unit-tests.yml | inline fix | ~20 |
+| 17:07 | Session end: 11 writes across 4 files (unit-tests.yml, scene-tests.yml, VERSION, project_scoundrel.md) | 9 reads | ~5925 tok |
+| 17:08 | Edited .claude/settings.json | 3→5 lines | ~28 |
+| 17:09 | Session end: 12 writes across 5 files (unit-tests.yml, scene-tests.yml, VERSION, project_scoundrel.md, settings.json) | 10 reads | ~6414 tok |
+| 17:10 | Session end: 12 writes across 5 files (unit-tests.yml, scene-tests.yml, VERSION, project_scoundrel.md, settings.json) | 10 reads | ~6414 tok |
+| 17:10 | Session end: 12 writes across 5 files (unit-tests.yml, scene-tests.yml, VERSION, project_scoundrel.md, settings.json) | 10 reads | ~6414 tok |
+| 17:12 | Session end: 12 writes across 5 files (unit-tests.yml, scene-tests.yml, VERSION, project_scoundrel.md, settings.json) | 10 reads | ~6414 tok |
+| 17:16 | Edited .github/workflows/scene-tests.yml | 5→6 lines | ~80 |
+| 17:16 | Session end: 13 writes across 5 files (unit-tests.yml, scene-tests.yml, VERSION, project_scoundrel.md, settings.json) | 10 reads | ~6388 tok |
+| 17:20 | Edited .gitignore | 3→4 lines | ~15 |
+| 17:22 | Session end: 14 writes across 6 files (unit-tests.yml, scene-tests.yml, VERSION, project_scoundrel.md, settings.json) | 11 reads | ~6451 tok |
+| 17:28 | Session end: 14 writes across 6 files (unit-tests.yml, scene-tests.yml, VERSION, project_scoundrel.md, settings.json) | 11 reads | ~6451 tok |
+| 21:30 | Session end: CI fully working (unit tests + scene tests green). Game plan for next session recorded in memory. | .github/workflows/ | complete | ~200 |
+| 17:30 | Edited ../../../.claude/projects/-home-aileen-Repositories-godot-scoundrel-with-help/memory/project_scoundrel.md | modified priorities() | ~447 |
+| 17:31 | Session end: 15 writes across 6 files (unit-tests.yml, scene-tests.yml, VERSION, project_scoundrel.md, settings.json) | 11 reads | ~6930 tok |
+| 17:34 | Edited ../../../.claude/projects/-home-aileen-Repositories-godot-scoundrel-with-help/memory/project_scoundrel.md | inline fix | ~88 |
+| 17:34 | Session end: 16 writes across 6 files (unit-tests.yml, scene-tests.yml, VERSION, project_scoundrel.md, settings.json) | 11 reads | ~7025 tok |
+| 17:35 | Session end: 16 writes across 6 files (unit-tests.yml, scene-tests.yml, VERSION, project_scoundrel.md, settings.json) | 11 reads | ~7025 tok |
+
+## Session: 2026-06-24 17:56
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-06-24 19:46
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 19:55 | Edited scripts/GameEngine.cs | modified Run() | ~137 |
+| 19:55 | Edited tests/GameEngineTests.cs | modified Run_ClearsRoom_AndDealsNew() | ~76 |
+| 19:55 | Edited tests/GameEngineTests.cs | 4→4 lines | ~32 |
+| 19:55 | Edited tests/GameEngineTests.cs | 3→3 lines | ~25 |
+| 19:56 | Edited tests/GameEngineTests.cs | 7→7 lines | ~73 |
+| 19:56 | Edited tests/GameEngineTests.cs | 3→3 lines | ~27 |
+| 19:57 | Fixed run-to-bottom: InsertRange(0) instead of random shuffle; dropped rng param; added Run_PutsRoomCardsAtDeckBottom test | GameEngine.cs, GameEngineTests.cs | 83/83 unit tests pass | ~600 |
+| 19:56 | Edited tests/GameEngineTests.cs | modified Run_PutsRoomCardsAtDeckBottom() | ~239 |
+| 19:56 | Edited tests/GameEngineTests.cs | 2→2 lines | ~12 |
+| 19:56 | Edited tests/GameEngineTests.cs | modified Run_AfterWon_Throws() | ~147 |
+| 19:56 | Session end: 9 writes across 2 files (GameEngine.cs, GameEngineTests.cs) | 4 reads | ~9945 tok |
