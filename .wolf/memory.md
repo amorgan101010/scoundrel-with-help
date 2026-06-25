@@ -617,3 +617,23 @@
 | 16:57 | Session end: 1 writes across 1 files (VERSION) | 2 reads | ~1705 tok |
 | 16:57 | Session end: 1 writes across 1 files (VERSION) | 2 reads | ~1705 tok |
 | 17:00 | Session end: 1 writes across 1 files (VERSION) | 2 reads | ~1705 tok |
+| 17:21 | Session end: 1 writes across 1 files (VERSION) | 2 reads | ~1705 tok |
+| 17:21 | Session end: 1 writes across 1 files (VERSION) | 2 reads | ~1705 tok |
+
+## Session: 2026-06-25 17:49
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-06-25 17:54
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 18:00 | Edited scripts/ScoundrelRules.cs | added 4 condition(s) | ~517 |
+| 18:00 | Edited tests/ScoundrelRulesTests.cs | expanded (+64 lines) | ~690 |
+| 18:00 | Edited scripts/ScoundrelGame.cs | added 1 condition(s) | ~153 |
+| 18:00 | Edited scripts/ScoundrelGame.cs | 5→7 lines | ~67 |
+| 18:00 | Edited scripts/ScoundrelGame.cs | modified MoveToDiscard() | ~133 |
+| 18:00 | Edited scripts/ScoundrelGame.cs | modified if() | ~148 |
+| 18:00 | Edited scripts/ScoundrelGame.cs | modified foreach() | ~68 |
+| 20:56 | Added ScoundrelRules.TooltipFor() + 9 unit tests; wired UpdateCardTooltips() in ScoundrelGame; logged bug-053 (void-potion left-zone) | ScoundrelRules.cs, ScoundrelRulesTests.cs, ScoundrelGame.cs, buglog.json, cerebrum.md | 103/103 tests pass | ~2500 |

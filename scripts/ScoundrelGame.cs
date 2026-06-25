@@ -309,6 +309,7 @@ public partial class ScoundrelGame : Node
                         MoveToDiscard(_godotCards[oldWeapon.Name]);
                     }
                     ResetCardScale(card);
+                    card.Set("tooltip_text", "");
                     _weaponSlot.Call("move_cards", new Array { card }, -1, false);
                 }
                 else
@@ -396,6 +397,7 @@ public partial class ScoundrelGame : Node
         foreach (var godotCard in roomGodotCards)
         {
             godotCard.Set("modulate", new Color(1f, 1f, 1f));
+            godotCard.Set("tooltip_text", "");
             _deckPile.Call("move_cards", new Array { godotCard }, 0, false);
         }
 
@@ -452,6 +454,7 @@ public partial class ScoundrelGame : Node
     {
         ResetCardScale(card);
         card.Set("modulate", new Color(1f, 1f, 1f));
+        card.Set("tooltip_text", "");
         _discardPile.Call("move_cards", new Array { card }, -1, false);
     }
 
@@ -459,6 +462,7 @@ public partial class ScoundrelGame : Node
     {
         ResetCardScale(card);
         card.Set("modulate", new Color(1f, 1f, 1f));
+        card.Set("tooltip_text", "");
         _slainPile.Call("move_cards", new Array { card }, 0, false);
         _slainGodotCards.Insert(0, card);
         FixSlainZOrder();
@@ -501,6 +505,20 @@ public partial class ScoundrelGame : Node
         timer.Timeout += () => { if (_statusLabel.Text == text) _statusLabel.Text = ""; };
     }
 
+    private void UpdateCardTooltips()
+    {
+        foreach (var cardModel in _engine.Room)
+        {
+            if (!_godotCards.TryGetValue(cardModel.Name, out var godotCard)) continue;
+            godotCard.Set("tooltip_text", ScoundrelRules.TooltipFor(
+                cardModel,
+                _engine.EquippedWeapon,
+                _engine.WeaponFloor,
+                _engine.PotionUsedThisRoom,
+                _engine.Health));
+        }
+    }
+
     private void UpdateUI()
     {
         _healthLabel.Text = $"HP: {_engine.Health} / {ScoundrelRules.MaxHealth}";
@@ -527,6 +545,8 @@ public partial class ScoundrelGame : Node
         _spadesLabel.Text   = $"♠  {_inPlaySpades}";
         _heartsLabel.Text   = $"♥  {_inPlayHearts}";
         _diamondsLabel.Text = $"♦  {_inPlayDiamonds}";
+
+        UpdateCardTooltips();
     }
 
     // ── Utilities ─────────────────────────────────────────────────────────
