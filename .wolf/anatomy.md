@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-25T15:24:24.019Z
-> Files: 539 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-25T19:28:29.687Z
+> Files: 540 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../../tmp/claude-1000/-home-aileen-Repositories-godot-scoundrel-with-help/694a1aee-797c-490b-8b5c-125b6336d599/scratchpad/
 
@@ -56,11 +56,12 @@
 
 ## .github/workflows/
 
-- `linux-build.yml` — CI: Linux Build (~1126 tok)
+- `linux-build.yml` — CI: Linux Build (~1134 tok)
 - `scene-tests.yml` — CI: Scene Tests (~492 tok)
 - `scene-tests.yml` — CI: Scene Tests (~230 tok)
-- `unit-tests.yml` — CI: Unit Tests (~164 tok)
+- `unit-tests.yml` — CI: Unit Tests (~159 tok)
 - `unit-tests.yml` — CI: Unit Tests (~132 tok)
+- `version-bump-required.yml` — CI: Version Bump Required (~185 tok)
 
 ## .godot/
 

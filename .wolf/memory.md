@@ -3,6 +3,8 @@
 > Chronological action log. Hooks and AI append to this file automatically.
 > Old sessions are consolidated by the daemon weekly.
 
+| 19:30 | Fix Linux Build CI: add `|| true` to export command — Godot crashes on shutdown after successful savepack | .github/workflows/linux-build.yml | fixed (bug-051) | ~300 |
+
 | 20:44 | Removed click-based card controls — drag only | scenes/RoomContainer.gd, scene_tests/ScoundrelSceneTests.cs | on_card_pressed records press pos; release_holding_cards skips card_selected if drag < 10px; 3 tests updated | ~300 tok |
 
 ## Session: 2026-06-24 00:28
@@ -535,3 +537,22 @@
 |------|--------|---------|---------|--------|
 | 11:24 | Created .github/workflows/linux-build.yml | .github/workflows/linux-build.yml | pending | ~1126 |
 | session | Fixed branch protection: wrong check contexts → gdUnit4 Scene Tests / C# Unit Tests; wrote linux-build.yml (VERSION-gated, skips build on no-VERSION-change PRs); Linux Build check to be required after first passing run | .github/workflows/linux-build.yml | complete | ~800 |
+| 11:26 | Session end: 1 writes across 1 files (linux-build.yml) | 1 reads | ~1618 tok |
+| 11:27 | Created .github/workflows/version-bump-required.yml | — | ~185 |
+| 11:28 | Session end: 2 writes across 2 files (linux-build.yml, version-bump-required.yml) | 1 reads | ~1803 tok |
+| 11:31 | Session end: 2 writes across 2 files (linux-build.yml, version-bump-required.yml) | 1 reads | ~1803 tok |
+| 11:31 | Edited .github/workflows/linux-build.yml | 2→2 lines | ~46 |
+| 11:31 | Session end: 3 writes across 2 files (linux-build.yml, version-bump-required.yml) | 1 reads | ~1849 tok |
+| 11:34 | Edited .github/workflows/linux-build.yml | inline fix | ~25 |
+| 11:34 | Edited .github/workflows/linux-build.yml | inline fix | ~18 |
+| 11:34 | Session end: 5 writes across 2 files (linux-build.yml, version-bump-required.yml) | 1 reads | ~1892 tok |
+| 11:36 | Edited .github/workflows/unit-tests.yml | 3→5 lines | ~20 |
+| 11:37 | Edited .github/workflows/unit-tests.yml | removed 5 lines | ~4 |
+| 11:37 | Session end: 7 writes across 3 files (linux-build.yml, version-bump-required.yml, unit-tests.yml) | 2 reads | ~2092 tok |
+| 11:39 | Session end: 7 writes across 3 files (linux-build.yml, version-bump-required.yml, unit-tests.yml) | 3 reads | ~3224 tok |
+
+## Session: 2026-06-25 15:23
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 15:28 | Edited .github/workflows/linux-build.yml | 7→7 lines | ~113 |

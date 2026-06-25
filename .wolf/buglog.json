@@ -830,6 +830,27 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-06-25"
+    },
+    {
+      "id": "bug-051",
+      "timestamp": "2026-06-25",
+      "error_message": "Linux Build CI fails: exit code 134 \u2014 'Aborted (core dumped)' after successful export. GdUnit4 plugin unloads then Godot crashes on shutdown.",
+      "file": ".github/workflows/linux-build.yml",
+      "root_cause": "Godot 4.7 mono crashes (SIGABRT) during shutdown under xvfb-run after a successful --export-release. The savepack completes 100% and the output file is written to disk, but Godot crashes when unloading the GdUnit4 plugin during exit. The non-zero exit code from xvfb-run fails the CI step before test -f can verify the file exists.",
+      "fix": "Added '|| true' to the xvfb-run export command so the crash exit code is ignored. The 'test -f' check that follows verifies the output file was actually created. This is safe because the savepack completes before the crash.",
+      "tags": [
+        "ci",
+        "linux-build",
+        "export",
+        "shutdown-crash",
+        "sigabrt",
+        "gdunit4"
+      ],
+      "related_bugs": [
+        "bug-050"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-06-25"
     }
   ]
 }
