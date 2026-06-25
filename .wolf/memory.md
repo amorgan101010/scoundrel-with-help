@@ -502,3 +502,36 @@
 | 10:19 | Edited scripts/ScoundrelGame.cs | 6→7 lines | ~136 |
 | 10:19 | Session end: 8 writes across 2 files (ScoundrelGame.cs, ScoundrelSceneTests.cs) | 5 reads | ~19891 tok |
 | 10:29 | Created VERSION | — | ~2 |
+| 10:30 | Session end: 9 writes across 3 files (ScoundrelGame.cs, ScoundrelSceneTests.cs, VERSION) | 6 reads | ~19895 tok |
+| 10:34 | Session end: 9 writes across 3 files (ScoundrelGame.cs, ScoundrelSceneTests.cs, VERSION) | 6 reads | ~19895 tok |
+| 10:35 | Session end: 9 writes across 3 files (ScoundrelGame.cs, ScoundrelSceneTests.cs, VERSION) | 6 reads | ~19895 tok |
+| 10:47 | Session end: 9 writes across 3 files (ScoundrelGame.cs, ScoundrelSceneTests.cs, VERSION) | 8 reads | ~21744 tok |
+| 10:49 | Created ../../../.claude/projects/-home-aileen-Repositories-godot-scoundrel-with-help/memory/feedback_pr_comments.md | — | ~173 |
+| 10:49 | Edited ../../../.claude/projects/-home-aileen-Repositories-godot-scoundrel-with-help/memory/MEMORY.md | 1→2 lines | ~79 |
+| 10:49 | Session end: 11 writes across 5 files (ScoundrelGame.cs, ScoundrelSceneTests.cs, VERSION, feedback_pr_comments.md, MEMORY.md) | 9 reads | ~22015 tok |
+
+## Session: 2026-06-25 10:54
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 10:55 | Edited scripts/ScoundrelGame.cs | 3→2 lines | ~33 |
+| 10:55 | Edited scripts/ScoundrelGame.cs | 5→5 lines | ~55 |
+| 10:55 | Edited scene_tests/ScoundrelSceneTests.cs | added 1 condition(s) | ~871 |
+| 10:57 | Session end: 3 writes across 2 files (ScoundrelGame.cs, ScoundrelSceneTests.cs) | 2 reads | ~16343 tok |
+| 11:00 | Edited scripts/ScoundrelGame.cs | 2→3 lines | ~49 |
+| 11:00 | Edited scripts/ScoundrelGame.cs | added 1 condition(s) | ~66 |
+| 11:01 | Edited scene_tests/ScoundrelSceneTests.cs | removed 40 lines | ~29 |
+| 11:03 | Session end: 6 writes across 2 files (ScoundrelGame.cs, ScoundrelSceneTests.cs) | 2 reads | ~17316 tok |
+| 11:04 | Session end: 6 writes across 2 files (ScoundrelGame.cs, ScoundrelSceneTests.cs) | 2 reads | ~16895 tok |
+| 11:07 | Edited ../../../.claude/projects/-home-aileen-Repositories-godot-scoundrel-with-help/memory/feedback_pr_comments.md | 1→3 lines | ~137 |
+| 11:07 | Session end: 7 writes across 3 files (ScoundrelGame.cs, ScoundrelSceneTests.cs, feedback_pr_comments.md) | 3 reads | ~17042 tok |
+| 11:11 | Session end: 7 writes across 3 files (ScoundrelGame.cs, ScoundrelSceneTests.cs, feedback_pr_comments.md) | 3 reads | ~17042 tok |
+| 11:12 | Session end: 7 writes across 3 files (ScoundrelGame.cs, ScoundrelSceneTests.cs, feedback_pr_comments.md) | 3 reads | ~17042 tok |
+| 11:12 | Session end: 7 writes across 3 files (ScoundrelGame.cs, ScoundrelSceneTests.cs, feedback_pr_comments.md) | 3 reads | ~17042 tok |
+
+## Session: 2026-06-25 11:21
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 11:24 | Created .github/workflows/linux-build.yml | .github/workflows/linux-build.yml | pending | ~1126 |
+| session | Fixed branch protection: wrong check contexts → gdUnit4 Scene Tests / C# Unit Tests; wrote linux-build.yml (VERSION-gated, skips build on no-VERSION-change PRs); Linux Build check to be required after first passing run | .github/workflows/linux-build.yml | complete | ~800 |
