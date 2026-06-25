@@ -260,6 +260,13 @@ public partial class ScoundrelGame : Node
             }
         }
 
+        // Void potion + left zone: highlight is hidden; bounce silently.
+        if (cardModel.IsPotion && droppedLeft && _engine.PotionUsedThisRoom)
+        {
+            _roomContainer.Call("move_cards", new Array { card }, -1, false);
+            return;
+        }
+
         // Monster right = bare-handed; potion/weapon right = discard without activating.
         bool useWeapon   = !(cardModel.IsMonster && droppedRight);
         bool activateCard = !((cardModel.IsPotion || cardModel.IsWeapon) && droppedRight);
