@@ -320,13 +320,16 @@ public partial class ScoundrelGame : Node
                 break;
             }
             case "hearts":
-                _leftHighlight.Visible  = true;
+            {
+                bool canDrink = !_engine.PotionUsedThisRoom;
+                _leftHighlight.Visible  = canDrink;
                 _leftLabel.Text         = "Drink";
-                _leftLabel.Visible      = true;
+                _leftLabel.Visible      = canDrink;
                 _rightHighlight.Visible = true;
                 _rightLabel.Text        = "Discard";
                 _rightLabel.Visible     = true;
                 break;
+            }
             case "diamonds":
                 _leftHighlight.Visible  = true;
                 _leftLabel.Text         = "Equip";
