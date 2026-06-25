@@ -94,7 +94,7 @@ jobs:
         if: steps.changed.outputs.build == 'true'
         run: |
           mkdir -p "$GITHUB_WORKSPACE/builds/linux"
-          xvfb-run "$GODOT_BIN" --path "$GITHUB_WORKSPACE" \
+          "$GODOT_BIN" --headless --path "$GITHUB_WORKSPACE" \
             --export-release "Linux" "$GITHUB_WORKSPACE/builds/linux/Scoundrel_base_rules.x86_64"
           test -f "$GITHUB_WORKSPACE/builds/linux/Scoundrel_base_rules.x86_64"
 
