@@ -118,6 +118,23 @@ jobs:
           path: builds/linux/
           if-no-files-found: error
 
+      - name: Export macOS build
+        if: steps.changed.outputs.build == 'true'
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/builds/macos"
+          OUT="$GITHUB_WORKSPACE/builds/macos/Scoundrel.$GAME_VERSION.macos.arm64.zip"
+          xvfb-run "$GODOT_BIN" --path "$GITHUB_WORKSPACE" \
+            --export-release "macOS" "$OUT" || true
+          test -s "$OUT"
+
+      - name: Upload macOS artifact
+        if: steps.changed.outputs.build == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Scoundrel.${{ env.GAME_VERSION }}.macos.arm64
+          path: builds/macos/
+          if-no-files-found: error
+
       - name: Upload Windows artifact
         if: steps.changed.outputs.build == 'true'
         uses: actions/upload-artifact@v4
