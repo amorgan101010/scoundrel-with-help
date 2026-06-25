@@ -51,7 +51,7 @@ jobs:
 
       - name: Install Xvfb
         if: steps.changed.outputs.build == 'true'
-        run: sudo apt-get install -y --no-install-recommends xvfb
+        run: sudo apt-get install -y --no-install-recommends xvfb mesa-vulkan-drivers
 
       - name: Download Godot .NET
         if: steps.changed.outputs.build == 'true'
@@ -94,7 +94,7 @@ jobs:
         if: steps.changed.outputs.build == 'true'
         run: |
           mkdir -p "$GITHUB_WORKSPACE/builds/linux"
-          "$GODOT_BIN" --headless --path "$GITHUB_WORKSPACE" \
+          xvfb-run "$GODOT_BIN" --path "$GITHUB_WORKSPACE" \
             --export-release "Linux" "$GITHUB_WORKSPACE/builds/linux/Scoundrel_base_rules.x86_64"
           test -f "$GITHUB_WORKSPACE/builds/linux/Scoundrel_base_rules.x86_64"
 
