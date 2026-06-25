@@ -563,3 +563,53 @@
 | 15:35 | Session end: 2 writes across 1 files (linux-build.yml) | 1 reads | ~1270 tok |
 | 15:35 | Session end: 2 writes across 1 files (linux-build.yml) | 1 reads | ~1270 tok |
 | 15:40 | Created .github/workflows/linux-build.yml | — | ~1463 |
+| 15:41 | Session end: 3 writes across 1 files (linux-build.yml) | 1 reads | ~2733 tok |
+| 15:42 | Edited .github/workflows/linux-build.yml | 9→10 lines | ~138 |
+| 15:42 | Edited .github/workflows/linux-build.yml | 42→44 lines | ~534 |
+| 15:42 | Session end: 5 writes across 1 files (linux-build.yml) | 1 reads | ~3405 tok |
+| 15:43 | Session end: 5 writes across 1 files (linux-build.yml) | 1 reads | ~3405 tok |
+| 15:45 | Edited .github/workflows/linux-build.yml | 4→3 lines | ~49 |
+| 15:45 | Session end: 6 writes across 1 files (linux-build.yml) | 1 reads | ~3454 tok |
+| 15:46 | Session end: 6 writes across 1 files (linux-build.yml) | 1 reads | ~3454 tok |
+| 15:49 | Session end: 6 writes across 1 files (linux-build.yml) | 1 reads | ~3454 tok |
+| 15:51 | Session end: 6 writes across 1 files (linux-build.yml) | 1 reads | ~3454 tok |
+| 15:53 | Session end: 6 writes across 1 files (linux-build.yml) | 1 reads | ~3454 tok |
+| 15:56 | Session end: 6 writes across 1 files (linux-build.yml) | 1 reads | ~3454 tok |
+| 15:56 | Edited .github/workflows/linux-build.yml | expanded (+17 lines) | ~195 |
+| 15:57 | Session end: 7 writes across 1 files (linux-build.yml) | 1 reads | ~3649 tok |
+| 16:03 | Session end: 7 writes across 1 files (linux-build.yml) | 2 reads | ~4738 tok |
+| 16:07 | Session end: 7 writes across 1 files (linux-build.yml) | 2 reads | ~4738 tok |
+| 16:12 | Session end: 7 writes across 1 files (linux-build.yml) | 2 reads | ~4738 tok |
+| 16:19 | Edited .github/workflows/linux-build.yml | 3→4 lines | ~70 |
+| 16:20 | Session end: 8 writes across 1 files (linux-build.yml) | 4 reads | ~5514 tok |
+| 16:25 | Edited .github/workflows/version-bump-required.yml | expanded (+18 lines) | ~304 |
+| 16:25 | Session end: 9 writes across 2 files (linux-build.yml, version-bump-required.yml) | 4 reads | ~5818 tok |
+| 16:27 | Edited .github/workflows/version-bump-required.yml | 9→8 lines | ~114 |
+| 16:27 | Session end: 10 writes across 2 files (linux-build.yml, version-bump-required.yml) | 4 reads | ~5932 tok |
+| 16:28 | Edited .github/workflows/version-bump-required.yml | "::error::VERSION file was" → "::error::VERSION file was" | ~36 |
+| 16:29 | Session end: 11 writes across 2 files (linux-build.yml, version-bump-required.yml) | 4 reads | ~5968 tok |
+| 16:29 | Edited .github/workflows/linux-build.yml | 2→6 lines | ~30 |
+| 16:29 | Edited .github/workflows/scene-tests.yml | 2→6 lines | ~32 |
+| 16:30 | Edited .github/workflows/unit-tests.yml | 2→6 lines | ~32 |
+| 16:30 | Edited .github/workflows/version-bump-required.yml | 2→6 lines | ~34 |
+| 16:30 | Session end: 15 writes across 4 files (linux-build.yml, version-bump-required.yml, scene-tests.yml, unit-tests.yml) | 6 reads | ~6747 tok |
+| 16:36 | Edited .github/workflows/version-bump-required.yml | 5→5 lines | ~61 |
+| 16:36 | Session end: 16 writes across 4 files (linux-build.yml, version-bump-required.yml, scene-tests.yml, unit-tests.yml) | 6 reads | ~6808 tok |
+| 16:37 | Session end: 16 writes across 4 files (linux-build.yml, version-bump-required.yml, scene-tests.yml, unit-tests.yml) | 6 reads | ~6808 tok |
+| 16:37 | Session end: 16 writes across 4 files (linux-build.yml, version-bump-required.yml, scene-tests.yml, unit-tests.yml) | 6 reads | ~6808 tok |
+| 16:40 | Created .github/workflows/unit-tests.yml | — | ~402 |
+| 16:41 | Edited .github/workflows/scene-tests.yml | expanded (+25 lines) | ~311 |
+| 16:41 | Created .github/workflows/scene-tests.yml | — | ~890 |
+| 16:42 | Session end: 19 writes across 4 files (linux-build.yml, version-bump-required.yml, scene-tests.yml, unit-tests.yml) | 6 reads | ~8753 tok |
+| 16:44 | Session end: 19 writes across 4 files (linux-build.yml, version-bump-required.yml, scene-tests.yml, unit-tests.yml) | 6 reads | ~8753 tok |
+
+## Session: 2026-06-25 16:47
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-06-25 16:50
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 16:52 | Renamed linux-build.yml → build-release.yml | .github/workflows/build-release.yml | success | ~50 |
