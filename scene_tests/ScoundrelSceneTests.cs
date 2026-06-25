@@ -795,45 +795,6 @@ public class ScoundrelSceneTests
         AssertThat(((ScoundrelGame)scene).LastSfxPlayed).IsEqual("weapon_discarded");
     }
 
-    [TestCase(Description = "Drinking a void potion (second this room) still plays the bubbles sound")]
-    public async Task WastedPotionDrink_PlaysBubblesSound()
-    {
-        var potionDeck = new List<CardModel>
-        {
-            // Room 2 padding (never reached)
-            new CardModel(Suit.Clubs, 2, "2_clubs"),
-            new CardModel(Suit.Clubs, 3, "3_clubs"),
-            new CardModel(Suit.Clubs, 4, "4_clubs"),
-            new CardModel(Suit.Clubs, 5, "5_clubs"),
-            // Room 1 (dealt first) — three potions + one weak monster
-            new CardModel(Suit.Clubs,  6, "6_clubs"),
-            new CardModel(Suit.Hearts, 2, "2_hearts"),
-            new CardModel(Suit.Hearts, 3, "3_hearts"),
-            new CardModel(Suit.Hearts, 4, "4_hearts"),
-        };
-        var game = (ScoundrelGame)_runner!.Scene();
-        game.StartGameWithDeck(potionDeck);
-        await _runner!.AwaitMillis(200);
-
-        var scene = _runner!.Scene();
-        var room  = scene.GetNode("UI/RoomContainer");
-
-        var allPotions = new List<GodotObject>();
-        foreach (var obj in (GArray)room.Call("get_all_cards"))
-        {
-            var card = obj.AsGodotObject();
-            if (card.Get("card_info").AsGodotDictionary()["suit"].AsString() == "hearts")
-                allPotions.Add(card);
-        }
-
-        ClickCard(scene, allPotions[0]);     // first drink — sets PotionUsedThisRoom
-        await _runner!.AwaitIdleFrame();
-        ClickCard(scene, allPotions[1]);     // void drink — potionUsedBefore=true, still plays bubbles
-        await _runner!.AwaitIdleFrame();
-
-        AssertThat(((ScoundrelGame)scene).LastSfxPlayed).IsEqual("bubbles");
-    }
-
     [TestCase(Description = "Taking the last room card triggers auto-deal, ending on the card-dealt sound")]
     public async Task TakingLastRoomCard_PlaysCardDealtSound()
     {

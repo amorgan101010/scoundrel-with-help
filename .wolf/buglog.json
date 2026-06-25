@@ -742,6 +742,72 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-06-25T14:16:12.597Z"
+    },
+    {
+      "id": "bug-046",
+      "timestamp": "2026-06-25T14:55:39.936Z",
+      "error_message": "Wrong condition in logic",
+      "file": "scripts/ScoundrelGame.cs",
+      "root_cause": "Condition was: if (activateCard && !potionUsedBefore)",
+      "fix": "Changed to: if (activateCard)",
+      "tags": [
+        "auto-detected",
+        "logic-fix",
+        "cs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-25T14:55:39.936Z"
+    },
+    {
+      "id": "bug-047",
+      "timestamp": "2026-06-25T14:55:59.004Z",
+      "error_message": "Missing await",
+      "file": "scene_tests/ScoundrelSceneTests.cs",
+      "root_cause": "Async call without await — returned Promise instead of value",
+      "fix": "Added await to async call",
+      "tags": [
+        "auto-detected",
+        "async-fix",
+        "cs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-25T14:55:59.004Z"
+    },
+    {
+      "id": "bug-048",
+      "timestamp": "2026-06-25T15:00:51.333Z",
+      "error_message": "Wrong condition in logic",
+      "file": "scripts/ScoundrelGame.cs",
+      "root_cause": "Condition was: if (activateCard)",
+      "fix": "Changed to: if (activateCard && !potionUsedBefore)",
+      "tags": [
+        "auto-detected",
+        "logic-fix",
+        "cs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-25T15:00:51.333Z"
+    },
+    {
+      "id": "bug-049",
+      "timestamp": "2026-06-25",
+      "error_message": "PR review surfaced 'wasted-potion-drink plays no sound' as a gap; code was changed and a test added — both were wrong",
+      "file": "scripts/ScoundrelGame.cs, scene_tests/ScoundrelSceneTests.cs",
+      "root_cause": "Code reviewer analysis failed to account for the left-zone hide mechanic: OnCardDragStarted hides the left drop zone for void potions (PotionUsedThisRoom=true), making the 'activateCard=true, potionUsedBefore=true' path unreachable in normal play. The original bubbles condition (activateCard && !potionUsedBefore) was correct. The 'gap' only exists via ClickCard() which bypasses zone routing entirely — a test-only path that doesn't represent real gameplay.",
+      "fix": "Reverted ScoundrelGame.cs Hearts sound condition to the original (activateCard && !potionUsedBefore). Removed WastedPotionDrink_PlaysBubblesSound test (tested an unreachable game state). Kept TakingLastRoomCard_PlaysCardDealtSound (that finding was valid).",
+      "tags": [
+        "false-finding",
+        "sound-effects",
+        "review",
+        "zone-mechanics",
+        "potion"
+      ],
+      "related_bugs": ["bug-046", "bug-048"],
+      "occurrences": 1,
+      "last_seen": "2026-06-25"
     }
   ]
 }
