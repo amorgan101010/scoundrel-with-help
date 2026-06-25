@@ -450,6 +450,130 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-06-25T00:11:50.985Z"
+    },
+    {
+      "id": "bug-028",
+      "timestamp": "2026-06-25T00:44:05.148Z",
+      "error_message": "Significant refactor of ",
+      "file": "scenes/RoomContainer.gd",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 25→37 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "gd"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-25T00:44:05.148Z"
+    },
+    {
+      "id": "bug-029",
+      "timestamp": "2026-06-25T01:02:04.110Z",
+      "error_message": "Null/undefined access in ",
+      "file": "scene_tests/ScoundrelSceneTests.cs",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "cs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-25T01:02:04.110Z"
+    },
+    {
+      "id": "bug-030",
+      "timestamp": "2026-06-25T01:06:57.326Z",
+      "error_message": "Significant refactor of ",
+      "file": "../../../.claude/settings.json",
+      "root_cause": "4 lines replaced/restructured",
+      "fix": "Rewrote 15→6 lines (4 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "json"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-25T01:06:57.326Z"
+    },
+    {
+      "id": "bug-031",
+      "timestamp": "2026-06-25T01:12:07.831Z",
+      "error_message": "Significant refactor of ",
+      "file": "scripts/ScoundrelGame.cs",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 6→21 lines (2 removed) | Also: bool willUseWeapon     = cardModel.IsMonster; _engine.TakeCard(cardModel);",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "cs"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-25T01:12:24.063Z"
+    },
+    {
+      "id": "bug-032",
+      "timestamp": "2026-06-25T01:12:52.459Z",
+      "error_message": "Significant refactor of ",
+      "file": "scene_tests/ScoundrelSceneTests.cs",
+      "root_cause": "7 lines replaced/restructured",
+      "fix": "Rewrote 34→91 lines (7 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "cs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-25T01:12:52.459Z"
+    },
+    {
+      "id": "bug-033",
+      "timestamp": "2026-06-25T01:25:09.890Z",
+      "error_message": "Null/undefined access in ",
+      "file": "scripts/ScoundrelGame.cs",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check) | Also: if (cardModel.IsMonster && droppedLeft); bool canUse = _engine.EquippedWeapon != null",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "cs"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-25T01:25:18.254Z"
+    },
+    {
+      "id": "bug-034",
+      "timestamp": "2026-06-25T01:25:38.970Z",
+      "error_message": "Missing await",
+      "file": "scene_tests/ScoundrelSceneTests.cs",
+      "root_cause": "Async call without await — returned Promise instead of value",
+      "fix": "Added await to async call",
+      "tags": [
+        "auto-detected",
+        "async-fix",
+        "cs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-25T01:25:38.970Z"
+    },
+    {
+      "id": "bug-035",
+      "timestamp": "2026-06-24T00:00:00.000Z",
+      "error_message": "SCRIPT ERROR: Invalid call. Nonexistent function 'change_sensor_position_with_offset' in base 'Nil'. at: Pile._update_target_positions (pile.gd:104) — all mouse drags fail to land in LeftDropZone / RightDropZone (HP unchanged, room count unchanged)",
+      "file": "scenes/Game.tscn, scenes/DropZoneContainer.gd (new)",
+      "root_cause": "CardContainer._initialize_drop_zone() may not run in time (requires CardManager scene-root meta) leaving drop_zone==null. check_card_can_be_dropped() early-returns false when drop_zone==null, so no drag ever lands in either zone. align_drop_zone_with_top_card=true compounds the error by calling change_sensor_position_with_offset on the null drop_zone.",
+      "fix": "Created scenes/DropZoneContainer.gd extending Pile. Overrides check_card_can_be_dropped with a plain get_global_rect().has_point(mouse) check, overrides _update_target_positions and _update_card_states as no-ops, overrides get_partition_index to return -1. LeftDropZone and RightDropZone in Game.tscn now use this script instead of pile.gd.",
+      "tags": ["scene-tests", "drag-drop", "gdscript", "pile", "drop-zone"],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-24T00:00:00.000Z"
     }
   ]
 }

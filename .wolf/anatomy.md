@@ -1,17 +1,22 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-25T00:19:32.730Z
-> Files: 532 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-25T02:08:51.810Z
+> Files: 535 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../../tmp/claude-1000/-home-aileen-Repositories-godot-scoundrel-with-help/694a1aee-797c-490b-8b5c-125b6336d599/scratchpad/
 
 - `commit_msg.txt` (~102 tok)
 - `commit_msg2.txt` (~130 tok)
 
+## ../../../.claude/
+
+- `settings.json` (~1102 tok)
+
 ## ../../../.claude/projects/-home-aileen-Repositories-godot-scoundrel-with-help/memory/
 
+- `feedback_commit_workflow.md` (~189 tok)
 - `feedback_tests_with_feature.md` (~169 tok)
-- `MEMORY.md` — Memory Index (~99 tok)
+- `MEMORY.md` — Memory Index (~129 tok)
 - `project_scoundrel.md` (~776 tok)
 
 ## ./
@@ -27,7 +32,7 @@
 - `NuGet.Config` (~80 tok)
 - `project.godot` (~227 tok)
 - `README.md` — Project documentation (~715 tok)
-- `run_scene_tests.sh` — Run gdUnit4 scene tests. (~179 tok)
+- `run_scene_tests.sh` — Run gdUnit4 scene tests. (~269 tok)
 - `Scoundrel_base_rules.pck` (~122710 tok)
 - `Scoundrel_base_rules.sh` (~41 tok)
 - `ScoundrelWithHelp.csproj` — /*.cs" /> (~117 tok)
@@ -628,23 +633,24 @@
 
 ## scene_tests/
 
-- `ScoundrelSceneTests.cs` — Scene-level integration tests for Scoundrel. Run via the gdUnit4 test runner (editor toolbar or: god (~6874 tok)
+- `ScoundrelSceneTests.cs` — Scene-level integration tests for Scoundrel. Run via the gdUnit4 test runner (editor toolbar or: god (~7871 tok)
 
 ## scenes/
 
-- `Game.tscn` (~1688 tok)
-- `RoomContainer.gd` — # 2×2 card grid for the Scoundrel dungeon room. (~620 tok)
+- `DropZoneContainer.gd` — Extends Pile; overrides check_card_can_be_dropped with get_global_rect() mouse check; used by LeftDropZone + RightDropZone as a reliable drop sensor that doesn't depend on CardManager initialization order. (~120 tok)
+- `Game.tscn` (~2117 tok)
+- `RoomContainer.gd` — # 2×2 card grid for the Scoundrel dungeon room. (~722 tok)
 
 ## scripts/
 
 - `CardData.cs` — Class: CardData (~208 tok)
 - `CardModel.cs` — Godot-free card data record. Used by GameEngine and unit tests. (~126 tok)
-- `GameEngine.cs` — Pure C# game-state machine for Scoundrel. No Godot dependencies — fully integration-testable. Deck i (~1308 tok)
-- `ScoundrelGame.cs` — Godot bridge for Scoundrel. Owns node references and visual card movements. All game-state decisions (~4044 tok)
+- `GameEngine.cs` — Pure C# game-state machine for Scoundrel. No Godot dependencies — fully integration-testable. Deck i (~1325 tok)
+- `ScoundrelGame.cs` — Godot bridge for Scoundrel. Owns node references and visual card movements. All game-state decisions (~5581 tok)
 - `ScoundrelRules.cs` — Pure game-logic functions for Scoundrel. No Godot dependencies — fully unit-testable. (~446 tok)
 
 ## tests/
 
-- `GameEngineTests.cs` — Class: CardModelTests (~6295 tok)
+- `GameEngineTests.cs` — Class: CardModelTests (~7541 tok)
 - `ScoundrelRulesTests.cs` — Class: MonsterValueTests (~1391 tok)
 - `ScoundrelTests.csproj` (~201 tok)

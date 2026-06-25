@@ -3,6 +3,8 @@
 > Chronological action log. Hooks and AI append to this file automatically.
 > Old sessions are consolidated by the daemon weekly.
 
+| 20:44 | Removed click-based card controls — drag only | scenes/RoomContainer.gd, scene_tests/ScoundrelSceneTests.cs | on_card_pressed records press pos; release_holding_cards skips card_selected if drag < 10px; 3 tests updated | ~300 tok |
+
 ## Session: 2026-06-24 00:28
 
 | Time | Action | File(s) | Outcome | ~Tokens |
@@ -312,3 +314,71 @@
 | 20:11 | Fixed voided potion visual feedback: moved TintRemainingPotions into SyncRoomToGodot based on PotionUsedThisRoom state; ResetRoomCardTints no longer clobbers tints | ScoundrelGame.cs, ScoundrelSceneTests.cs | 83/83 unit tests pass |
 | 20:12 | Session end: 4 writes across 2 files (ScoundrelGame.cs, ScoundrelSceneTests.cs) | 2 reads | ~11249 tok |
 | 20:19 | Created ../../../../../tmp/claude-1000/-home-aileen-Repositories-godot-scoundrel-with-help/694a1aee-797c-490b-8b5c-125b6336d599/scratchpad/commit_msg2.txt | — | ~139 |
+| 20:20 | Session end: 5 writes across 3 files (ScoundrelGame.cs, ScoundrelSceneTests.cs, commit_msg2.txt) | 2 reads | ~11398 tok |
+| 20:20 | Session end: 5 writes across 3 files (ScoundrelGame.cs, ScoundrelSceneTests.cs, commit_msg2.txt) | 2 reads | ~11398 tok |
+| 20:33 | Session end: 5 writes across 3 files (ScoundrelGame.cs, ScoundrelSceneTests.cs, commit_msg2.txt) | 3 reads | ~12914 tok |
+
+## Session: 2026-06-25 20:40
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 20:44 | Replaced drag-distance approach with two explicit drop zones (LeftDropZone/RightDropZone) | scenes/RoomContainer.gd, scenes/Game.tscn, scripts/ScoundrelGame.cs, scene_tests/ScoundrelSceneTests.cs | card_selected fires only when card lands in a zone; green/blue highlights shown during drag; MouseDragCard updated to aim at RightDropZone | ~800 tok |
+| 21:01 | Created scenes/RoomContainer.gd | — | ~722 |
+| 21:01 | Edited scenes/Game.tscn | expanded (+26 lines) | ~183 |
+| 21:01 | Edited scripts/ScoundrelGame.cs | expanded (+6 lines) | ~150 |
+| 21:01 | Edited scripts/ScoundrelGame.cs | expanded (+8 lines) | ~531 |
+| 21:01 | Edited scripts/ScoundrelGame.cs | modified OnCardDragStarted() | ~124 |
+| 21:01 | Edited scripts/ScoundrelGame.cs | modified AddZoneHighlight() | ~152 |
+| 21:02 | Edited scene_tests/ScoundrelSceneTests.cs | added nullish coalescing | ~204 |
+| 21:02 | Edited scene_tests/ScoundrelSceneTests.cs | modified DragTakesCard_ClickDoesNot() | ~223 |
+| 21:02 | Session end: 10 writes across 4 files (RoomContainer.gd, ScoundrelSceneTests.cs, Game.tscn, ScoundrelGame.cs) | 10 reads | ~31814 tok |
+| 21:04 | Session end: 10 writes across 4 files (RoomContainer.gd, ScoundrelSceneTests.cs, Game.tscn, ScoundrelGame.cs) | 10 reads | ~31814 tok |
+| 21:06 | Edited ../../../.claude/settings.json | reduced (-9 lines) | ~48 |
+
+## Session: 2026-06-25 21:07
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 21:11 | Edited scripts/GameEngine.cs | modified TakeCard() | ~118 |
+| 21:12 | Edited scripts/GameEngine.cs | modified ApplyMonsterDamage() | ~126 |
+| 21:12 | Edited scripts/ScoundrelGame.cs | modified OnCardDragStarted() | ~224 |
+| 21:12 | Edited scripts/ScoundrelGame.cs | added 3 condition(s) | ~494 |
+| 21:12 | Edited scene_tests/ScoundrelSceneTests.cs | modified MouseDragTakesCard() | ~1068 |
+| 21:13 | Edited tests/GameEngineTests.cs | modified UseWeaponFalse_TakesFullDamageEvenWithWeaponEquipped() | ~267 |
+| 21:14 | Session end: 6 writes across 4 files (GameEngine.cs, ScoundrelGame.cs, ScoundrelSceneTests.cs, GameEngineTests.cs) | 5 reads | ~22150 tok |
+| 21:18 | Edited scenes/Game.tscn | modified MONSTERS() | ~283 |
+| 21:19 | Session end: 7 writes across 5 files (GameEngine.cs, ScoundrelGame.cs, ScoundrelSceneTests.cs, GameEngineTests.cs, Game.tscn) | 6 reads | ~24311 tok |
+| 21:20 | Edited scenes/Game.tscn | 2→2 lines | ~41 |
+| 21:20 | Session end: 8 writes across 5 files (GameEngine.cs, ScoundrelGame.cs, ScoundrelSceneTests.cs, GameEngineTests.cs, Game.tscn) | 6 reads | ~24579 tok |
+| 21:24 | Edited scripts/ScoundrelGame.cs | 3→5 lines | ~66 |
+| 21:24 | Edited scripts/ScoundrelGame.cs | 2→4 lines | ~118 |
+| 21:25 | Edited scripts/ScoundrelGame.cs | modified OnCardDragStarted() | ~508 |
+| 21:25 | Edited scripts/ScoundrelGame.cs | added 2 condition(s) | ~221 |
+| 21:25 | Edited scripts/ScoundrelGame.cs | modified AddZoneLabel() | ~214 |
+| 21:25 | Edited scene_tests/ScoundrelSceneTests.cs | modified DragMonsterExceedingFloorToLeftZoneBounces() | ~346 |
+| 21:26 | Session end: 14 writes across 5 files (GameEngine.cs, ScoundrelGame.cs, ScoundrelSceneTests.cs, GameEngineTests.cs, Game.tscn) | 6 reads | ~26624 tok |
+| 21:27 | Created ../../../.claude/projects/-home-aileen-Repositories-godot-scoundrel-with-help/memory/feedback_commit_workflow.md | — | ~181 |
+| 21:27 | Edited ../../../.claude/projects/-home-aileen-Repositories-godot-scoundrel-with-help/memory/MEMORY.md | 1→2 lines | ~68 |
+| 21:27 | Session end: 16 writes across 7 files (GameEngine.cs, ScoundrelGame.cs, ScoundrelSceneTests.cs, GameEngineTests.cs, Game.tscn) | 7 reads | ~26891 tok |
+| 21:32 | Edited tests/GameEngineTests.cs | modified Run_PartialRoom_OnlyRemainingCardsSinkToBottom() | ~288 |
+| 21:33 | Session end: 17 writes across 7 files (GameEngine.cs, ScoundrelGame.cs, ScoundrelSceneTests.cs, GameEngineTests.cs, Game.tscn) | 7 reads | ~27452 tok |
+| 21:35 | Session end: 17 writes across 7 files (GameEngine.cs, ScoundrelGame.cs, ScoundrelSceneTests.cs, GameEngineTests.cs, Game.tscn) | 8 reads | ~29115 tok |
+| 21:36 | Edited tests/GameEngineTests.cs | modified FightingMonster_AddsMonsterToDiscard() | ~98 |
+| 21:36 | Edited tests/GameEngineTests.cs | modified FightWithWeapon_StrongerThanMonster_ZeroDamage() | ~131 |
+| 21:36 | Edited tests/GameEngineTests.cs | modified NextRoom_ResetsCardsTakenThisRoom() | ~184 |
+| 21:36 | Edited tests/GameEngineTests.cs | modified Run_ResetsPotionUsedThisRoom() | ~163 |
+| 21:37 | Edited tests/GameEngineTests.cs | modified TakeLastCard_InPartialFinalRoom_Wins() | ~227 |
+| 21:37 | Session end: 22 writes across 7 files (GameEngine.cs, ScoundrelGame.cs, ScoundrelSceneTests.cs, GameEngineTests.cs, Game.tscn) | 8 reads | ~29975 tok |
+| 21:38 | Session end: 22 writes across 7 files (GameEngine.cs, ScoundrelGame.cs, ScoundrelSceneTests.cs, GameEngineTests.cs, Game.tscn) | 8 reads | ~29975 tok |
+
+## Session: 2026-06-25 21:51
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 22:07 | Created scenes/DropZoneContainer.gd | — | ~282 |
+| 22:07 | Edited scenes/Game.tscn | 1→2 lines | ~49 |
+| 22:07 | Edited scenes/Game.tscn | 9→9 lines | ~63 |
+| 22:07 | Edited scenes/Game.tscn | 10→10 lines | ~68 |
+| 22:08 | Edited run_scene_tests.sh | expanded (+8 lines) | ~268 |
+| 22:10 | Fixed 3 failing scene tests (bug-035): created scenes/DropZoneContainer.gd; bypasses DropZone sensor nil-init by using get_global_rect() mouse check; updated Game.tscn to use it for both zone nodes | scenes/DropZoneContainer.gd, scenes/Game.tscn, .wolf/buglog.json | fixed | ~800 |
+| 22:10 | Updated run_scene_tests.sh to symlink reports/latest after each run | run_scene_tests.sh | done | ~100 |

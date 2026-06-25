@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://bscndrlcfact1" path="res://scenes/ScoundrelCardFactory.tscn" id="3_cf"]
 [ext_resource type="Script" uid="uid://6ams8uvg43gu" path="res://addons/card-framework/pile.gd" id="4_pile"]
 [ext_resource type="Script" uid="uid://nge5xs0pqlvl" path="res://scenes/RoomContainer.gd" id="5_room"]
+[ext_resource type="Script" path="res://scenes/DropZoneContainer.gd" id="6_dzc"]
 
 [node name="Game" type="Node" unique_id=1067270305]
 script = ExtResource("1_gm")
@@ -193,7 +194,7 @@ offset_top = 70.0
 offset_right = 385.0
 offset_bottom = 620.0
 mouse_filter = 1
-script = ExtResource("4_pile")
+script = ExtResource("6_dzc")
 card_face_up = false
 allow_card_movement = false
 restrict_to_top_card = false
@@ -208,7 +209,7 @@ offset_top = 70.0
 offset_right = 1120.0
 offset_bottom = 620.0
 mouse_filter = 1
-script = ExtResource("4_pile")
+script = ExtResource("6_dzc")
 card_face_up = false
 allow_card_movement = false
 restrict_to_top_card = false
