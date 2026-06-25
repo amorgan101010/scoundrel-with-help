@@ -795,6 +795,78 @@ public class ScoundrelSceneTests
         AssertThat(((ScoundrelGame)scene).LastSfxPlayed).IsEqual("weapon_discarded");
     }
 
+    [TestCase(Description = "Drinking a void potion (second this room) still plays the bubbles sound")]
+    public async Task WastedPotionDrink_PlaysBubblesSound()
+    {
+        var potionDeck = new List<CardModel>
+        {
+            // Room 2 padding (never reached)
+            new CardModel(Suit.Clubs, 2, "2_clubs"),
+            new CardModel(Suit.Clubs, 3, "3_clubs"),
+            new CardModel(Suit.Clubs, 4, "4_clubs"),
+            new CardModel(Suit.Clubs, 5, "5_clubs"),
+            // Room 1 (dealt first) — three potions + one weak monster
+            new CardModel(Suit.Clubs,  6, "6_clubs"),
+            new CardModel(Suit.Hearts, 2, "2_hearts"),
+            new CardModel(Suit.Hearts, 3, "3_hearts"),
+            new CardModel(Suit.Hearts, 4, "4_hearts"),
+        };
+        var game = (ScoundrelGame)_runner!.Scene();
+        game.StartGameWithDeck(potionDeck);
+        await _runner!.AwaitMillis(200);
+
+        var scene = _runner!.Scene();
+        var room  = scene.GetNode("UI/RoomContainer");
+
+        var allPotions = new List<GodotObject>();
+        foreach (var obj in (GArray)room.Call("get_all_cards"))
+        {
+            var card = obj.AsGodotObject();
+            if (card.Get("card_info").AsGodotDictionary()["suit"].AsString() == "hearts")
+                allPotions.Add(card);
+        }
+
+        ClickCard(scene, allPotions[0]);     // first drink — sets PotionUsedThisRoom
+        await _runner!.AwaitIdleFrame();
+        ClickCard(scene, allPotions[1]);     // void drink — potionUsedBefore=true, still plays bubbles
+        await _runner!.AwaitIdleFrame();
+
+        AssertThat(((ScoundrelGame)scene).LastSfxPlayed).IsEqual("bubbles");
+    }
+
+    [TestCase(Description = "Taking the last room card triggers auto-deal, ending on the card-dealt sound")]
+    public async Task TakingLastRoomCard_PlaysCardDealtSound()
+    {
+        await SetupFixedDeck();
+        var scene = _runner!.Scene();
+
+        // FixedDeck Room 1: 6♦(W), 4♣(M), 5♥(P), 8♠(M).
+        // Take in this order: equip weapon, fight with it (floor→4), drink potion, fight 8♠
+        // bare-handed (8 > floor 4) for 8 damage. HP ends at 12 — alive.
+        var weapon   = FindRoomCard(scene, s => s == "diamonds");
+        var monster1 = FindRoomCard(scene, s => s == "clubs");
+        var potion   = FindRoomCard(scene, s => s == "hearts");
+        var monster2 = FindRoomCard(scene, s => s == "spades");
+
+        AssertThat(weapon).IsNotNull();
+        AssertThat(monster1).IsNotNull();
+        AssertThat(potion).IsNotNull();
+        AssertThat(monster2).IsNotNull();
+
+        ClickCard(scene, weapon!);
+        await _runner!.AwaitIdleFrame();
+        ClickCard(scene, monster1!);
+        await _runner!.AwaitIdleFrame();
+        ClickCard(scene, potion!);
+        await _runner!.AwaitIdleFrame();
+        ClickCard(scene, monster2!);
+        await _runner!.AwaitIdleFrame();
+
+        // Taking the 4th card empties the room → auto-deal → SyncRoomToGodot fires
+        // card_dealt after the action sound, so card_dealt is the last sound heard.
+        AssertThat(((ScoundrelGame)scene).LastSfxPlayed).IsEqual("card_dealt");
+    }
+
     [TestCase(Description = "Taking all cards from the last room shows YOU WIN")]
     public async Task Win_ShowsWinState()
     {

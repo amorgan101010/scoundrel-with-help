@@ -265,7 +265,6 @@ public partial class ScoundrelGame : Node
         bool activateCard = !((cardModel.IsPotion || cardModel.IsWeapon) && droppedRight);
 
         var oldWeapon           = _engine.EquippedWeapon;
-        bool potionUsedBefore   = _engine.PotionUsedThisRoom;
         bool potionWastedBefore = _engine.PotionWastedThisRoom;
         bool willUseWeapon      = useWeapon
             && cardModel.IsMonster
@@ -288,9 +287,9 @@ public partial class ScoundrelGame : Node
                 break;
 
             case Suit.Hearts:
-                if (activateCard && !potionUsedBefore)
+                if (activateCard)
                     PlaySfx(_sfxBubbles, "bubbles");
-                else if (!activateCard)
+                else
                     PlaySfx(_sfxPotionDiscard, "potion_discarded");
                 if (activateCard && !potionWastedBefore && _engine.PotionWastedThisRoom)
                     ShowBriefMessage("Potion wasted! (one per room)");
