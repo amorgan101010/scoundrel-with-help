@@ -135,4 +135,3 @@ jobs:
           files: |
             builds/linux/Scoundrel.${{ env.GAME_VERSION }}.linux.x86_64
             builds/windows/Scoundrel.${{ env.GAME_VERSION }}.windows.x86_64.exe
-            builds/macos/Scoundrel.${{ env.GAME_VERSION }}.macos.arm64.zip
