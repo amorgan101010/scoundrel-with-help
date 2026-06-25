@@ -153,6 +153,70 @@ public class WeaponDegradationScenarioTests
 }
 
 [TestFixture]
+public class TooltipForTests
+{
+    private static CardModel Monster(int rank) => new(Suit.Clubs, rank, $"monster_{rank}");
+    private static CardModel Potion(int rank)  => new(Suit.Hearts, rank, $"potion_{rank}");
+    private static CardModel Weapon(int rank)  => new(Suit.Diamonds, rank, $"weapon_{rank}");
+
+    [Test]
+    public void Monster_NoWeapon_ShowsBareDamage()
+        => Assert.That(
+            ScoundrelRules.TooltipFor(Monster(7), null, int.MaxValue, false, 20),
+            Is.EqualTo("Monster — 7 damage"));
+
+    [Test]
+    public void Monster_UsableWeapon_ShowsBothDamageValues()
+        => Assert.That(
+            ScoundrelRules.TooltipFor(Monster(7), Weapon(4), int.MaxValue, false, 20),
+            Is.EqualTo("Monster — 7 damage\nWith weapon: 3 damage"));
+
+    [Test]
+    public void Monster_WeaponTooWeak_ShowsCantBlock()
+        // weaponFloor = 8: can't use against monster 9 (9 < 8 is false)
+        => Assert.That(
+            ScoundrelRules.TooltipFor(Monster(9), Weapon(4), 8, false, 20),
+            Is.EqualTo("Monster — 9 damage\nWeapon can't block"));
+
+    [Test]
+    public void Monster_WeaponStrongerThanMonster_ShowsZeroDamage()
+        => Assert.That(
+            ScoundrelRules.TooltipFor(Monster(3), Weapon(7), int.MaxValue, false, 20),
+            Is.EqualTo("Monster — 3 damage\nWith weapon: 0 damage"));
+
+    [Test]
+    public void Potion_NotVoid_ShowsHealAmount()
+        => Assert.That(
+            ScoundrelRules.TooltipFor(Potion(5), null, int.MaxValue, false, 10),
+            Is.EqualTo("Potion — heals 5 HP"));
+
+    [Test]
+    public void Potion_HealCapped_ShowsCap()
+        // Health 18 + rank 5 = 23, caps at 20 → healed = 2
+        => Assert.That(
+            ScoundrelRules.TooltipFor(Potion(5), null, int.MaxValue, false, 18),
+            Is.EqualTo("Potion — heals 2 HP (capped at 20)"));
+
+    [Test]
+    public void Potion_Void_ShowsVoidMessage()
+        => Assert.That(
+            ScoundrelRules.TooltipFor(Potion(5), null, int.MaxValue, true, 10),
+            Is.EqualTo("Potion — VOID (one per room)"));
+
+    [Test]
+    public void Weapon_NoEquipped_ShowsValueOnly()
+        => Assert.That(
+            ScoundrelRules.TooltipFor(Weapon(7), null, int.MaxValue, false, 20),
+            Is.EqualTo("Weapon — value 7"));
+
+    [Test]
+    public void Weapon_ReplacesExisting_ShowsReplacement()
+        => Assert.That(
+            ScoundrelRules.TooltipFor(Weapon(7), Weapon(4), int.MaxValue, false, 20),
+            Is.EqualTo("Weapon — value 7\nReplaces equipped (4)"));
+}
+
+[TestFixture]
 public class ConstantsTests
 {
     [Test]

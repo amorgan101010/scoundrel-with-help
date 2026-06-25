@@ -40,4 +40,51 @@ public static class ScoundrelRules
     /// </summary>
     public static int Heal(int currentHealth, int potionValue)
         => System.Math.Min(MaxHealth, currentHealth + potionValue);
+
+    /// <summary>
+    /// Tooltip text for a room card given the current game state.
+    /// All inputs are plain values (Godot-free and unit-testable).
+    /// </summary>
+    public static string TooltipFor(
+        CardModel card,
+        CardModel? equippedWeapon,
+        int weaponFloor,
+        bool potionUsedThisRoom,
+        int health)
+    {
+        switch (card.Suit)
+        {
+            case Suit.Clubs:
+            case Suit.Spades:
+            {
+                int mv = card.MonsterValue;
+                if (equippedWeapon != null && CanUseWeapon(mv, weaponFloor))
+                {
+                    int dmg = CalcDamage(mv, equippedWeapon.WeaponValue);
+                    return $"Monster — {mv} damage\nWith weapon: {dmg} damage";
+                }
+                if (equippedWeapon != null)
+                    return $"Monster — {mv} damage\nWeapon can't block";
+                return $"Monster — {mv} damage";
+            }
+            case Suit.Hearts:
+            {
+                if (potionUsedThisRoom)
+                    return "Potion — VOID (one per room)";
+                int healed = Heal(health, card.PotionValue) - health;
+                return healed < card.PotionValue
+                    ? $"Potion — heals {healed} HP (capped at {MaxHealth})"
+                    : $"Potion — heals {healed} HP";
+            }
+            case Suit.Diamonds:
+            {
+                string text = $"Weapon — value {card.WeaponValue}";
+                if (equippedWeapon != null)
+                    text += $"\nReplaces equipped ({equippedWeapon.WeaponValue})";
+                return text;
+            }
+            default:
+                return "";
+        }
+    }
 }

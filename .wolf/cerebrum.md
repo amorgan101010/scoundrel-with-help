@@ -8,6 +8,8 @@
 
 - **Prefer merge commits over rebase or force-push.** Every action should be visible in history — revert commits, merge commits, etc. Never suggest force-pushing or rewriting history as a solution; suggest a new commit instead.
 
+- **All new work goes on a feature branch — never commit directly to main.** Create `git checkout -b feature/<name>` before the first commit. Branch naming: `feature/<topic>` or `fix/<topic>`.
+
 - **Always write tests with the feature.** Every implementation commit must include tests covering the new behavior. Tests are not a follow-up — they ship in the same commit.
 - **Drop-zone-based card controls.** Cards must be dragged into LeftDropZone (left side, x:0-320) or RightDropZone (right side, x:820-1120) to be taken. Cards dropped in the room's safe gap (x:320-820) return to their slot. `ClickCard()` in tests still works (emits `card_selected` directly, bypasses zone routing entirely) for game-logic tests. Real-input tests must use `MouseDragCard` with a target position inside a zone (default: (850,300) is inside RightDropZone). Bare clicks never fire `card_selected` because the mouse never reaches a zone sensor.
 
@@ -26,7 +28,7 @@
 <!-- Mistakes made and corrected. Each entry prevents the same mistake recurring. -->
 <!-- Format: [YYYY-MM-DD] Description of what went wrong and what to do instead. -->
 
-- [2026-06-25] **Void potions can ONLY be discarded (right zone); the left zone is hidden for them.** `OnCardDragStarted` hides the left drop zone when `PotionUsedThisRoom=true`. This makes `activateCard=true, potionUsedBefore=true` unreachable in normal gameplay — only `ClickCard()` (test helper that bypasses zones) can hit it. Do NOT treat `ClickCard()` paths as representative of real game states when analyzing sound/effect logic.
+- [2026-06-25] **Void potions should only be discarded (right zone); the left zone highlight is hidden for them.** `OnCardDragStarted` hides the LEFT highlight/label when `PotionUsedThisRoom=true`, but the underlying DropZone sensor still exists and WILL accept a drag-drop. This means `activateCard=true, potionUsedBefore=true` IS reachable via real mouse drag to the hidden left zone (bug-053). Fix: add a guard in `OnCardSelected` to bounce the card back when `IsPotion && droppedLeft && PotionUsedThisRoom`. Do NOT treat `ClickCard()` paths as representative of real game states when analyzing sound/effect logic.
 
 - [2026-06-24] **gdUnit4 C# tests: always add `[RequireGodotRuntime]` on scene test classes.** Without it, `ISceneRunner.Load()` runs on a thread-pool thread and crashes with "AddChild only allowed from main thread." `[RequireGodotRuntime]` routes test hooks through Godot's SynchronizationContext.
 - [2026-06-24] **After every `dotnet build`, run `godot --import` before running tests.** The Godot global script class cache (`.godot/global_script_class_cache.cfg`) is cleared on rebuild, causing `GdUnitTestCIRunner: type not found`. The `run_scene_tests.sh` script does this automatically.
