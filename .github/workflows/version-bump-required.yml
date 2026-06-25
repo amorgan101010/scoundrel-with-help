@@ -1,0 +1,24 @@
+name: Version Bump Required
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  check-version-bump:
+    name: Version Bump Required
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify VERSION was bumped
+        run: |
+          DIFF=$(git diff "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}" -- VERSION)
+          if [ -z "$DIFF" ]; then
+            echo "::error::VERSION file was not changed. All PRs to main must include a version bump."
+            exit 1
+          fi
+          echo "VERSION bumped to: $(cat VERSION)"
