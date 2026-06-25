@@ -637,3 +637,4 @@
 | 18:00 | Edited scripts/ScoundrelGame.cs | modified if() | ~148 |
 | 18:00 | Edited scripts/ScoundrelGame.cs | modified foreach() | ~68 |
 | 20:56 | Added ScoundrelRules.TooltipFor() + 9 unit tests; wired UpdateCardTooltips() in ScoundrelGame; logged bug-053 (void-potion left-zone) | ScoundrelRules.cs, ScoundrelRulesTests.cs, ScoundrelGame.cs, buglog.json, cerebrum.md | 103/103 tests pass | ~2500 |
+| 18:05 | Session end: 7 writes across 3 files (ScoundrelRules.cs, ScoundrelRulesTests.cs, ScoundrelGame.cs) | 8 reads | ~17556 tok |
