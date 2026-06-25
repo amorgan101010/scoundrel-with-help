@@ -133,3 +133,4 @@ jobs:
           files: |
             builds/linux/Scoundrel_base_rules.x86_64
             builds/windows/Scoundrel_base_rules.exe
+            builds/macos/Scoundrel_base_rules.zip
