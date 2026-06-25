@@ -90,11 +90,14 @@ public partial class ScoundrelGame : Node
 
         _cardFactory = (GodotObject)_cardManager.Get("card_factory");
 
-        var ui = GetNode<CanvasLayer>("UI");
-        _leftHighlight  = AddZoneHighlight(ui, new Vector2(0, 70),   new Vector2(320, 550), new Color(0.25f, 0.8f, 0.25f, 0.30f));
-        _rightHighlight = AddZoneHighlight(ui, new Vector2(820, 70), new Vector2(300, 550), new Color(0.25f, 0.5f, 1.0f,  0.30f));
-        _leftLabel      = AddZoneLabel(ui, new Vector2(0, 70),   new Vector2(320, 550));
-        _rightLabel     = AddZoneLabel(ui, new Vector2(820, 70), new Vector2(300, 550));
+        // Dedicated overlay layer above everything (UI is layer 1, cards are layer 0).
+        var overlayLayer = new CanvasLayer();
+        overlayLayer.Layer = 128;
+        AddChild(overlayLayer);
+        _leftHighlight  = AddZoneHighlight(overlayLayer, new Vector2(0, 70),   new Vector2(320, 550), new Color(0.25f, 0.8f, 0.25f, 0.30f));
+        _rightHighlight = AddZoneHighlight(overlayLayer, new Vector2(820, 70), new Vector2(300, 550), new Color(0.25f, 0.5f, 1.0f,  0.30f));
+        _leftLabel      = AddZoneLabel(overlayLayer, new Vector2(0, 70),   new Vector2(320, 550));
+        _rightLabel     = AddZoneLabel(overlayLayer, new Vector2(820, 70), new Vector2(300, 550));
 
         _roomContainer.Connect("card_drag_started", Callable.From<GodotObject>(OnCardDragStarted));
         _roomContainer.Connect("card_drag_ended",   Callable.From(OnCardDragEnded));
@@ -491,7 +494,7 @@ public partial class ScoundrelGame : Node
     }
 
     // ── Utilities ─────────────────────────────────────────────────────────
-    private static Label AddZoneLabel(CanvasLayer parent, Vector2 pos, Vector2 size)
+    private static Label AddZoneLabel(Node parent, Vector2 pos, Vector2 size)
     {
         var label = new Label();
         label.Position             = pos;
@@ -501,20 +504,18 @@ public partial class ScoundrelGame : Node
         label.AddThemeFontSizeOverride("font_size", 28);
         label.AddThemeColorOverride("font_color", new Color(1f, 1f, 1f, 0.9f));
         label.MouseFilter          = Control.MouseFilterEnum.Ignore;
-        label.ZIndex               = 10001;
         label.Visible              = false;
         parent.AddChild(label);
         return label;
     }
 
-    private static ColorRect AddZoneHighlight(CanvasLayer parent, Vector2 pos, Vector2 size, Color color)
+    private static ColorRect AddZoneHighlight(Node parent, Vector2 pos, Vector2 size, Color color)
     {
         var rect = new ColorRect();
         rect.Position    = pos;
         rect.Size        = size;
         rect.Color       = color;
         rect.MouseFilter = Control.MouseFilterEnum.Ignore;
-        rect.ZIndex      = 10000;
         rect.Visible     = false;
         parent.AddChild(rect);
         return rect;
