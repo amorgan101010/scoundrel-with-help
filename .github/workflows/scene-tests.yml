@@ -10,6 +10,10 @@ on:
 env:
   GODOT_DIR_NAME: "Godot_v4.7-stable_mono_linux_x86_64"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   scene-tests:
     name: gdUnit4 Scene Tests
