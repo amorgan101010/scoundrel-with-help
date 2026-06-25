@@ -30,7 +30,7 @@ jobs:
             | grep -v '^[.]'             \
             | grep -v '\.md$'            \
             | grep -v '^export_presets'  \
-          )
+            || true)
 
           if [ -z "$CODE_CHANGES" ]; then
             echo "Only non-code files changed — version bump not required."
