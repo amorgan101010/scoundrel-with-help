@@ -35,7 +35,7 @@ jobs:
 
           DIFF=$(git diff "$BASE" "$HEAD" -- VERSION)
           if [ -z "$DIFF" ]; then
-            echo "::error::VERSION file was not changed. All PRs to main must include a version bump."
+            echo "::error::VERSION file was not changed. PRs that modify code, scenes, or assets must include a version bump."
             exit 1
           fi
           echo "VERSION bumped to: $(cat VERSION)"
