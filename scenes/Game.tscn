@@ -37,9 +37,9 @@ text = "HP: 20 / 20"
 
 [node name="WeaponLabel" type="Label" parent="UI" unique_id=180637555]
 offset_left = 30.0
-offset_top = 152.0
+offset_top = 178.0
 offset_right = 380.0
-offset_bottom = 176.0
+offset_bottom = 196.0
 theme_override_font_sizes/font_size = 16
 text = "Weapon: none"
 
