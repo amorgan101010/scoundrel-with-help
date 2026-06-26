@@ -29,7 +29,7 @@ public partial class HealthDie : Control
         _label.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
         _label.HorizontalAlignment = HorizontalAlignment.Center;
         _label.VerticalAlignment   = VerticalAlignment.Center;
-        _label.AddThemeFontSizeOverride("font_size", 46);
+        _label.AddThemeFontSizeOverride("font_size", 30);
         var fontColor = new Color(0.102f, 0.102f, 0.102f);
         _label.AddThemeColorOverride("font_color", fontColor);
         _label.MouseFilter = MouseFilterEnum.Ignore;
