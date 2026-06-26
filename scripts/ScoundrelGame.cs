@@ -460,7 +460,7 @@ public partial class ScoundrelGame : Node
         const float MinSpeed   = 120f, MaxSpeed = 340f;
         const float CardW      = 150f, CardH = 210f;
         const float DealStep   = 0.35f; // seconds between each card being dealt
-        const float TweenDur   = 0.25f; // slide-to-position duration
+        const float DealSpeed  = 1200f; // px/s for the deal slide
 
         var vpSize  = GetViewport().GetVisibleRect().Size;
         var deckPos = (Vector2)_deckPile.Get("global_position");
@@ -505,7 +505,7 @@ public partial class ScoundrelGame : Node
                 if (!GodotObject.IsInstanceValid(ghost)) return;
                 ghost.Visible = true;
                 var tween = CreateTween();
-                tween.TweenProperty(ghost, "position", targetPos, TweenDur);
+                tween.TweenProperty(ghost, "position", targetPos, deckPos.DistanceTo(targetPos) / DealSpeed);
                 tween.TweenCallback(Callable.From(() => {
                     if (!GodotObject.IsInstanceValid(ghost)) return;
                     _bounceState.Add((ghost, vel));
