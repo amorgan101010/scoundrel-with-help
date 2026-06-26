@@ -459,6 +459,7 @@ public partial class ScoundrelGame : Node
         var rng = new System.Random();
         const float Speed = 220f;
         const float CardW = 150f, CardH = 210f;
+        var vpSize = GetViewport().GetVisibleRect().Size;
 
         foreach (var godotCard in _godotCards.Values)
         {
@@ -482,7 +483,9 @@ public partial class ScoundrelGame : Node
             ghost.StretchMode       = TextureRect.StretchModeEnum.Scale;
             ghost.MouseFilter       = Control.MouseFilterEnum.Ignore;
             ghost.Size              = new Vector2(CardW, CardH);
-            ghost.Position          = (Vector2)godotCard.Get("global_position");
+            ghost.Position          = new Vector2(
+                (float)(rng.NextDouble() * (vpSize.X - CardW)),
+                (float)(rng.NextDouble() * (vpSize.Y - CardH)));
             _bounceLayer.AddChild(ghost);
 
             float angle = (float)(rng.NextDouble() * System.Math.PI * 2);
