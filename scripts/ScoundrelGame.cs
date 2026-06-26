@@ -104,6 +104,13 @@ public partial class ScoundrelGame : Node
 
         _cardFactory = (GodotObject)_cardManager.Get("card_factory");
 
+        // Lift retry + help buttons above the bounce layer (201) so they're never covered.
+        var buttonLayer = new CanvasLayer();
+        buttonLayer.Layer = 202;
+        AddChild(buttonLayer);
+        _retryButton.Reparent(buttonLayer, true);
+        _helpButton.Reparent(buttonLayer, true);
+
         // Dedicated overlay layer above everything (UI is layer 1, cards are layer 0).
         var overlayLayer = new CanvasLayer();
         overlayLayer.Layer = 128;
