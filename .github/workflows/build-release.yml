@@ -74,7 +74,7 @@ jobs:
         if: steps.changed.outputs.build == 'true'
         run: |
           curl -fsSL \
-            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-${GODOT_STABILITY}/Godot_v${GODOT_VERSION}-${GODOT_STABILITY}_export_templates.tpz" \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-${GODOT_STABILITY}/Godot_v${GODOT_VERSION}-${GODOT_STABILITY}_mono_export_templates.tpz" \
             -o templates.tpz
           TEMPLATES_DIR="$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.${GODOT_STABILITY}.mono"
           mkdir -p "$TEMPLATES_DIR"
