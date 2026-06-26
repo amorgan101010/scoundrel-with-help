@@ -540,7 +540,8 @@ public partial class ScoundrelGame : Node
                 if (!GodotObject.IsInstanceValid(ghost)) return;
                 ghost.Visible = true;
                 var sfx = new AudioStreamPlayer();
-                sfx.Stream = _sfxCardDealt.Stream;
+                sfx.Stream     = _sfxCardDealt.Stream;
+                sfx.PitchScale = 0.92f + (float)new System.Random().NextDouble() * 0.16f;
                 AddChild(sfx);
                 sfx.Connect("finished", Callable.From(sfx.QueueFree));
                 sfx.Play();
