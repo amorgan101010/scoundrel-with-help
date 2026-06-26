@@ -90,7 +90,7 @@ jobs:
 
       - name: Build C# project
         if: steps.changed.outputs.build == 'true'
-        run: dotnet build ScoundrelWithHelp.csproj --configuration Release --nologo -v quiet
+        run: dotnet build ScoundrelWithHelp.csproj --nologo -v quiet
 
       - name: Reimport assets
         if: steps.changed.outputs.build == 'true'
