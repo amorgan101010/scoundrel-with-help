@@ -261,4 +261,8 @@ RUN: Skip an entire room — all 4 cards sink to the bottom of the deck.
   Monsters regroup (and take the loot with them). Cannot run two rooms in a row.
 
 DEATH: Reach 0 HP.
-WIN: Clear the deck."
+WIN: Clear the deck.
+
+---
+D20 health die art: \"Pixel Spritesheet Dice 20d\" by srspooky
+srspooky.itch.io/pixel-spritesheet-dice20d"
