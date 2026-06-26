@@ -470,7 +470,7 @@ public partial class ScoundrelGame : Node
         float step = count <= 1 ? NaturalStep
                                 : Mathf.Min(NaturalStep, (CardW - BadgeW) / (count - 1));
         float startX = (CardW - ((count - 1) * step + BadgeW)) / 2f;
-        float y = CardH - BadgeH - 4f;
+        float y = CardH - BadgeH / 3f;
         for (int i = 0; i < count; i++)
             badges[i].Position = new Vector2(startX + i * step, y);
     }
