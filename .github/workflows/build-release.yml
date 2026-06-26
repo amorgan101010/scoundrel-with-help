@@ -80,10 +80,12 @@ jobs:
           mkdir -p "$TEMPLATES_DIR"
           unzip -q templates.tpz -d /tmp/templates_extract
           mv /tmp/templates_extract/templates/* "$TEMPLATES_DIR/"
-          # The standard TPZ ships non-.NET template binaries. Copy the mono editor
-          # binary as the .mono Linux template so C# exports initialize correctly.
-          cp "$GODOT_BIN" "$TEMPLATES_DIR/linux_release.x86_64.mono"
-          cp "$GODOT_BIN" "$TEMPLATES_DIR/linux_debug.x86_64.mono"
+          # The standard TPZ ships non-.NET linux binaries (v4.7.stable.official).
+          # Godot 4.7 dropped the .mono suffix; it just uses linux_release.x86_64.
+          # Overwrite with the mono editor binary (v4.7.stable.mono.official) so
+          # the exported game has .NET support compiled in.
+          cp "$GODOT_BIN" "$TEMPLATES_DIR/linux_release.x86_64"
+          cp "$GODOT_BIN" "$TEMPLATES_DIR/linux_debug.x86_64"
 
       - name: Point NuGet at downloaded GodotSharp
         if: steps.changed.outputs.build == 'true'
