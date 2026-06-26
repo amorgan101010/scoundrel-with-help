@@ -474,6 +474,9 @@ public partial class ScoundrelGame : Node
     private void ShowWin()
     {
         _statusLabel.Text = "YOU WIN!";
+        _flavorLabel.Text = "The loot is yours!";
+        _flavorLabel.AddThemeColorOverride("font_color", new Color(0.85f, 0.75f, 0.3f));
+        _flavorLabel.Visible = true;
         StartBounceAnimation(isGameOver: false);
     }
 
