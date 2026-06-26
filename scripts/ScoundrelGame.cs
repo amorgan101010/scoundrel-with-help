@@ -84,8 +84,8 @@ public partial class ScoundrelGame : Node
     public override void _Ready()
     {
         _cardManager    = GetNode<Node>("CardManager");
-        _deckPile       = GetNode<Node>("UI/DeckPile");
-        _discardPile    = GetNode<Node>("UI/DiscardPile");
+        _deckPile       = GetNode<Node>("UI/RightPanel/DeckGroup/DeckPile");
+        _discardPile    = GetNode<Node>("UI/RightPanel/DiscardGroup/DiscardPile");
         _weaponSlot     = GetNode<Node>("UI/LeftPanel/WeaponGroup/WeaponSlot");
         _roomContainer  = GetNode<Node>("UI/RoomContainer");
         _leftDropZone   = GetNode<Node>("UI/LeftDropZone");
@@ -93,8 +93,8 @@ public partial class ScoundrelGame : Node
         _healthLabel    = GetNode<Label>("UI/HealthLabel");
         _weaponLabel    = GetNode<Label>("UI/LeftPanel/WeaponGroup/WeaponLabel");
         _statusLabel    = GetNode<Label>("UI/StatusLabel");
-        _deckLabel      = GetNode<Label>("UI/DeckLabel");
-        _discardLabel   = GetNode<Label>("UI/DiscardLabel");
+        _deckLabel      = GetNode<Label>("UI/RightPanel/DeckGroup/DeckLabel");
+        _discardLabel   = GetNode<Label>("UI/RightPanel/DiscardGroup/DiscardLabel");
         _clubsLabel     = GetNode<Label>("UI/LeftPanel/InPlayGroup/ClubsLabel");
         _spadesLabel    = GetNode<Label>("UI/LeftPanel/InPlayGroup/SpadesLabel");
         _heartsLabel    = GetNode<Label>("UI/LeftPanel/InPlayGroup/HeartsLabel");

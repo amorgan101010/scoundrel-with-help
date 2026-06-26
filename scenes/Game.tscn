@@ -144,13 +144,31 @@ grow_horizontal = 2
 theme_override_font_sizes/font_size = 36
 horizontal_alignment = 1
 
-[node name="DeckPile" type="Control" parent="UI" unique_id=2038153143]
+[node name="RightPanel" type="Control" parent="UI" unique_id=789012345]
 layout_mode = 3
 anchors_preset = 0
 offset_left = 940.0
-offset_top = 48.0
+offset_top = 0.0
 offset_right = 1090.0
-offset_bottom = 258.0
+offset_bottom = 580.0
+mouse_filter = 2
+
+[node name="DeckGroup" type="Control" parent="UI/RightPanel" unique_id=234567890]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 0.0
+offset_top = 48.0
+offset_right = 150.0
+offset_bottom = 288.0
+mouse_filter = 2
+
+[node name="DeckPile" type="Control" parent="UI/RightPanel/DeckGroup" unique_id=2038153143]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 150.0
+offset_bottom = 210.0
 mouse_filter = 1
 script = ExtResource("4_pile")
 card_face_up = false
@@ -158,18 +176,43 @@ allow_card_movement = false
 restrict_to_top_card = false
 enable_drop_zone = false
 
-[node name="DiscardPile" type="Control" parent="UI" unique_id=44963075]
+[node name="DeckLabel" type="Label" parent="UI/RightPanel/DeckGroup" unique_id=409472614]
+offset_left = 0.0
+offset_top = 214.0
+offset_right = 150.0
+offset_bottom = 240.0
+text = "DECK"
+horizontal_alignment = 1
+
+[node name="DiscardGroup" type="Control" parent="UI/RightPanel" unique_id=345678901]
 layout_mode = 3
 anchors_preset = 0
-offset_left = 940.0
+offset_left = 0.0
 offset_top = 325.0
-offset_right = 1090.0
-offset_bottom = 535.0
+offset_right = 150.0
+offset_bottom = 576.0
+mouse_filter = 2
+
+[node name="DiscardPile" type="Control" parent="UI/RightPanel/DiscardGroup" unique_id=44963075]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 150.0
+offset_bottom = 210.0
 mouse_filter = 1
 script = ExtResource("4_pile")
 allow_card_movement = false
 restrict_to_top_card = false
 enable_drop_zone = false
+
+[node name="DiscardLabel" type="Label" parent="UI/RightPanel/DiscardGroup" unique_id=1489401123]
+offset_left = 0.0
+offset_top = 225.0
+offset_right = 150.0
+offset_bottom = 251.0
+text = "DISCARD"
+horizontal_alignment = 1
 
 [node name="RoomContainer" type="Control" parent="UI" unique_id=355512689]
 layout_mode = 3
@@ -181,22 +224,6 @@ offset_bottom = 590.0
 mouse_filter = 1
 script = ExtResource("5_room")
 enable_drop_zone = false
-
-[node name="DeckLabel" type="Label" parent="UI" unique_id=409472614]
-offset_left = 940.0
-offset_top = 262.0
-offset_right = 1090.0
-offset_bottom = 288.0
-text = "DECK"
-horizontal_alignment = 1
-
-[node name="DiscardLabel" type="Label" parent="UI" unique_id=1489401123]
-offset_left = 940.0
-offset_top = 550.0
-offset_right = 1090.0
-offset_bottom = 576.0
-text = "DISCARD"
-horizontal_alignment = 1
 
 [node name="LeftDropZone" type="Control" parent="UI" unique_id=1365540473]
 visible = false
