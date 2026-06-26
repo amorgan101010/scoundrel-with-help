@@ -14,7 +14,6 @@ public partial class ScoundrelGame : Node
     private Node _deckPile = null!;
     private Node _discardPile = null!;
     private Node _weaponSlot = null!;
-    private Node _slainPile = null!;
     private Node _roomContainer = null!;
     private Node _leftDropZone = null!;
     private Node _rightDropZone = null!;
@@ -43,9 +42,6 @@ public partial class ScoundrelGame : Node
     private GameEngine _engine = null!;
     // Maps card name (e.g. "ace_clubs") → its live GodotObject node
     private readonly SysCollections.Dictionary<string, GodotObject> _godotCards = new();
-    // Godot card nodes currently displayed in the slain pile (killed with weapon)
-    private readonly SysCollections.List<GodotObject> _slainGodotCards = new();
-
     // ── Suit tracking (UI labels only — not game logic) ───────────────────
     private int _inPlayClubs;
     private int _inPlaySpades;
@@ -80,7 +76,6 @@ public partial class ScoundrelGame : Node
         _deckPile       = GetNode<Node>("UI/DeckPile");
         _discardPile    = GetNode<Node>("UI/DiscardPile");
         _weaponSlot     = GetNode<Node>("UI/WeaponSlot");
-        _slainPile      = GetNode<Node>("UI/SlainPile");
         _roomContainer  = GetNode<Node>("UI/RoomContainer");
         _leftDropZone   = GetNode<Node>("UI/LeftDropZone");
         _rightDropZone  = GetNode<Node>("UI/RightDropZone");
@@ -144,14 +139,12 @@ public partial class ScoundrelGame : Node
     private void InitGameWithDeck(SysCollections.List<CardModel> deck)
     {
         _godotCards.Clear();
-        _slainGodotCards.Clear();
         _statusLabel.Text = "";
 
         _roomContainer.Call("clear_cards");
         _deckPile.Call("clear_cards");
         _discardPile.Call("clear_cards");
         _weaponSlot.Call("clear_cards");
-        _slainPile.Call("clear_cards");
 
         _inPlayClubs    = deck.Count(c => c.Suit == Suit.Clubs);
         _inPlaySpades   = deck.Count(c => c.Suit == Suit.Spades);
@@ -289,9 +282,8 @@ public partial class ScoundrelGame : Node
                 PlaySfx(_sfxPunch, "punch");
                 DecrementSuit(cardModel);
                 if (willUseWeapon)
-                    MoveToSlain(card);
-                else
-                    MoveToDiscard(card);
+                    AddSlainBadge(_godotCards[oldWeapon!.Name], cardModel);
+                MoveToDiscard(card);
                 break;
 
             case Suit.Hearts:
@@ -312,7 +304,7 @@ public partial class ScoundrelGame : Node
                     if (oldWeapon != null)
                     {
                         DecrementSuit(oldWeapon);
-                        DiscardSlainCards();
+                        ClearSlainBadges(_godotCards[oldWeapon.Name]);
                         MoveToDiscard(_godotCards[oldWeapon.Name]);
                     }
                     ResetCardScale(card);
@@ -465,31 +457,66 @@ public partial class ScoundrelGame : Node
         _discardPile.Call("move_cards", new Array { card }, -1, false);
     }
 
-    private void MoveToSlain(GodotObject card)
+    private void AddSlainBadge(GodotObject weaponCard, CardModel monster)
     {
-        ResetCardScale(card);
-        card.Set("modulate", new Color(1f, 1f, 1f));
-        card.Set("tooltip_text", "");
-        _slainPile.Call("move_cards", new Array { card }, 0, false);
-        _slainGodotCards.Insert(0, card);
-        FixSlainZOrder();
-    }
+        const float BadgeW = 30f, BadgeH = 44f, NaturalStep = 35f;
+        const float CardW = 150f, CardH = 210f;
 
-    // The pile assigns stored_z_index = array_index, so the newest card (index 0)
-    // gets z=0 and ends up buried. Invert so the newest card always has the highest z.
-    private void FixSlainZOrder()
-    {
-        int count = _slainGodotCards.Count;
+        var weaponNode = (Node)weaponCard;
+        weaponNode.AddChild(CreateBadgeControl(monster.Rank));
+
+        var badges = SlainBadges(weaponNode);
+        int count = badges.Count;
+        float step = count <= 1 ? NaturalStep
+                                : Mathf.Min(NaturalStep, (CardW - BadgeW) / (count - 1));
+        float startX = (CardW - ((count - 1) * step + BadgeW)) / 2f;
+        float y = CardH - BadgeH / 3f;
         for (int i = 0; i < count; i++)
-            _slainGodotCards[i].Set("stored_z_index", count - 1 - i);
+            badges[i].Position = new Vector2(startX + i * step, y);
     }
 
-    private void DiscardSlainCards()
+    private static Control CreateBadgeControl(int rank)
     {
-        foreach (var slainCard in _slainGodotCards)
-            MoveToDiscard(slainCard);
-        _slainGodotCards.Clear();
+        string text = rank switch { 1 => "A", 11 => "J", 12 => "Q", 13 => "K", _ => rank.ToString() };
+
+        var badge = new Control();
+        badge.Name = "slain_badge";
+        badge.Size = new Vector2(30f, 44f);
+        badge.MouseFilter = Control.MouseFilterEnum.Ignore;
+        badge.ZIndex = 1;
+        badge.AddToGroup("slain_badge");
+
+        var bg = new ColorRect();
+        bg.Color = new Color(0.08f, 0.08f, 0.08f, 0.88f);
+        bg.AnchorRight = 1f; bg.AnchorBottom = 1f;
+        bg.MouseFilter = Control.MouseFilterEnum.Ignore;
+        badge.AddChild(bg);
+
+        var label = new Label();
+        label.Text = text;
+        label.HorizontalAlignment = HorizontalAlignment.Center;
+        label.VerticalAlignment = VerticalAlignment.Center;
+        label.AnchorRight = 1f; label.AnchorBottom = 1f;
+        label.MouseFilter = Control.MouseFilterEnum.Ignore;
+        badge.AddChild(label);
+
+        return badge;
     }
+
+    private void ClearSlainBadges(GodotObject weaponCard)
+    {
+        foreach (var badge in SlainBadges((Node)weaponCard))
+        {
+            badge.Visible = false;
+            badge.QueueFree();
+        }
+    }
+
+    private static SysCollections.List<Control> SlainBadges(Node weaponNode)
+        => weaponNode.GetChildren()
+            .Where(n => n.IsInGroup("slain_badge"))
+            .Cast<Control>()
+            .ToList();
 
     private static void ResetCardScale(GodotObject card)
         => card.Set("scale", new Vector2(1f, 1f));
