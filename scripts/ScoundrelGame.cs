@@ -123,8 +123,8 @@ public partial class ScoundrelGame : Node
         _flavorLabel.GrowHorizontal      = Control.GrowDirection.Both;
         _flavorLabel.OffsetLeft          = -200f;
         _flavorLabel.OffsetRight         =  200f;
-        _flavorLabel.OffsetTop           =   68f;
-        _flavorLabel.OffsetBottom        =   95f;
+        _flavorLabel.OffsetTop           =  103f;
+        _flavorLabel.OffsetBottom        =  130f;
         _flavorLabel.HorizontalAlignment = HorizontalAlignment.Center;
         _flavorLabel.AddThemeFontSizeOverride("font_size", 18);
         _flavorLabel.AddThemeColorOverride("font_color", new Color(0.75f, 0.5f, 0.5f));
