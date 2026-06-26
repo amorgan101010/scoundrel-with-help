@@ -107,13 +107,12 @@ public partial class ScoundrelGame : Node
         _cardFactory = (GodotObject)_cardManager.Get("card_factory");
 
         // Lift retry + help buttons and status text above the bounce layer (201).
-        var buttonLayer = new CanvasLayer();
-        buttonLayer.Name  = "ButtonLayer";
-        buttonLayer.Layer = 202;
-        AddChild(buttonLayer);
-        _retryButton.Reparent(buttonLayer, true);
-        _helpButton.Reparent(buttonLayer, true);
-        _statusLabel.Reparent(buttonLayer, true);
+        // HudLayer: status/flavor text (display only, game-over and in-game messages)
+        var hudLayer = new CanvasLayer();
+        hudLayer.Name  = "HudLayer";
+        hudLayer.Layer = 202;
+        AddChild(hudLayer);
+        _statusLabel.Reparent(hudLayer, true);
 
         _flavorLabel = new Label();
         _flavorLabel.AnchorLeft          = 0.5f;
@@ -128,7 +127,15 @@ public partial class ScoundrelGame : Node
         _flavorLabel.AddThemeColorOverride("font_color", new Color(0.75f, 0.5f, 0.5f));
         _flavorLabel.MouseFilter         = Control.MouseFilterEnum.Ignore;
         _flavorLabel.Visible             = false;
-        buttonLayer.AddChild(_flavorLabel);
+        hudLayer.AddChild(_flavorLabel);
+
+        // ButtonLayer: interactive controls — must be above HudLayer so clicks are never blocked
+        var buttonLayer = new CanvasLayer();
+        buttonLayer.Name  = "ButtonLayer";
+        buttonLayer.Layer = 203;
+        AddChild(buttonLayer);
+        _retryButton.Reparent(buttonLayer, true);
+        _helpButton.Reparent(buttonLayer, true);
 
         // Dedicated overlay layer above everything (UI is layer 1, cards are layer 0).
         var overlayLayer = new CanvasLayer();
