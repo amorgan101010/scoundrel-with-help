@@ -617,7 +617,7 @@ public class ScoundrelSceneTests
         }
     }
 
-    [TestCase(Description = "Monster taken when weapon floor is too low goes to discard, not slain")]
+    [TestCase(Description = "Monster too high for weapon floor goes to discard bare-handed; earlier weapon kill badge is preserved")]
     public async Task ExpiredWeaponFloorMonsterGoesToDiscard()
     {
         await SetupFixedDeck();
