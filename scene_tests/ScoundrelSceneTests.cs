@@ -296,12 +296,12 @@ public class ScoundrelSceneTests
         AssertThat(nextRoomButton.Visible).IsFalse(); // reset after advancing
     }
 
-    [TestCase(Description = "Monster killed with weapon goes to slain pile, not discard")]
-    public async Task WeaponedMonsterGoesToSlainPile()
+    [TestCase(Description = "Monster killed with weapon goes to discard and adds a badge to the weapon card")]
+    public async Task WeaponedMonsterGetsSlainBadgeOnWeapon()
     {
         await SetupFixedDeck();
         var scene       = _runner!.Scene();
-        var slainPile   = scene.GetNode("UI/SlainPile");
+        var weaponSlot  = scene.GetNode("UI/WeaponSlot");
         var discardPile = scene.GetNode("UI/DiscardPile");
 
         // Equip 6_diamonds
@@ -310,14 +310,21 @@ public class ScoundrelSceneTests
         ClickCard(scene, weapon!);
         await _runner!.AwaitIdleFrame();
 
-        // Fight 4_clubs with weapon (4 < MaxValue → blocked, goes to slain)
+        // Fight 4_clubs with weapon (4 < MaxValue → can use weapon)
         var monster = FindRoomCard(scene, s => s == "clubs");
         AssertThat(monster).IsNotNull();
         ClickCard(scene, monster!);
         await _runner!.AwaitIdleFrame();
 
-        AssertThat((int)slainPile.Call("get_card_count")).IsEqual(1);
-        AssertThat((int)discardPile.Call("get_card_count")).IsEqual(0);
+        // Monster goes to discard immediately; weapon card gets a badge child.
+        AssertThat((int)discardPile.Call("get_card_count")).IsEqual(1);
+
+        var weaponCards = (GArray)weaponSlot.Call("get_top_cards", 1);
+        var weaponNode  = (Node)weaponCards[0].AsGodotObject();
+        int badgeCount  = 0;
+        foreach (var child in weaponNode.GetChildren())
+            if (child.IsInGroup("slain_badge")) badgeCount++;
+        AssertThat(badgeCount).IsEqual(1);
     }
 
     [TestCase(Description = "Discard pile ordering: most recently added monster is the top card")]
@@ -610,10 +617,10 @@ public class ScoundrelSceneTests
     {
         await SetupFixedDeck();
         // Room 1: 6♦(W,6), 4♣(M,4), 5♥(P,5), 8♠(M,8)
-        // Strategy: equip weapon(6), fight 4_clubs (floor→4, goes to slain),
-        //           fight 8_spades (8 >= floor(4), weapon blocked → goes to discard).
+        // Strategy: equip weapon(6), fight 4_clubs (floor→4, badge on weapon, goes to discard),
+        //           fight 8_spades (8 >= floor(4), weapon blocked → goes to discard bare-handed).
         var scene       = _runner!.Scene();
-        var slainPile   = scene.GetNode("UI/SlainPile");
+        var weaponSlot  = scene.GetNode("UI/WeaponSlot");
         var discardPile = scene.GetNode("UI/DiscardPile");
 
         var weapon = FindRoomCard(scene, s => s == "diamonds");
@@ -623,17 +630,28 @@ public class ScoundrelSceneTests
 
         var monster1 = FindRoomCard(scene, s => s == "clubs");
         AssertThat(monster1).IsNotNull();
-        ClickCard(scene, monster1!);  // 4 < MaxValue → blocked, floor → 4, goes to slain
+        ClickCard(scene, monster1!);  // 4 < MaxValue → badge added, goes to discard
         await _runner!.AwaitIdleFrame();
-        AssertThat((int)slainPile.Call("get_card_count")).IsEqual(1);
+        AssertThat((int)discardPile.Call("get_card_count")).IsEqual(1);
+
+        var weaponCards = (GArray)weaponSlot.Call("get_top_cards", 1);
+        var weaponNode  = (Node)weaponCards[0].AsGodotObject();
+        int badgeCount  = 0;
+        foreach (var child in weaponNode.GetChildren())
+            if (child.IsInGroup("slain_badge")) badgeCount++;
+        AssertThat(badgeCount).IsEqual(1);
 
         var monster2 = FindRoomCard(scene, s => s == "spades");
         AssertThat(monster2).IsNotNull();
         ClickCard(scene, monster2!);  // 8 >= floor(4) → not blocked, goes to discard
         await _runner!.AwaitIdleFrame();
 
-        AssertThat((int)discardPile.Call("get_card_count")).IsEqual(1);
-        AssertThat((int)slainPile.Call("get_card_count")).IsEqual(1);
+        // Both monsters in discard; weapon still has its 1 badge.
+        AssertThat((int)discardPile.Call("get_card_count")).IsEqual(2);
+        badgeCount = 0;
+        foreach (var child in weaponNode.GetChildren())
+            if (child.IsInGroup("slain_badge")) badgeCount++;
+        AssertThat(badgeCount).IsEqual(1);
 
         var topCards = (GArray)discardPile.Call("get_top_cards", 1);
         var topName  = topCards[0].AsGodotObject().Get("card_info").AsGodotDictionary()["name"].AsString();
@@ -868,6 +886,81 @@ public class ScoundrelSceneTests
         // Taking the 4th card empties the room → auto-deal → SyncRoomToGodot fires
         // card_dealt after the action sound, so card_dealt is the last sound heard.
         AssertThat(((ScoundrelGame)scene).LastSfxPlayed).IsEqual("card_dealt");
+    }
+
+    [TestCase(Description = "Slain badges are cleared from the old weapon when it is replaced by a new one")]
+    public async Task WeaponReplaced_SlainBadgesCleared()
+    {
+        // Room 1: 6♦(W6), 4♣(M4), 5♥(P5), 6♠(M6)  — weapon covers M4 damage, M6 bare-handed.
+        // Room 2: 3♦(W3), 2♣(M2), 3♥(P3), 2♠(M2)  — equipping W3 replaces W6.
+        var deck = new List<CardModel>
+        {
+            // Room 2 (bottom — dealt second)
+            new CardModel(Suit.Spades,   2, "2_spades"),
+            new CardModel(Suit.Hearts,   3, "3_hearts"),
+            new CardModel(Suit.Clubs,    2, "2_clubs"),
+            new CardModel(Suit.Diamonds, 3, "3_diamonds"),
+            // Room 1 (top — dealt first)
+            new CardModel(Suit.Spades,   6, "6_spades"),
+            new CardModel(Suit.Hearts,   5, "5_hearts"),
+            new CardModel(Suit.Clubs,    4, "4_clubs"),
+            new CardModel(Suit.Diamonds, 6, "6_diamonds"),
+        };
+        var game = (ScoundrelGame)_runner!.Scene();
+        game.StartGameWithDeck(deck);
+        await _runner!.AwaitMillis(200);
+
+        var scene      = _runner!.Scene();
+        var weaponSlot = scene.GetNode("UI/WeaponSlot");
+
+        // Equip 6_diamonds (weapon1)
+        var weapon1 = FindRoomCard(scene, s => s == "diamonds");
+        AssertThat(weapon1).IsNotNull();
+        ClickCard(scene, weapon1!);
+        await _runner!.AwaitIdleFrame();
+
+        // Fight 4_clubs with weapon1 → badge on weapon1
+        var monster1 = FindRoomCard(scene, s => s == "clubs");
+        AssertThat(monster1).IsNotNull();
+        ClickCard(scene, monster1!);
+        await _runner!.AwaitIdleFrame();
+
+        var weapon1Node = (Node)weapon1!;
+        int badgesBefore = 0;
+        foreach (var child in weapon1Node.GetChildren())
+            if (child.IsInGroup("slain_badge")) badgesBefore++;
+        AssertThat(badgesBefore).IsEqual(1);
+
+        // Clear Room 1: drink potion, fight 6_spades bare-handed (6 >= floor 4)
+        var potion  = FindRoomCard(scene, s => s == "hearts");
+        var monster2 = FindRoomCard(scene, s => s == "spades");
+        AssertThat(potion).IsNotNull();
+        AssertThat(monster2).IsNotNull();
+        ClickCard(scene, potion!);
+        await _runner!.AwaitIdleFrame();
+        ClickCard(scene, monster2!);  // 6 >= floor(4) → bare-handed, 6 damage → HP 14
+        await _runner!.AwaitIdleFrame();
+
+        // Room 2 auto-dealt (all 4 Room 1 cards taken).
+        // Equip 3_diamonds (weapon2) — this replaces weapon1 and clears its badges.
+        var weapon2 = FindRoomCard(scene, s => s == "diamonds");
+        AssertThat(weapon2).IsNotNull();
+        ClickCard(scene, weapon2!);
+        await _runner!.AwaitIdleFrame();
+
+        // Weapon1 is now in discard; its badge should have been freed.
+        int badgesAfter = 0;
+        foreach (var child in weapon1Node.GetChildren())
+            if (child.IsInGroup("slain_badge")) badgesAfter++;
+        AssertThat(badgesAfter).IsEqual(0);
+
+        // Weapon2 in the weapon slot should have no badges yet.
+        var w2Cards  = (GArray)weaponSlot.Call("get_top_cards", 1);
+        var w2Node   = (Node)w2Cards[0].AsGodotObject();
+        int w2Badges = 0;
+        foreach (var child in w2Node.GetChildren())
+            if (child.IsInGroup("slain_badge")) w2Badges++;
+        AssertThat(w2Badges).IsEqual(0);
     }
 
     [TestCase(Description = "Taking all cards from the last room shows YOU WIN")]
