@@ -86,19 +86,19 @@ public partial class ScoundrelGame : Node
         _cardManager    = GetNode<Node>("CardManager");
         _deckPile       = GetNode<Node>("UI/DeckPile");
         _discardPile    = GetNode<Node>("UI/DiscardPile");
-        _weaponSlot     = GetNode<Node>("UI/WeaponSlot");
+        _weaponSlot     = GetNode<Node>("UI/LeftPanel/WeaponSlot");
         _roomContainer  = GetNode<Node>("UI/RoomContainer");
         _leftDropZone   = GetNode<Node>("UI/LeftDropZone");
         _rightDropZone  = GetNode<Node>("UI/RightDropZone");
         _healthLabel    = GetNode<Label>("UI/HealthLabel");
-        _weaponLabel    = GetNode<Label>("UI/WeaponLabel");
+        _weaponLabel    = GetNode<Label>("UI/LeftPanel/WeaponLabel");
         _statusLabel    = GetNode<Label>("UI/StatusLabel");
         _deckLabel      = GetNode<Label>("UI/DeckLabel");
         _discardLabel   = GetNode<Label>("UI/DiscardLabel");
-        _clubsLabel     = GetNode<Label>("UI/ClubsLabel");
-        _spadesLabel    = GetNode<Label>("UI/SpadesLabel");
-        _heartsLabel    = GetNode<Label>("UI/HeartsLabel");
-        _diamondsLabel  = GetNode<Label>("UI/DiamondsLabel");
+        _clubsLabel     = GetNode<Label>("UI/LeftPanel/ClubsLabel");
+        _spadesLabel    = GetNode<Label>("UI/LeftPanel/SpadesLabel");
+        _heartsLabel    = GetNode<Label>("UI/LeftPanel/HeartsLabel");
+        _diamondsLabel  = GetNode<Label>("UI/LeftPanel/DiamondsLabel");
         _runButton      = GetNode<Button>("UI/RunButton");
         _nextRoomButton = GetNode<Button>("UI/NextRoomButton");
         _retryButton    = GetNode<Button>("UI/RetryButton");
@@ -111,7 +111,7 @@ public partial class ScoundrelGame : Node
         _healthDie          = new HealthDie();
         _healthDie.Size     = new Vector2(130f, 130f);
         _healthDie.Position = new Vector2(40f, 12f);
-        GetNode<CanvasLayer>("UI").AddChild(_healthDie);
+        GetNode<Control>("UI/LeftPanel").AddChild(_healthDie);
 
         // Lift retry + help buttons and status text above the bounce layer (201).
         // HudLayer: status/flavor text (display only, game-over and in-game messages)
