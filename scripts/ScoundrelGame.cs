@@ -88,8 +88,8 @@ public partial class ScoundrelGame : Node
         _discardPile    = GetNode<Node>("UI/RightPanel/DiscardGroup/DiscardPile");
         _weaponSlot     = GetNode<Node>("UI/LeftPanel/WeaponGroup/WeaponSlot");
         _roomContainer  = GetNode<Node>("UI/RoomContainer");
-        _leftDropZone   = GetNode<Node>("UI/LeftDropZone");
-        _rightDropZone  = GetNode<Node>("UI/RightDropZone");
+        _leftDropZone   = GetNode<Node>("UI/LeftPanel/LeftDropZone");
+        _rightDropZone  = GetNode<Node>("UI/RightPanel/RightDropZone");
         _healthLabel    = GetNode<Label>("UI/HealthLabel");
         _weaponLabel    = GetNode<Label>("UI/LeftPanel/WeaponGroup/WeaponLabel");
         _statusLabel    = GetNode<Label>("UI/StatusLabel");

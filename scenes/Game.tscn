@@ -38,9 +38,9 @@ text = "HP: 20 / 20"
 
 [node name="LeftPanel" type="Control" parent="UI" unique_id=321654987]
 layout_mode = 3
-anchors_preset = 0
+anchor_bottom = 1.0
+grow_vertical = 2
 offset_right = 385.0
-offset_bottom = 450.0
 mouse_filter = 2
 
 [node name="HealthDie" type="Control" parent="UI/LeftPanel" unique_id=876543210]
@@ -132,6 +132,18 @@ offset_bottom = 130.0
 theme_override_font_sizes/font_size = 16
 text = "♦  9"
 
+[node name="LeftDropZone" type="Control" parent="UI/LeftPanel" unique_id=1365540473]
+visible = false
+layout_mode = 3
+anchor_bottom = 1.0
+grow_vertical = 2
+offset_right = 320.0
+mouse_filter = 1
+script = ExtResource("6_dzc")
+card_face_up = false
+allow_card_movement = false
+restrict_to_top_card = false
+
 [node name="StatusLabel" type="Label" parent="UI" unique_id=927201028]
 anchors_preset = 5
 anchor_left = 0.5
@@ -146,11 +158,10 @@ horizontal_alignment = 1
 
 [node name="RightPanel" type="Control" parent="UI" unique_id=789012345]
 layout_mode = 3
-anchors_preset = 0
+anchor_bottom = 1.0
+grow_vertical = 2
 offset_left = 940.0
-offset_top = 0.0
 offset_right = 1090.0
-offset_bottom = 580.0
 mouse_filter = 2
 
 [node name="DeckGroup" type="Control" parent="UI/RightPanel" unique_id=234567890]
@@ -214,6 +225,19 @@ offset_bottom = 251.0
 text = "DISCARD"
 horizontal_alignment = 1
 
+[node name="RightDropZone" type="Control" parent="UI/RightPanel" unique_id=1530563607]
+visible = false
+layout_mode = 3
+anchor_bottom = 1.0
+grow_vertical = 2
+offset_left = -120.0
+offset_right = 180.0
+mouse_filter = 1
+script = ExtResource("6_dzc")
+card_face_up = false
+allow_card_movement = false
+restrict_to_top_card = false
+
 [node name="RoomContainer" type="Control" parent="UI" unique_id=355512689]
 layout_mode = 3
 anchors_preset = 0
@@ -224,31 +248,6 @@ offset_bottom = 590.0
 mouse_filter = 1
 script = ExtResource("5_room")
 enable_drop_zone = false
-
-[node name="LeftDropZone" type="Control" parent="UI" unique_id=1365540473]
-visible = false
-layout_mode = 3
-anchor_bottom = 1.0
-grow_vertical = 2
-offset_right = 320.0
-mouse_filter = 1
-script = ExtResource("6_dzc")
-card_face_up = false
-allow_card_movement = false
-restrict_to_top_card = false
-
-[node name="RightDropZone" type="Control" parent="UI" unique_id=1530563607]
-visible = false
-layout_mode = 3
-anchor_bottom = 1.0
-grow_vertical = 2
-offset_left = 820.0
-offset_right = 1120.0
-mouse_filter = 1
-script = ExtResource("6_dzc")
-card_face_up = false
-allow_card_movement = false
-restrict_to_top_card = false
 
 [node name="RunButton" type="Button" parent="UI" unique_id=615236865]
 offset_left = 390.0
