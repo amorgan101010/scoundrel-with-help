@@ -37,6 +37,7 @@ public partial class ScoundrelGame : Node
     private Button _retryButton = null!;
     private Button _helpButton = null!;
     private AcceptDialog _helpDialog = null!;
+    private Label _flavorLabel = null!;
 
     // ── Game engine + Godot card bridge ───────────────────────────────────
     private GameEngine _engine = null!;
@@ -50,6 +51,15 @@ public partial class ScoundrelGame : Node
 
     // ── Cached factory reference ──────────────────────────────────────────
     private GodotObject _cardFactory = null!;
+
+    // ── Bounce animation (game over / win) ───────────────────────────────────
+    private CanvasLayer? _bounceLayer;
+    private readonly SysCollections.List<(TextureRect ghost, Vector2 velocity)> _bounceState = new();
+    private bool _bounceActive;
+
+    public bool BounceActive    => _bounceActive;
+    public int  BounceCardCount => _bounceTotal;
+    private int _bounceTotal;
 
     // ── Sound effects ─────────────────────────────────────────────────────
     private AudioStreamPlayer _sfxPunch = null!;
@@ -96,6 +106,37 @@ public partial class ScoundrelGame : Node
 
         _cardFactory = (GodotObject)_cardManager.Get("card_factory");
 
+        // Lift retry + help buttons and status text above the bounce layer (201).
+        // HudLayer: status/flavor text (display only, game-over and in-game messages)
+        var hudLayer = new CanvasLayer();
+        hudLayer.Name  = "HudLayer";
+        hudLayer.Layer = 202;
+        AddChild(hudLayer);
+        _statusLabel.Reparent(hudLayer, true);
+
+        _flavorLabel = new Label();
+        _flavorLabel.AnchorLeft          = 0.5f;
+        _flavorLabel.AnchorRight         = 0.5f;
+        _flavorLabel.GrowHorizontal      = Control.GrowDirection.Both;
+        _flavorLabel.OffsetLeft          = -200f;
+        _flavorLabel.OffsetRight         =  200f;
+        _flavorLabel.OffsetTop           =   68f;
+        _flavorLabel.OffsetBottom        =   95f;
+        _flavorLabel.HorizontalAlignment = HorizontalAlignment.Center;
+        _flavorLabel.AddThemeFontSizeOverride("font_size", 18);
+        _flavorLabel.AddThemeColorOverride("font_color", new Color(0.75f, 0.5f, 0.5f));
+        _flavorLabel.MouseFilter         = Control.MouseFilterEnum.Ignore;
+        _flavorLabel.Visible             = false;
+        hudLayer.AddChild(_flavorLabel);
+
+        // ButtonLayer: interactive controls — must be above HudLayer so clicks are never blocked
+        var buttonLayer = new CanvasLayer();
+        buttonLayer.Name  = "ButtonLayer";
+        buttonLayer.Layer = 203;
+        AddChild(buttonLayer);
+        _retryButton.Reparent(buttonLayer, true);
+        _helpButton.Reparent(buttonLayer, true);
+
         // Dedicated overlay layer above everything (UI is layer 1, cards are layer 0).
         var overlayLayer = new CanvasLayer();
         overlayLayer.Layer = 128;
@@ -138,8 +179,15 @@ public partial class ScoundrelGame : Node
 
     private void InitGameWithDeck(SysCollections.List<CardModel> deck)
     {
+        if (_bounceLayer != null) { _bounceLayer.QueueFree(); _bounceLayer = null; }
+        _bounceActive = false;
+        _bounceState.Clear();
+        _bounceTotal  = 0;
+
         _godotCards.Clear();
-        _statusLabel.Text = "";
+        _statusLabel.Text    = "";
+        _flavorLabel.Visible = false;
+        _flavorLabel.Text    = "";
 
         _roomContainer.Call("clear_cards");
         _deckPile.Call("clear_cards");
@@ -425,14 +473,117 @@ public partial class ScoundrelGame : Node
     // ── End states ────────────────────────────────────────────────────────
     private void ShowGameOver()
     {
-        _statusLabel.Text = "YOU DIED";
+        _statusLabel.Text    = "YOU DIED";
+        _flavorLabel.Text    = "The monsters overrun the dungeon.";
+        _flavorLabel.Visible = true;
         foreach (var cardModel in _engine.Room)
             _godotCards[cardModel.Name].Set("can_be_interacted_with", false);
+        StartBounceAnimation(isGameOver: true);
     }
 
     private void ShowWin()
     {
         _statusLabel.Text = "YOU WIN!";
+        _flavorLabel.Text = "The loot is yours!";
+        _flavorLabel.AddThemeColorOverride("font_color", new Color(0.85f, 0.75f, 0.3f));
+        _flavorLabel.Visible = true;
+        StartBounceAnimation(isGameOver: false);
+    }
+
+    // ── Bounce animation ──────────────────────────────────────────────────
+    private void StartBounceAnimation(bool isGameOver)
+    {
+        _bounceLayer = new CanvasLayer();
+        _bounceLayer.Layer = 201;
+        AddChild(_bounceLayer);
+
+        var rng = new System.Random();
+        const float MinSpeed   = 120f, MaxSpeed = 340f;
+        const float CardW      = 150f, CardH = 210f;
+        const float DealStep   = 0.45f; // seconds between each card being dealt
+        const float DealSpeed  = 1200f; // px/s for the deal slide
+
+        var vpSize  = GetViewport().GetVisibleRect().Size;
+        var deckPos = (Vector2)_deckPile.Get("global_position");
+
+        var candidates = _godotCards.Values.Where(c => {
+            var suit = c.Get("card_info").AsGodotDictionary()["suit"].AsString();
+            return isGameOver
+                ? (suit == "clubs" || suit == "spades")
+                : (suit == "hearts" || suit == "diamonds");
+        }).ToList();
+
+        for (int i = 0; i < candidates.Count; i++)
+        {
+            var godotCard = candidates[i];
+            godotCard.Set("visible", false);
+
+            var info    = godotCard.Get("card_info").AsGodotDictionary();
+            var texture = GD.Load<Texture2D>($"res://card_assets/{info["front_image"].AsString()}");
+            if (texture == null) continue;
+
+            var ghost = new TextureRect();
+            ghost.Texture           = texture;
+            ghost.CustomMinimumSize = new Vector2(CardW, CardH);
+            ghost.ExpandMode        = TextureRect.ExpandModeEnum.IgnoreSize;
+            ghost.StretchMode       = TextureRect.StretchModeEnum.Scale;
+            ghost.MouseFilter       = Control.MouseFilterEnum.Ignore;
+            ghost.Size              = new Vector2(CardW, CardH);
+            ghost.Position          = deckPos;
+            ghost.Visible           = false;
+            _bounceLayer.AddChild(ghost);
+            _bounceTotal++;
+
+            var targetPos = new Vector2(
+                (float)(rng.NextDouble() * (vpSize.X - CardW)),
+                (float)(rng.NextDouble() * (vpSize.Y - CardH)));
+            float angle = (float)(rng.NextDouble() * System.Math.PI * 2);
+            float speed = MinSpeed + (float)(rng.NextDouble() * (MaxSpeed - MinSpeed));
+            var vel = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * speed;
+
+            // Staggered deal: show ghost after delay, slide to random spot, then bounce.
+            var timer = GetTree().CreateTimer(DealStep * i);
+            timer.Timeout += () => {
+                if (!GodotObject.IsInstanceValid(ghost)) return;
+                ghost.Visible = true;
+                var sfx = new AudioStreamPlayer();
+                sfx.Stream     = _sfxCardDealt.Stream;
+                sfx.PitchScale = 0.84f + (float)new System.Random().NextDouble() * 0.32f;
+                AddChild(sfx);
+                sfx.Connect("finished", Callable.From(sfx.QueueFree));
+                sfx.Play();
+                var tween = CreateTween();
+                tween.TweenProperty(ghost, "position", targetPos, deckPos.DistanceTo(targetPos) / DealSpeed);
+                tween.TweenCallback(Callable.From(() => {
+                    if (!GodotObject.IsInstanceValid(ghost)) return;
+                    _bounceState.Add((ghost, vel));
+                }));
+            };
+        }
+
+        _bounceActive = true;
+    }
+
+    public override void _Process(double delta)
+    {
+        if (!_bounceActive) return;
+
+        var vpSize = GetViewport().GetVisibleRect().Size;
+        const float CardW = 150f, CardH = 210f;
+
+        for (int i = 0; i < _bounceState.Count; i++)
+        {
+            var (ghost, vel) = _bounceState[i];
+            var pos = ghost.Position + vel * (float)delta;
+
+            if (pos.X < 0)               { vel.X =  Mathf.Abs(vel.X); pos.X = 0; }
+            if (pos.X + CardW > vpSize.X) { vel.X = -Mathf.Abs(vel.X); pos.X = vpSize.X - CardW; }
+            if (pos.Y < 0)               { vel.Y =  Mathf.Abs(vel.Y); pos.Y = 0; }
+            if (pos.Y + CardH > vpSize.Y) { vel.Y = -Mathf.Abs(vel.Y); pos.Y = vpSize.Y - CardH; }
+
+            ghost.Position  = pos;
+            _bounceState[i] = (ghost, vel);
+        }
     }
 
     // ── Visual helpers ────────────────────────────────────────────────────
