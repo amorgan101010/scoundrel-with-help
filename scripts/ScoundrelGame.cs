@@ -457,23 +457,28 @@ public partial class ScoundrelGame : Node
         AddChild(_bounceLayer);
 
         var rng = new System.Random();
-        const float Speed = 220f;
-        const float CardW = 150f, CardH = 210f;
-        var vpSize = GetViewport().GetVisibleRect().Size;
+        const float Speed      = 220f;
+        const float CardW      = 150f, CardH = 210f;
+        const float DealStep   = 0.35f; // seconds between each card being dealt
+        const float TweenDur   = 0.25f; // slide-to-position duration
 
-        foreach (var godotCard in _godotCards.Values)
+        var vpSize  = GetViewport().GetVisibleRect().Size;
+        var deckPos = (Vector2)_deckPile.Get("global_position");
+
+        var candidates = _godotCards.Values.Where(c => {
+            var suit = c.Get("card_info").AsGodotDictionary()["suit"].AsString();
+            return isGameOver
+                ? (suit == "clubs" || suit == "spades")
+                : (suit == "hearts" || suit == "diamonds");
+        }).ToList();
+
+        for (int i = 0; i < candidates.Count; i++)
         {
-            var info = godotCard.Get("card_info").AsGodotDictionary();
-            var suit = info["suit"].AsString();
-            bool isMonster = suit == "clubs" || suit == "spades";
-            bool isLoot    = suit == "hearts" || suit == "diamonds";
-
-            if (isGameOver ? !isMonster : !isLoot) continue;
-
+            var godotCard = candidates[i];
             godotCard.Set("visible", false);
 
-            var frontImage = info["front_image"].AsString();
-            var texture = GD.Load<Texture2D>($"res://card_assets/{frontImage}");
+            var info    = godotCard.Get("card_info").AsGodotDictionary();
+            var texture = GD.Load<Texture2D>($"res://card_assets/{info["front_image"].AsString()}");
             if (texture == null) continue;
 
             var ghost = new TextureRect();
@@ -483,13 +488,28 @@ public partial class ScoundrelGame : Node
             ghost.StretchMode       = TextureRect.StretchModeEnum.Scale;
             ghost.MouseFilter       = Control.MouseFilterEnum.Ignore;
             ghost.Size              = new Vector2(CardW, CardH);
-            ghost.Position          = new Vector2(
-                (float)(rng.NextDouble() * (vpSize.X - CardW)),
-                (float)(rng.NextDouble() * (vpSize.Y - CardH)));
+            ghost.Position          = deckPos;
+            ghost.Visible           = false;
             _bounceLayer.AddChild(ghost);
 
+            var targetPos = new Vector2(
+                (float)(rng.NextDouble() * (vpSize.X - CardW)),
+                (float)(rng.NextDouble() * (vpSize.Y - CardH)));
             float angle = (float)(rng.NextDouble() * System.Math.PI * 2);
-            _bounceState.Add((ghost, new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * Speed));
+            var vel = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * Speed;
+
+            // Staggered deal: show ghost after delay, slide to random spot, then bounce.
+            var timer = GetTree().CreateTimer(DealStep * i);
+            timer.Timeout += () => {
+                if (!GodotObject.IsInstanceValid(ghost)) return;
+                ghost.Visible = true;
+                var tween = CreateTween();
+                tween.TweenProperty(ghost, "position", targetPos, TweenDur);
+                tween.TweenCallback(Callable.From(() => {
+                    if (!GodotObject.IsInstanceValid(ghost)) return;
+                    _bounceState.Add((ghost, vel));
+                }));
+            };
         }
 
         _bounceActive = true;
