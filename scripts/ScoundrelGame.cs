@@ -107,11 +107,7 @@ public partial class ScoundrelGame : Node
 
         _cardFactory = (GodotObject)_cardManager.Get("card_factory");
 
-        // D20 health display — replaces the hidden HealthLabel visually.
-        _healthDie          = new HealthDie();
-        _healthDie.Size     = new Vector2(130f, 130f);
-        _healthDie.Position = new Vector2(40f, 12f);
-        GetNode<Control>("UI/LeftPanel").AddChild(_healthDie);
+        _healthDie = GetNode<HealthDie>("UI/LeftPanel/HealthDie");
 
         // Lift retry + help buttons and status text above the bounce layer (201).
         // HudLayer: status/flavor text (display only, game-over and in-game messages)

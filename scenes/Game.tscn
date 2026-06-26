@@ -6,6 +6,7 @@
 [ext_resource type="Script" uid="uid://6ams8uvg43gu" path="res://addons/card-framework/pile.gd" id="4_pile"]
 [ext_resource type="Script" uid="uid://nge5xs0pqlvl" path="res://scenes/RoomContainer.gd" id="5_room"]
 [ext_resource type="Script" path="res://scenes/DropZoneContainer.gd" id="6_dzc"]
+[ext_resource type="Script" path="res://scripts/HealthDie.cs" id="7_hd"]
 
 [node name="Game" type="Node" unique_id=1067270305]
 script = ExtResource("1_gm")
@@ -41,6 +42,15 @@ anchors_preset = 0
 offset_right = 385.0
 offset_bottom = 450.0
 mouse_filter = 2
+
+[node name="HealthDie" type="Control" parent="UI/LeftPanel" unique_id=876543210]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 40.0
+offset_top = 12.0
+offset_right = 170.0
+offset_bottom = 142.0
+script = ExtResource("7_hd")
 
 [node name="WeaponLabel" type="Label" parent="UI/LeftPanel" unique_id=180637555]
 offset_left = 30.0
