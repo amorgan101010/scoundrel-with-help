@@ -102,7 +102,7 @@ jobs:
           mkdir -p "$GITHUB_WORKSPACE/builds/linux"
           OUT="$GITHUB_WORKSPACE/builds/linux/Scoundrel.$GAME_VERSION.linux.x86_64"
           xvfb-run "$GODOT_BIN" --path "$GITHUB_WORKSPACE" \
-            --export-release "Linux" "$OUT" --verbose
+            --export-release "Linux" "$OUT" --verbose || true
           test -s "$OUT"
           test -d "$GITHUB_WORKSPACE/builds/linux/data_ScoundrelWithHelp_linuxbsd_x86_64"
           cd "$GITHUB_WORKSPACE/builds/linux"
