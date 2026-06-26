@@ -37,6 +37,7 @@ public partial class ScoundrelGame : Node
     private Button _retryButton = null!;
     private Button _helpButton = null!;
     private AcceptDialog _helpDialog = null!;
+    private Label _flavorLabel = null!;
 
     // ── Game engine + Godot card bridge ───────────────────────────────────
     private GameEngine _engine = null!;
@@ -110,6 +111,22 @@ public partial class ScoundrelGame : Node
         AddChild(buttonLayer);
         _retryButton.Reparent(buttonLayer, true);
         _helpButton.Reparent(buttonLayer, true);
+        _statusLabel.Reparent(buttonLayer, true);
+
+        _flavorLabel = new Label();
+        _flavorLabel.AnchorLeft          = 0.5f;
+        _flavorLabel.AnchorRight         = 0.5f;
+        _flavorLabel.GrowHorizontal      = Control.GrowDirection.Both;
+        _flavorLabel.OffsetLeft          = -200f;
+        _flavorLabel.OffsetRight         =  200f;
+        _flavorLabel.OffsetTop           =   68f;
+        _flavorLabel.OffsetBottom        =   95f;
+        _flavorLabel.HorizontalAlignment = HorizontalAlignment.Center;
+        _flavorLabel.AddThemeFontSizeOverride("font_size", 18);
+        _flavorLabel.AddThemeColorOverride("font_color", new Color(0.75f, 0.5f, 0.5f));
+        _flavorLabel.MouseFilter         = Control.MouseFilterEnum.Ignore;
+        _flavorLabel.Visible             = false;
+        buttonLayer.AddChild(_flavorLabel);
 
         // Dedicated overlay layer above everything (UI is layer 1, cards are layer 0).
         var overlayLayer = new CanvasLayer();
@@ -158,7 +175,9 @@ public partial class ScoundrelGame : Node
         _bounceState.Clear();
 
         _godotCards.Clear();
-        _statusLabel.Text = "";
+        _statusLabel.Text    = "";
+        _flavorLabel.Visible = false;
+        _flavorLabel.Text    = "";
 
         _roomContainer.Call("clear_cards");
         _deckPile.Call("clear_cards");
@@ -444,7 +463,9 @@ public partial class ScoundrelGame : Node
     // ── End states ────────────────────────────────────────────────────────
     private void ShowGameOver()
     {
-        _statusLabel.Text = "YOU DIED";
+        _statusLabel.Text    = "YOU DIED";
+        _flavorLabel.Text    = "The monsters overrun the dungeon.";
+        _flavorLabel.Visible = true;
         foreach (var cardModel in _engine.Room)
             _godotCards[cardModel.Name].Set("can_be_interacted_with", false);
         StartBounceAnimation(isGameOver: true);
