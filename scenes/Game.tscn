@@ -61,7 +61,7 @@ offset_top = 198.0
 offset_right = 180.0
 offset_bottom = 408.0
 text = "WEAPON SLOT"
-horizontal_alignment = 1
+horizontal_alignment = 0
 vertical_alignment = 1
 
 [node name="WeaponSlot" type="Control" parent="UI" unique_id=249709180]
