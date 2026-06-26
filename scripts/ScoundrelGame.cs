@@ -51,6 +51,14 @@ public partial class ScoundrelGame : Node
     // ── Cached factory reference ──────────────────────────────────────────
     private GodotObject _cardFactory = null!;
 
+    // ── Bounce animation (game over / win) ───────────────────────────────────
+    private CanvasLayer? _bounceLayer;
+    private readonly SysCollections.List<(TextureRect ghost, Vector2 velocity)> _bounceState = new();
+    private bool _bounceActive;
+
+    public bool BounceActive    => _bounceActive;
+    public int  BounceCardCount => _bounceState.Count;
+
     // ── Sound effects ─────────────────────────────────────────────────────
     private AudioStreamPlayer _sfxPunch = null!;
     private AudioStreamPlayer _sfxBubbles = null!;
@@ -138,6 +146,10 @@ public partial class ScoundrelGame : Node
 
     private void InitGameWithDeck(SysCollections.List<CardModel> deck)
     {
+        if (_bounceLayer != null) { _bounceLayer.QueueFree(); _bounceLayer = null; }
+        _bounceActive = false;
+        _bounceState.Clear();
+
         _godotCards.Clear();
         _statusLabel.Text = "";
 
@@ -428,11 +440,78 @@ public partial class ScoundrelGame : Node
         _statusLabel.Text = "YOU DIED";
         foreach (var cardModel in _engine.Room)
             _godotCards[cardModel.Name].Set("can_be_interacted_with", false);
+        StartBounceAnimation(isGameOver: true);
     }
 
     private void ShowWin()
     {
         _statusLabel.Text = "YOU WIN!";
+        StartBounceAnimation(isGameOver: false);
+    }
+
+    // ── Bounce animation ──────────────────────────────────────────────────
+    private void StartBounceAnimation(bool isGameOver)
+    {
+        _bounceLayer = new CanvasLayer();
+        _bounceLayer.Layer = 201;
+        AddChild(_bounceLayer);
+
+        var rng = new System.Random();
+        const float Speed = 220f;
+        const float CardW = 150f, CardH = 210f;
+
+        foreach (var godotCard in _godotCards.Values)
+        {
+            var info = godotCard.Get("card_info").AsGodotDictionary();
+            var suit = info["suit"].AsString();
+            bool isMonster = suit == "clubs" || suit == "spades";
+            bool isLoot    = suit == "hearts" || suit == "diamonds";
+
+            if (isGameOver ? !isMonster : !isLoot) continue;
+
+            godotCard.Set("visible", false);
+
+            var frontImage = info["front_image"].AsString();
+            var texture = GD.Load<Texture2D>($"res://card_assets/{frontImage}");
+            if (texture == null) continue;
+
+            var ghost = new TextureRect();
+            ghost.Texture           = texture;
+            ghost.CustomMinimumSize = new Vector2(CardW, CardH);
+            ghost.ExpandMode        = TextureRect.ExpandModeEnum.IgnoreSize;
+            ghost.StretchMode       = TextureRect.StretchModeEnum.Scale;
+            ghost.MouseFilter       = Control.MouseFilterEnum.Ignore;
+            ghost.Size              = new Vector2(CardW, CardH);
+            ghost.Position          = (Vector2)godotCard.Get("global_position");
+            _bounceLayer.AddChild(ghost);
+
+            float angle = (float)(rng.NextDouble() * System.Math.PI * 2);
+            _bounceState.Add((ghost, new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * Speed));
+        }
+
+        _bounceActive = true;
+    }
+
+    public override void _Process(double delta)
+    {
+        if (!_bounceActive) return;
+
+        var vpSize = GetViewport().GetVisibleRect().Size;
+        const float CardW = 150f, CardH = 210f;
+
+        for (int i = 0; i < _bounceState.Count; i++)
+        {
+            var (ghost, vel) = _bounceState[i];
+            var pos = ghost.Position + vel * (float)delta;
+
+            if (pos.X < 0)               { vel.X =  Mathf.Abs(vel.X); pos.X = 0; }
+            if (pos.X + CardW > vpSize.X) { vel.X = -Mathf.Abs(vel.X); pos.X = vpSize.X - CardW; }
+            if (pos.Y < 0)               { vel.Y =  Mathf.Abs(vel.Y); pos.Y = 0; }
+            if (pos.Y + CardH > vpSize.Y) { vel.Y = -Mathf.Abs(vel.Y); pos.Y = vpSize.Y - CardH; }
+
+            ghost.Position  = pos;
+            _bounceState[i] = (ghost, vel);
+        }
     }
 
     // ── Visual helpers ────────────────────────────────────────────────────

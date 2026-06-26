@@ -1110,4 +1110,72 @@ public class ScoundrelSceneTests
 
         AssertThat(scene.GetNode<Label>("UI/StatusLabel").Text).IsEqual("YOU WIN!");
     }
+
+    [TestCase(Description = "Bounce animation activates on game over with one ghost per monster card in the deck")]
+    public async Task BounceAnimation_ActivatesOnGameOver()
+    {
+        // 4 monsters. King♣ + King♠ = 26 damage > 20 HP → GameOver after 2 clicks.
+        // All 4 cards in _godotCards are monsters → expect BounceCardCount = 4.
+        var deathDeck = new List<CardModel>
+        {
+            new CardModel(Suit.Clubs,  11, "jack_clubs"),
+            new CardModel(Suit.Clubs,  12, "queen_clubs"),
+            new CardModel(Suit.Spades, 13, "king_spades"),
+            new CardModel(Suit.Clubs,  13, "king_clubs"),
+        };
+        var game = (ScoundrelGame)_runner!.Scene();
+        game.StartGameWithDeck(deathDeck);
+        await _runner!.AwaitMillis(200);
+
+        var scene = _runner!.Scene();
+        var room  = scene.GetNode("UI/RoomContainer");
+
+        // Find the two kings by name
+        GodotObject? kingClubs = null, kingSpades = null;
+        foreach (var obj in (GArray)room.Call("get_all_cards"))
+        {
+            var card = obj.AsGodotObject();
+            var name = card.Get("card_info").AsGodotDictionary()["name"].AsString();
+            if (name == "king_clubs")  kingClubs  = card;
+            if (name == "king_spades") kingSpades = card;
+        }
+        AssertThat(kingClubs).IsNotNull();
+        AssertThat(kingSpades).IsNotNull();
+
+        ClickCard(scene, kingClubs!);   // -13 → HP 7
+        ClickCard(scene, kingSpades!);  // -13 → HP 0 → GameOver
+
+        AssertThat(game.BounceActive).IsTrue();
+        AssertThat(game.BounceCardCount).IsEqual(4);
+    }
+
+    [TestCase(Description = "Bounce animation activates on win with one ghost per loot card in the deck")]
+    public async Task BounceAnimation_ActivatesOnWin()
+    {
+        // 4 loot cards (2 hearts + 2 diamonds): taking all 4 empties the room and deck → Won.
+        // All 4 cards in _godotCards are loot → expect BounceCardCount = 4.
+        var lootDeck = new List<CardModel>
+        {
+            new CardModel(Suit.Diamonds, 2, "2_diamonds"),
+            new CardModel(Suit.Hearts,   3, "3_hearts"),
+            new CardModel(Suit.Diamonds, 4, "4_diamonds"),
+            new CardModel(Suit.Hearts,   5, "5_hearts"),
+        };
+        var game = (ScoundrelGame)_runner!.Scene();
+        game.StartGameWithDeck(lootDeck);
+        await _runner!.AwaitMillis(200);
+
+        var scene = _runner!.Scene();
+        var room  = scene.GetNode("UI/RoomContainer");
+
+        for (int i = 0; i < 4; i++)
+        {
+            var cards = (GArray)room.Call("get_all_cards");
+            ClickCard(scene, cards[0].AsGodotObject());
+            await _runner!.AwaitIdleFrame();
+        }
+
+        AssertThat(game.BounceActive).IsTrue();
+        AssertThat(game.BounceCardCount).IsEqual(4);
+    }
 }
