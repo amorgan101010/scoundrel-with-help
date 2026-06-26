@@ -58,7 +58,8 @@ public partial class ScoundrelGame : Node
     private bool _bounceActive;
 
     public bool BounceActive    => _bounceActive;
-    public int  BounceCardCount => _bounceState.Count;
+    public int  BounceCardCount => _bounceTotal;
+    private int _bounceTotal;
 
     // ── Sound effects ─────────────────────────────────────────────────────
     private AudioStreamPlayer _sfxPunch = null!;
@@ -105,8 +106,9 @@ public partial class ScoundrelGame : Node
 
         _cardFactory = (GodotObject)_cardManager.Get("card_factory");
 
-        // Lift retry + help buttons above the bounce layer (201) so they're never covered.
+        // Lift retry + help buttons and status text above the bounce layer (201).
         var buttonLayer = new CanvasLayer();
+        buttonLayer.Name  = "ButtonLayer";
         buttonLayer.Layer = 202;
         AddChild(buttonLayer);
         _retryButton.Reparent(buttonLayer, true);
@@ -173,6 +175,7 @@ public partial class ScoundrelGame : Node
         if (_bounceLayer != null) { _bounceLayer.QueueFree(); _bounceLayer = null; }
         _bounceActive = false;
         _bounceState.Clear();
+        _bounceTotal  = 0;
 
         _godotCards.Clear();
         _statusLabel.Text    = "";
@@ -522,6 +525,7 @@ public partial class ScoundrelGame : Node
             ghost.Position          = deckPos;
             ghost.Visible           = false;
             _bounceLayer.AddChild(ghost);
+            _bounceTotal++;
 
             var targetPos = new Vector2(
                 (float)(rng.NextDouble() * (vpSize.X - CardW)),

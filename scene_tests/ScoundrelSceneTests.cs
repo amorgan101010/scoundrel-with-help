@@ -708,7 +708,7 @@ public class ScoundrelSceneTests
         await _runner!.AwaitIdleFrame();
 
         AssertThat(ParseHP(scene)).IsEqual(0);
-        AssertThat(scene.GetNode<Label>("UI/StatusLabel").Text).IsEqual("YOU DIED");
+        AssertThat(scene.GetNode<Label>("ButtonLayer/StatusLabel").Text).IsEqual("YOU DIED");
         AssertThat(scene.GetNode<Button>("UI/RunButton").Disabled).IsTrue();
     }
 
@@ -769,7 +769,7 @@ public class ScoundrelSceneTests
         ClickCard(scene, remaining[0]);
         await _runner!.AwaitIdleFrame();
 
-        AssertThat(scene.GetNode<Label>("UI/StatusLabel").Text).IsEqual("Potion wasted! (one per room)");
+        AssertThat(scene.GetNode<Label>("ButtonLayer/StatusLabel").Text).IsEqual("Potion wasted! (one per room)");
 
         var last = new List<GodotObject>();
         foreach (var obj in (GArray)room.Call("get_all_cards"))
@@ -1108,7 +1108,7 @@ public class ScoundrelSceneTests
             await _runner!.AwaitIdleFrame();
         }
 
-        AssertThat(scene.GetNode<Label>("UI/StatusLabel").Text).IsEqual("YOU WIN!");
+        AssertThat(scene.GetNode<Label>("ButtonLayer/StatusLabel").Text).IsEqual("YOU WIN!");
     }
 
     [TestCase(Description = "Bounce animation activates on game over with one ghost per monster card in the deck")]
