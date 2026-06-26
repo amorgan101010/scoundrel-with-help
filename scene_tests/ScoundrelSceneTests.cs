@@ -321,10 +321,15 @@ public class ScoundrelSceneTests
 
         var weaponCards = (GArray)weaponSlot.Call("get_top_cards", 1);
         var weaponNode  = (Node)weaponCards[0].AsGodotObject();
-        int badgeCount  = 0;
+        Node? badgeNode = null;
         foreach (var child in weaponNode.GetChildren())
-            if (child.IsInGroup("slain_badge")) badgeCount++;
-        AssertThat(badgeCount).IsEqual(1);
+            if (child.IsInGroup("slain_badge")) { badgeNode = child; break; }
+        AssertThat(badgeNode).IsNotNull();
+
+        string badgeText = "";
+        foreach (var grandchild in badgeNode!.GetChildren())
+            if (grandchild is Label lbl) { badgeText = lbl.Text; break; }
+        AssertThat(badgeText).IsEqual("4"); // 4_clubs → rank 4
     }
 
     [TestCase(Description = "Discard pile ordering: most recently added monster is the top card")]
@@ -961,6 +966,120 @@ public class ScoundrelSceneTests
         foreach (var child in w2Node.GetChildren())
             if (child.IsInGroup("slain_badge")) w2Badges++;
         AssertThat(w2Badges).IsEqual(0);
+    }
+
+    [TestCase(Description = "Two weapon kills produce two badges with correct rank text")]
+    public async Task TwoWeaponKills_TwoBadgesWithCorrectText()
+    {
+        // Room 1: 8♦(W8), 6♣(M6), 4♠(M4), 9♥(P9)
+        // Kill M6 first (floor→6), then M4 (4 < 6, floor→4). Both use weapon → 0 HP damage.
+        var deck = new List<CardModel>
+        {
+            // Room 2 padding (all potions)
+            new CardModel(Suit.Hearts, 2, "2_hearts"),
+            new CardModel(Suit.Hearts, 3, "3_hearts"),
+            new CardModel(Suit.Hearts, 4, "4_hearts"),
+            new CardModel(Suit.Hearts, 5, "5_hearts"),
+            // Room 1
+            new CardModel(Suit.Hearts,   9, "9_hearts"),
+            new CardModel(Suit.Spades,   4, "4_spades"),
+            new CardModel(Suit.Clubs,    6, "6_clubs"),
+            new CardModel(Suit.Diamonds, 8, "8_diamonds"),
+        };
+        var game = (ScoundrelGame)_runner!.Scene();
+        game.StartGameWithDeck(deck);
+        await _runner!.AwaitMillis(200);
+
+        var scene      = _runner!.Scene();
+        var weaponSlot = scene.GetNode("UI/WeaponSlot");
+
+        var weapon = FindRoomCard(scene, s => s == "diamonds");
+        AssertThat(weapon).IsNotNull();
+        ClickCard(scene, weapon!);
+        await _runner!.AwaitIdleFrame();
+
+        var monster1 = FindRoomCard(scene, s => s == "clubs");   // 6_clubs → rank 6
+        AssertThat(monster1).IsNotNull();
+        ClickCard(scene, monster1!);
+        await _runner!.AwaitIdleFrame();
+
+        var monster2 = FindRoomCard(scene, s => s == "spades");  // 4_spades → rank 4
+        AssertThat(monster2).IsNotNull();
+        ClickCard(scene, monster2!);
+        await _runner!.AwaitIdleFrame();
+
+        var weaponCards = (GArray)weaponSlot.Call("get_top_cards", 1);
+        var weaponNode  = (Node)weaponCards[0].AsGodotObject();
+
+        var badgeNodes = new List<Node>();
+        foreach (var child in weaponNode.GetChildren())
+            if (child.IsInGroup("slain_badge")) badgeNodes.Add(child);
+        AssertThat(badgeNodes.Count).IsEqual(2);
+
+        string text0 = "", text1 = "";
+        foreach (var gc in badgeNodes[0].GetChildren())
+            if (gc is Label l0) { text0 = l0.Text; break; }
+        foreach (var gc in badgeNodes[1].GetChildren())
+            if (gc is Label l1) { text1 = l1.Text; break; }
+        AssertThat(text0).IsEqual("6");
+        AssertThat(text1).IsEqual("4");
+    }
+
+    [TestCase(Description = "Five weapon kills across two rooms produce five badges (compression layout)")]
+    public async Task FiveWeaponKills_FiveBadgesCompressed()
+    {
+        // Room 1: 10♦(W10), 9♣(M9), 8♠(M8), 7♣(M7)  — all weapon-killable, 0 HP damage.
+        // Room 2: 6♣(M6), 5♠(M5), 2♥(P2), 3♥(P3)    — kills 4 and 5, compression kicks in.
+        var deck = new List<CardModel>
+        {
+            // Room 2 (bottom)
+            new CardModel(Suit.Hearts,   3, "3_hearts"),
+            new CardModel(Suit.Hearts,   2, "2_hearts"),
+            new CardModel(Suit.Spades,   5, "5_spades"),
+            new CardModel(Suit.Clubs,    6, "6_clubs"),
+            // Room 1 (top)
+            new CardModel(Suit.Clubs,    7, "7_clubs"),
+            new CardModel(Suit.Spades,   8, "8_spades"),
+            new CardModel(Suit.Clubs,    9, "9_clubs"),
+            new CardModel(Suit.Diamonds, 10, "10_diamonds"),
+        };
+        var game = (ScoundrelGame)_runner!.Scene();
+        game.StartGameWithDeck(deck);
+        await _runner!.AwaitMillis(200);
+
+        var scene      = _runner!.Scene();
+        var weaponSlot = scene.GetNode("UI/WeaponSlot");
+
+        var weapon = FindRoomCard(scene, s => s == "diamonds");
+        AssertThat(weapon).IsNotNull();
+        ClickCard(scene, weapon!);
+        await _runner!.AwaitIdleFrame();
+
+        // Kill 3 monsters in Room 1 (values 9, 8, 7 in deal order)
+        for (int i = 0; i < 3; i++)
+        {
+            var monster = FindRoomCard(scene, s => s == "clubs" || s == "spades");
+            AssertThat(monster).IsNotNull();
+            ClickCard(scene, monster!);
+            await _runner!.AwaitIdleFrame();
+        }
+        // Room 2 auto-dealt (all 4 Room 1 cards taken)
+
+        // Kill 2 monsters in Room 2 (values 6, 5)
+        for (int i = 0; i < 2; i++)
+        {
+            var monster = FindRoomCard(scene, s => s == "clubs" || s == "spades");
+            AssertThat(monster).IsNotNull();
+            ClickCard(scene, monster!);
+            await _runner!.AwaitIdleFrame();
+        }
+
+        var weaponCards = (GArray)weaponSlot.Call("get_top_cards", 1);
+        var weaponNode  = (Node)weaponCards[0].AsGodotObject();
+        int badgeCount  = 0;
+        foreach (var child in weaponNode.GetChildren())
+            if (child.IsInGroup("slain_badge")) badgeCount++;
+        AssertThat(badgeCount).IsEqual(5);
     }
 
     [TestCase(Description = "Taking all cards from the last room shows YOU WIN")]

@@ -506,7 +506,10 @@ public partial class ScoundrelGame : Node
     private void ClearSlainBadges(GodotObject weaponCard)
     {
         foreach (var badge in SlainBadges((Node)weaponCard))
+        {
+            badge.Visible = false;
             badge.QueueFree();
+        }
     }
 
     private static SysCollections.List<Control> SlainBadges(Node weaponNode)
