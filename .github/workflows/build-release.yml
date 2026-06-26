@@ -90,7 +90,7 @@ jobs:
 
       - name: Build C# project
         if: steps.changed.outputs.build == 'true'
-        run: dotnet build ScoundrelWithHelp.csproj --nologo -v quiet
+        run: dotnet build ScoundrelWithHelp.csproj --configuration Release --nologo -v quiet
 
       - name: Reimport assets
         if: steps.changed.outputs.build == 'true'
@@ -102,11 +102,11 @@ jobs:
           mkdir -p "$GITHUB_WORKSPACE/builds/linux"
           OUT="$GITHUB_WORKSPACE/builds/linux/Scoundrel.$GAME_VERSION.linux.x86_64"
           xvfb-run "$GODOT_BIN" --path "$GITHUB_WORKSPACE" \
-            --export-release "Linux" "$OUT" --verbose || true
+            --export-release "Linux" "$OUT" || true
           test -s "$OUT"
           test -d "$GITHUB_WORKSPACE/builds/linux/data_ScoundrelWithHelp_linuxbsd_x86_64"
           cd "$GITHUB_WORKSPACE/builds/linux"
-          zip -r "$GITHUB_WORKSPACE/Scoundrel.$GAME_VERSION.linux.x86_64.zip" .
+          zip -r "Scoundrel.$GAME_VERSION.linux.x86_64.zip" .
 
       - name: Export Windows build
         if: steps.changed.outputs.build == 'true'
@@ -118,14 +118,14 @@ jobs:
           test -s "$OUT"
           test -d "$GITHUB_WORKSPACE/builds/windows/data_ScoundrelWithHelp_windows_x86_64"
           cd "$GITHUB_WORKSPACE/builds/windows"
-          zip -r "$GITHUB_WORKSPACE/Scoundrel.$GAME_VERSION.windows.x86_64.zip" .
+          zip -r "Scoundrel.$GAME_VERSION.windows.x86_64.zip" .
 
       - name: Upload Linux artifact
         if: steps.changed.outputs.build == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: Scoundrel.${{ env.GAME_VERSION }}.linux.x86_64
-          path: Scoundrel.${{ env.GAME_VERSION }}.linux.x86_64.zip
+          path: builds/linux/
           if-no-files-found: error
 
       - name: Export macOS build
@@ -142,7 +142,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Scoundrel.${{ env.GAME_VERSION }}.macos.arm64
-          path: builds/macos/Scoundrel.${{ env.GAME_VERSION }}.macos.arm64.zip
+          path: builds/macos/
           if-no-files-found: error
 
       - name: Upload Windows artifact
@@ -150,7 +150,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Scoundrel.${{ env.GAME_VERSION }}.windows.x86_64
-          path: Scoundrel.${{ env.GAME_VERSION }}.windows.x86_64.zip
+          path: builds/windows/
           if-no-files-found: error
 
       - name: Create GitHub Release
@@ -160,6 +160,6 @@ jobs:
           tag_name: v${{ env.GAME_VERSION }}
           name: Scoundrel v${{ env.GAME_VERSION }}
           files: |
-            Scoundrel.${{ env.GAME_VERSION }}.linux.x86_64.zip
-            Scoundrel.${{ env.GAME_VERSION }}.windows.x86_64.zip
+            builds/linux/Scoundrel.${{ env.GAME_VERSION }}.linux.x86_64.zip
+            builds/windows/Scoundrel.${{ env.GAME_VERSION }}.windows.x86_64.zip
             builds/macos/Scoundrel.${{ env.GAME_VERSION }}.macos.arm64.zip
