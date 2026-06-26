@@ -24,6 +24,7 @@ public partial class ScoundrelGame : Node
     private Label _leftLabel = null!;
     private Label _rightLabel = null!;
     private Label _healthLabel = null!;
+    private HealthDie _healthDie = null!;
     private Label _weaponLabel = null!;
     private Label _statusLabel = null!;
     private Label _deckLabel = null!;
@@ -105,6 +106,12 @@ public partial class ScoundrelGame : Node
         _helpDialog     = GetNode<AcceptDialog>("UI/HelpDialog");
 
         _cardFactory = (GodotObject)_cardManager.Get("card_factory");
+
+        // D20 health display — replaces the hidden HealthLabel visually.
+        _healthDie          = new HealthDie();
+        _healthDie.Size     = new Vector2(82f, 82f);
+        _healthDie.Position = new Vector2(18f, 12f);
+        GetNode<CanvasLayer>("UI").AddChild(_healthDie);
 
         // Lift retry + help buttons and status text above the bounce layer (201).
         // HudLayer: status/flavor text (display only, game-over and in-game messages)
@@ -707,6 +714,7 @@ public partial class ScoundrelGame : Node
     private void UpdateUI()
     {
         _healthLabel.Text = $"HP: {_engine.Health} / {ScoundrelRules.MaxHealth}";
+        _healthDie.SetHealth(_engine.Health, ScoundrelRules.MaxHealth);
 
         if (_engine.EquippedWeapon != null)
         {
