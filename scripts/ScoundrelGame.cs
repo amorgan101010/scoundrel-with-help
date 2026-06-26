@@ -457,7 +457,7 @@ public partial class ScoundrelGame : Node
         AddChild(_bounceLayer);
 
         var rng = new System.Random();
-        const float Speed      = 220f;
+        const float MinSpeed   = 120f, MaxSpeed = 340f;
         const float CardW      = 150f, CardH = 210f;
         const float DealStep   = 0.35f; // seconds between each card being dealt
         const float TweenDur   = 0.25f; // slide-to-position duration
@@ -496,7 +496,8 @@ public partial class ScoundrelGame : Node
                 (float)(rng.NextDouble() * (vpSize.X - CardW)),
                 (float)(rng.NextDouble() * (vpSize.Y - CardH)));
             float angle = (float)(rng.NextDouble() * System.Math.PI * 2);
-            var vel = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * Speed;
+            float speed = MinSpeed + (float)(rng.NextDouble() * (MaxSpeed - MinSpeed));
+            var vel = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * speed;
 
             // Staggered deal: show ghost after delay, slide to random spot, then bounce.
             var timer = GetTree().CreateTimer(DealStep * i);
