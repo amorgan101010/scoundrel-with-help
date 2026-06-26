@@ -6,6 +6,7 @@
 [ext_resource type="Script" uid="uid://6ams8uvg43gu" path="res://addons/card-framework/pile.gd" id="4_pile"]
 [ext_resource type="Script" uid="uid://nge5xs0pqlvl" path="res://scenes/RoomContainer.gd" id="5_room"]
 [ext_resource type="Script" path="res://scenes/DropZoneContainer.gd" id="6_dzc"]
+[ext_resource type="FontFile" path="res://fonts/DejaVuSans.ttf" id="7_font"]
 
 [node name="Game" type="Node" unique_id=1067270305]
 script = ExtResource("1_gm")
@@ -135,6 +136,7 @@ offset_left = 215.0
 offset_top = 358.0
 offset_right = 385.0
 offset_bottom = 382.0
+theme_override_fonts/font = ExtResource("7_font")
 theme_override_font_sizes/font_size = 16
 text = "♣  13"
 
@@ -143,6 +145,7 @@ offset_left = 215.0
 offset_top = 386.0
 offset_right = 385.0
 offset_bottom = 410.0
+theme_override_fonts/font = ExtResource("7_font")
 theme_override_font_sizes/font_size = 16
 text = "♠  13"
 
@@ -151,6 +154,7 @@ offset_left = 215.0
 offset_top = 414.0
 offset_right = 385.0
 offset_bottom = 438.0
+theme_override_fonts/font = ExtResource("7_font")
 theme_override_font_sizes/font_size = 16
 text = "♥  9"
 
@@ -159,6 +163,7 @@ offset_left = 215.0
 offset_top = 442.0
 offset_right = 385.0
 offset_bottom = 466.0
+theme_override_fonts/font = ExtResource("7_font")
 theme_override_font_sizes/font_size = 16
 text = "♦  9"
 
@@ -219,6 +224,7 @@ offset_left = 800.0
 offset_top = 615.0
 offset_right = 960.0
 offset_bottom = 650.0
+theme_override_fonts/font = ExtResource("7_font")
 text = "↺ New Game"
 
 [node name="HelpButton" type="Button" parent="UI" unique_id=1844877452]
