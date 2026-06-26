@@ -74,18 +74,12 @@ jobs:
         if: steps.changed.outputs.build == 'true'
         run: |
           curl -fsSL \
-            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-${GODOT_STABILITY}/Godot_v${GODOT_VERSION}-${GODOT_STABILITY}_export_templates.tpz" \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-${GODOT_STABILITY}/Godot_v${GODOT_VERSION}-${GODOT_STABILITY}_mono_export_templates.tpz" \
             -o templates.tpz
           TEMPLATES_DIR="$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.${GODOT_STABILITY}.mono"
           mkdir -p "$TEMPLATES_DIR"
           unzip -q templates.tpz -d /tmp/templates_extract
           mv /tmp/templates_extract/templates/* "$TEMPLATES_DIR/"
-          # The standard TPZ ships non-.NET linux binaries (v4.7.stable.official).
-          # Godot 4.7 dropped the .mono suffix; it just uses linux_release.x86_64.
-          # Overwrite with the mono editor binary (v4.7.stable.mono.official) so
-          # the exported game has .NET support compiled in.
-          cp "$GODOT_BIN" "$TEMPLATES_DIR/linux_release.x86_64"
-          cp "$GODOT_BIN" "$TEMPLATES_DIR/linux_debug.x86_64"
 
       - name: Point NuGet at downloaded GodotSharp
         if: steps.changed.outputs.build == 'true'
