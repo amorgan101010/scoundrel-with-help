@@ -84,21 +84,21 @@ public partial class ScoundrelGame : Node
     public override void _Ready()
     {
         _cardManager    = GetNode<Node>("CardManager");
-        _deckPile       = GetNode<Node>("UI/DeckPile");
-        _discardPile    = GetNode<Node>("UI/DiscardPile");
-        _weaponSlot     = GetNode<Node>("UI/WeaponSlot");
+        _deckPile       = GetNode<Node>("UI/RightPanel/DeckGroup/DeckPile");
+        _discardPile    = GetNode<Node>("UI/RightPanel/DiscardGroup/DiscardPile");
+        _weaponSlot     = GetNode<Node>("UI/LeftPanel/WeaponGroup/WeaponSlot");
         _roomContainer  = GetNode<Node>("UI/RoomContainer");
-        _leftDropZone   = GetNode<Node>("UI/LeftDropZone");
-        _rightDropZone  = GetNode<Node>("UI/RightDropZone");
+        _leftDropZone   = GetNode<Node>("UI/LeftPanel/LeftDropZone");
+        _rightDropZone  = GetNode<Node>("UI/RightPanel/RightDropZone");
         _healthLabel    = GetNode<Label>("UI/HealthLabel");
-        _weaponLabel    = GetNode<Label>("UI/WeaponLabel");
+        _weaponLabel    = GetNode<Label>("UI/LeftPanel/WeaponGroup/WeaponLabel");
         _statusLabel    = GetNode<Label>("UI/StatusLabel");
-        _deckLabel      = GetNode<Label>("UI/DeckLabel");
-        _discardLabel   = GetNode<Label>("UI/DiscardLabel");
-        _clubsLabel     = GetNode<Label>("UI/ClubsLabel");
-        _spadesLabel    = GetNode<Label>("UI/SpadesLabel");
-        _heartsLabel    = GetNode<Label>("UI/HeartsLabel");
-        _diamondsLabel  = GetNode<Label>("UI/DiamondsLabel");
+        _deckLabel      = GetNode<Label>("UI/RightPanel/DeckGroup/DeckLabel");
+        _discardLabel   = GetNode<Label>("UI/RightPanel/DiscardGroup/DiscardLabel");
+        _clubsLabel     = GetNode<Label>("UI/LeftPanel/InPlayGroup/ClubsLabel");
+        _spadesLabel    = GetNode<Label>("UI/LeftPanel/InPlayGroup/SpadesLabel");
+        _heartsLabel    = GetNode<Label>("UI/LeftPanel/InPlayGroup/HeartsLabel");
+        _diamondsLabel  = GetNode<Label>("UI/LeftPanel/InPlayGroup/DiamondsLabel");
         _runButton      = GetNode<Button>("UI/RunButton");
         _nextRoomButton = GetNode<Button>("UI/NextRoomButton");
         _retryButton    = GetNode<Button>("UI/RetryButton");
@@ -107,11 +107,7 @@ public partial class ScoundrelGame : Node
 
         _cardFactory = (GodotObject)_cardManager.Get("card_factory");
 
-        // D20 health display — replaces the hidden HealthLabel visually.
-        _healthDie          = new HealthDie();
-        _healthDie.Size     = new Vector2(130f, 130f);
-        _healthDie.Position = new Vector2(40f, 12f);
-        GetNode<CanvasLayer>("UI").AddChild(_healthDie);
+        _healthDie = GetNode<HealthDie>("UI/LeftPanel/HealthDie");
 
         // Lift retry + help buttons and status text above the bounce layer (201).
         // HudLayer: status/flavor text (display only, game-over and in-game messages)
@@ -127,8 +123,8 @@ public partial class ScoundrelGame : Node
         _flavorLabel.GrowHorizontal      = Control.GrowDirection.Both;
         _flavorLabel.OffsetLeft          = -200f;
         _flavorLabel.OffsetRight         =  200f;
-        _flavorLabel.OffsetTop           =   68f;
-        _flavorLabel.OffsetBottom        =   95f;
+        _flavorLabel.OffsetTop           =  103f;
+        _flavorLabel.OffsetBottom        =  130f;
         _flavorLabel.HorizontalAlignment = HorizontalAlignment.Center;
         _flavorLabel.AddThemeFontSizeOverride("font_size", 18);
         _flavorLabel.AddThemeColorOverride("font_color", new Color(0.75f, 0.5f, 0.5f));
@@ -148,10 +144,10 @@ public partial class ScoundrelGame : Node
         var overlayLayer = new CanvasLayer();
         overlayLayer.Layer = 128;
         AddChild(overlayLayer);
-        _leftHighlight  = AddZoneHighlight(overlayLayer, new Vector2(0, 70),   new Vector2(320, 550), new Color(0.25f, 0.8f, 0.25f, 0.30f));
-        _rightHighlight = AddZoneHighlight(overlayLayer, new Vector2(820, 70), new Vector2(300, 550), new Color(0.25f, 0.5f, 1.0f,  0.30f));
-        _leftLabel      = AddZoneLabel(overlayLayer, new Vector2(0, 70),   new Vector2(320, 550));
-        _rightLabel     = AddZoneLabel(overlayLayer, new Vector2(820, 70), new Vector2(300, 550));
+        _leftHighlight  = AddZoneHighlight(overlayLayer, 0,   320, false, new Color(0.25f, 0.8f, 0.25f, 0.30f));
+        _rightHighlight = AddZoneHighlight(overlayLayer, 820, 0,   true,  new Color(0.25f, 0.5f, 1.0f,  0.30f));
+        _leftLabel      = AddZoneLabel(overlayLayer, 0,   320, false);
+        _rightLabel     = AddZoneLabel(overlayLayer, 820, 0,   true);
 
         _sfxPunch         = CreateSfxPlayer("res://samples/punch.wav");
         _sfxBubbles       = CreateSfxPlayer("res://samples/bubbles.wav");
@@ -757,29 +753,35 @@ public partial class ScoundrelGame : Node
         player.Play();
     }
 
-    private static Label AddZoneLabel(Node parent, Vector2 pos, Vector2 size)
+    private static Label AddZoneLabel(Node parent, float left, float right, bool stretchRight)
     {
         var label = new Label();
-        label.Position             = pos;
-        label.Size                 = size;
-        label.HorizontalAlignment  = HorizontalAlignment.Center;
-        label.VerticalAlignment    = VerticalAlignment.Center;
+        label.AnchorBottom        = 1.0f;
+        label.GrowVertical        = Control.GrowDirection.Both;
+        label.OffsetLeft          = left;
+        if (stretchRight) { label.AnchorRight = 1.0f; label.GrowHorizontal = Control.GrowDirection.Both; }
+        else              { label.OffsetRight = right; }
+        label.HorizontalAlignment = HorizontalAlignment.Center;
+        label.VerticalAlignment   = VerticalAlignment.Center;
         label.AddThemeFontSizeOverride("font_size", 28);
         label.AddThemeColorOverride("font_color", new Color(1f, 1f, 1f, 0.9f));
-        label.MouseFilter          = Control.MouseFilterEnum.Ignore;
-        label.Visible              = false;
+        label.MouseFilter         = Control.MouseFilterEnum.Ignore;
+        label.Visible             = false;
         parent.AddChild(label);
         return label;
     }
 
-    private static ColorRect AddZoneHighlight(Node parent, Vector2 pos, Vector2 size, Color color)
+    private static ColorRect AddZoneHighlight(Node parent, float left, float right, bool stretchRight, Color color)
     {
         var rect = new ColorRect();
-        rect.Position    = pos;
-        rect.Size        = size;
-        rect.Color       = color;
-        rect.MouseFilter = Control.MouseFilterEnum.Ignore;
-        rect.Visible     = false;
+        rect.AnchorBottom = 1.0f;
+        rect.GrowVertical = Control.GrowDirection.Both;
+        rect.OffsetLeft   = left;
+        if (stretchRight) { rect.AnchorRight = 1.0f; rect.GrowHorizontal = Control.GrowDirection.Both; }
+        else              { rect.OffsetRight = right; }
+        rect.Color        = color;
+        rect.MouseFilter  = Control.MouseFilterEnum.Ignore;
+        rect.Visible      = false;
         parent.AddChild(rect);
         return rect;
     }

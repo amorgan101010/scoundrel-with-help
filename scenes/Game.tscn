@@ -6,6 +6,7 @@
 [ext_resource type="Script" uid="uid://6ams8uvg43gu" path="res://addons/card-framework/pile.gd" id="4_pile"]
 [ext_resource type="Script" uid="uid://nge5xs0pqlvl" path="res://scenes/RoomContainer.gd" id="5_room"]
 [ext_resource type="Script" path="res://scenes/DropZoneContainer.gd" id="6_dzc"]
+[ext_resource type="Script" path="res://scripts/HealthDie.cs" id="7_hd"]
 
 [node name="Game" type="Node" unique_id=1067270305]
 script = ExtResource("1_gm")
@@ -35,46 +36,151 @@ offset_bottom = 60.0
 theme_override_font_sizes/font_size = 22
 text = "HP: 20 / 20"
 
-[node name="WeaponLabel" type="Label" parent="UI" unique_id=180637555]
+[node name="LeftPanel" type="Control" parent="UI" unique_id=321654987]
+layout_mode = 3
+anchor_bottom = 1.0
+grow_vertical = 2
+offset_right = 385.0
+mouse_filter = 2
+
+[node name="HealthDie" type="Control" parent="UI/LeftPanel" unique_id=876543210]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 40.0
+offset_top = 12.0
+offset_right = 170.0
+offset_bottom = 142.0
+script = ExtResource("7_hd")
+
+[node name="WeaponGroup" type="Control" parent="UI/LeftPanel" unique_id=111222333]
+layout_mode = 3
+anchors_preset = 0
 offset_left = 30.0
 offset_top = 164.0
 offset_right = 380.0
-offset_bottom = 182.0
+offset_bottom = 408.0
+mouse_filter = 2
+
+[node name="WeaponLabel" type="Label" parent="UI/LeftPanel/WeaponGroup" unique_id=180637555]
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 350.0
+offset_bottom = 18.0
 theme_override_font_sizes/font_size = 16
 text = "Weapon: none"
+
+[node name="WeaponSlot" type="Control" parent="UI/LeftPanel/WeaponGroup" unique_id=249709180]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 0.0
+offset_top = 34.0
+offset_right = 150.0
+offset_bottom = 244.0
+mouse_filter = 1
+script = ExtResource("4_pile")
+allow_card_movement = false
+restrict_to_top_card = false
+enable_drop_zone = false
+
+[node name="InPlayGroup" type="Control" parent="UI/LeftPanel" unique_id=444555666]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 200.0
+offset_top = 198.0
+offset_right = 385.0
+offset_bottom = 328.0
+mouse_filter = 2
+
+[node name="InPlayHeader" type="Label" parent="UI/LeftPanel/InPlayGroup" unique_id=1772774764]
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 185.0
+offset_bottom = 20.0
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 13
+text = "IN PLAY:"
+
+[node name="ClubsLabel" type="Label" parent="UI/LeftPanel/InPlayGroup" unique_id=173415]
+offset_left = 0.0
+offset_top = 22.0
+offset_right = 185.0
+offset_bottom = 46.0
+theme_override_font_sizes/font_size = 16
+text = "♣  13"
+
+[node name="SpadesLabel" type="Label" parent="UI/LeftPanel/InPlayGroup" unique_id=710810895]
+offset_left = 0.0
+offset_top = 50.0
+offset_right = 185.0
+offset_bottom = 74.0
+theme_override_font_sizes/font_size = 16
+text = "♠  13"
+
+[node name="HeartsLabel" type="Label" parent="UI/LeftPanel/InPlayGroup" unique_id=1783802266]
+offset_left = 0.0
+offset_top = 78.0
+offset_right = 185.0
+offset_bottom = 102.0
+theme_override_font_sizes/font_size = 16
+text = "♥  9"
+
+[node name="DiamondsLabel" type="Label" parent="UI/LeftPanel/InPlayGroup" unique_id=576063759]
+offset_left = 0.0
+offset_top = 106.0
+offset_right = 185.0
+offset_bottom = 130.0
+theme_override_font_sizes/font_size = 16
+text = "♦  9"
+
+[node name="LeftDropZone" type="Control" parent="UI/LeftPanel" unique_id=1365540473]
+visible = false
+layout_mode = 3
+anchor_bottom = 1.0
+grow_vertical = 2
+offset_right = 320.0
+mouse_filter = 1
+script = ExtResource("6_dzc")
+card_face_up = false
+allow_card_movement = false
+restrict_to_top_card = false
 
 [node name="StatusLabel" type="Label" parent="UI" unique_id=927201028]
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -150.0
-offset_top = 20.0
+offset_top = 55.0
 offset_right = 150.0
-offset_bottom = 60.0
+offset_bottom = 95.0
 grow_horizontal = 2
 theme_override_font_sizes/font_size = 36
 horizontal_alignment = 1
 
-[node name="WeaponSlot" type="Control" parent="UI" unique_id=249709180]
+[node name="RightPanel" type="Control" parent="UI" unique_id=789012345]
 layout_mode = 3
-anchors_preset = 0
-offset_left = 30.0
-offset_top = 198.0
-offset_right = 180.0
-offset_bottom = 408.0
-mouse_filter = 1
-script = ExtResource("4_pile")
-allow_card_movement = false
-restrict_to_top_card = false
-enable_drop_zone = false
-
-[node name="DeckPile" type="Control" parent="UI" unique_id=2038153143]
-layout_mode = 3
-anchors_preset = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 offset_left = 940.0
+mouse_filter = 2
+
+[node name="DeckGroup" type="Control" parent="UI/RightPanel" unique_id=234567890]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 0.0
 offset_top = 48.0
-offset_right = 1090.0
-offset_bottom = 258.0
+offset_right = 150.0
+offset_bottom = 288.0
+mouse_filter = 2
+
+[node name="DeckPile" type="Control" parent="UI/RightPanel/DeckGroup" unique_id=2038153143]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 150.0
+offset_bottom = 210.0
 mouse_filter = 1
 script = ExtResource("4_pile")
 card_face_up = false
@@ -82,143 +188,107 @@ allow_card_movement = false
 restrict_to_top_card = false
 enable_drop_zone = false
 
-[node name="DiscardPile" type="Control" parent="UI" unique_id=44963075]
+[node name="DeckLabel" type="Label" parent="UI/RightPanel/DeckGroup" unique_id=409472614]
+offset_left = 0.0
+offset_top = 214.0
+offset_right = 150.0
+offset_bottom = 240.0
+text = "DECK"
+horizontal_alignment = 1
+
+[node name="DiscardGroup" type="Control" parent="UI/RightPanel" unique_id=345678901]
 layout_mode = 3
 anchors_preset = 0
-offset_left = 940.0
+offset_left = 0.0
 offset_top = 325.0
-offset_right = 1090.0
-offset_bottom = 535.0
+offset_right = 150.0
+offset_bottom = 576.0
+mouse_filter = 2
+
+[node name="DiscardPile" type="Control" parent="UI/RightPanel/DiscardGroup" unique_id=44963075]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 150.0
+offset_bottom = 210.0
 mouse_filter = 1
 script = ExtResource("4_pile")
 allow_card_movement = false
 restrict_to_top_card = false
 enable_drop_zone = false
 
+[node name="DiscardLabel" type="Label" parent="UI/RightPanel/DiscardGroup" unique_id=1489401123]
+offset_left = 0.0
+offset_top = 225.0
+offset_right = 150.0
+offset_bottom = 251.0
+text = "DISCARD"
+horizontal_alignment = 1
+
+[node name="RightDropZone" type="Control" parent="UI/RightPanel" unique_id=1530563607]
+visible = false
+layout_mode = 3
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+offset_left = -120.0
+mouse_filter = 1
+script = ExtResource("6_dzc")
+card_face_up = false
+allow_card_movement = false
+restrict_to_top_card = false
+
 [node name="RoomContainer" type="Control" parent="UI" unique_id=355512689]
 layout_mode = 3
-anchors_preset = 0
-offset_left = 390.0
-offset_top = 130.0
-offset_right = 730.0
-offset_bottom = 590.0
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+offset_left = -160.0
+offset_top = -220.0
+offset_right = 160.0
+offset_bottom = 220.0
 mouse_filter = 1
 script = ExtResource("5_room")
 enable_drop_zone = false
 
-[node name="DeckLabel" type="Label" parent="UI" unique_id=409472614]
-offset_left = 940.0
-offset_top = 262.0
-offset_right = 1090.0
-offset_bottom = 288.0
-text = "DECK"
-horizontal_alignment = 1
-
-[node name="DiscardLabel" type="Label" parent="UI" unique_id=1489401123]
-offset_left = 940.0
-offset_top = 550.0
-offset_right = 1090.0
-offset_bottom = 576.0
-text = "DISCARD"
-horizontal_alignment = 1
-
-[node name="InPlayHeader" type="Label" parent="UI" unique_id=1772774764]
-offset_left = 200.0
-offset_top = 198.0
-offset_right = 385.0
-offset_bottom = 218.0
-theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
-theme_override_font_sizes/font_size = 13
-text = "IN PLAY:"
-
-[node name="ClubsLabel" type="Label" parent="UI" unique_id=173415]
-offset_left = 200.0
-offset_top = 220.0
-offset_right = 385.0
-offset_bottom = 244.0
-theme_override_font_sizes/font_size = 16
-text = "♣  13"
-
-[node name="SpadesLabel" type="Label" parent="UI" unique_id=710810895]
-offset_left = 200.0
-offset_top = 248.0
-offset_right = 385.0
-offset_bottom = 272.0
-theme_override_font_sizes/font_size = 16
-text = "♠  13"
-
-[node name="HeartsLabel" type="Label" parent="UI" unique_id=1783802266]
-offset_left = 200.0
-offset_top = 276.0
-offset_right = 385.0
-offset_bottom = 300.0
-theme_override_font_sizes/font_size = 16
-text = "♥  9"
-
-[node name="DiamondsLabel" type="Label" parent="UI" unique_id=576063759]
-offset_left = 200.0
-offset_top = 304.0
-offset_right = 385.0
-offset_bottom = 328.0
-theme_override_font_sizes/font_size = 16
-text = "♦  9"
-
-[node name="LeftDropZone" type="Control" parent="UI" unique_id=1365540473]
-visible = false
-layout_mode = 3
-anchors_preset = 0
-offset_top = 70.0
-offset_right = 320.0
-offset_bottom = 620.0
-mouse_filter = 1
-script = ExtResource("6_dzc")
-card_face_up = false
-allow_card_movement = false
-restrict_to_top_card = false
-sensor_size = Vector2(320, 550)
-
-[node name="RightDropZone" type="Control" parent="UI" unique_id=1530563607]
-visible = false
-layout_mode = 3
-anchors_preset = 0
-offset_left = 820.0
-offset_top = 70.0
-offset_right = 1120.0
-offset_bottom = 620.0
-mouse_filter = 1
-script = ExtResource("6_dzc")
-card_face_up = false
-allow_card_movement = false
-restrict_to_top_card = false
-sensor_size = Vector2(300, 550)
-
 [node name="RunButton" type="Button" parent="UI" unique_id=615236865]
+anchor_top = 1.0
+anchor_bottom = 1.0
+grow_vertical = 0
 offset_left = 390.0
-offset_top = 615.0
+offset_top = -45.0
 offset_right = 555.0
-offset_bottom = 650.0
+offset_bottom = -10.0
 text = "RUN (skip room)"
 
 [node name="NextRoomButton" type="Button" parent="UI" unique_id=1785200382]
 visible = false
+anchor_top = 1.0
+anchor_bottom = 1.0
+grow_vertical = 0
 offset_left = 565.0
-offset_top = 615.0
+offset_top = -45.0
 offset_right = 730.0
-offset_bottom = 650.0
+offset_bottom = -10.0
 text = "Next Room →"
 
 [node name="RetryButton" type="Button" parent="UI" unique_id=1426019074]
-offset_left = 800.0
-offset_top = 615.0
-offset_right = 960.0
-offset_bottom = 650.0
+offset_left = 441.0
+offset_top = 10.0
+offset_right = 601.0
+offset_bottom = 45.0
 text = "↺ New Game"
 
 [node name="HelpButton" type="Button" parent="UI" unique_id=1844877452]
-offset_left = 970.0
-offset_top = 615.0
-offset_right = 1040.0
-offset_bottom = 650.0
+offset_left = 609.0
+offset_top = 10.0
+offset_right = 679.0
+offset_bottom = 45.0
 text = "? Help"
 
 [node name="HelpDialog" type="AcceptDialog" parent="UI" unique_id=2005807090]

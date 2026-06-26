@@ -157,9 +157,9 @@ public class ScoundrelSceneTests
         var scene = _runner!.Scene();
 
         AssertThat(scene.GetNode<Label>("UI/HealthLabel").Text).IsEqual("HP: 20 / 20");
-        AssertThat(scene.GetNode<Label>("UI/WeaponLabel").Text).IsEqual("Weapon: none");
-        AssertThat(scene.GetNode<Label>("UI/DeckLabel").Text).IsEqual("DECK (40)");
-        AssertThat(scene.GetNode<Label>("UI/DiscardLabel").Text).IsEqual("DISCARD (0)");
+        AssertThat(scene.GetNode<Label>("UI/LeftPanel/WeaponGroup/WeaponLabel").Text).IsEqual("Weapon: none");
+        AssertThat(scene.GetNode<Label>("UI/RightPanel/DeckGroup/DeckLabel").Text).IsEqual("DECK (40)");
+        AssertThat(scene.GetNode<Label>("UI/RightPanel/DiscardGroup/DiscardLabel").Text).IsEqual("DISCARD (0)");
 
         var roomCards = (GArray)scene.GetNode("UI/RoomContainer").Call("get_all_cards");
         AssertThat(roomCards.Count).IsEqual(4);
@@ -181,7 +181,7 @@ public class ScoundrelSceneTests
         await _runner!.AwaitIdleFrame();
 
         AssertThat(ParseHP(scene)).IsEqual(20 - expectedDamage);
-        AssertThat(scene.GetNode<Label>("UI/DiscardLabel").Text).IsEqual("DISCARD (1)");
+        AssertThat(scene.GetNode<Label>("UI/RightPanel/DiscardGroup/DiscardLabel").Text).IsEqual("DISCARD (1)");
     }
 
     [TestCase(Description = "Clicking a diamond weapon equips it and updates the weapon label")]
@@ -199,11 +199,11 @@ public class ScoundrelSceneTests
         ClickCard(scene, weapon);
         await _runner!.AwaitIdleFrame();
 
-        var weaponLabel = scene.GetNode<Label>("UI/WeaponLabel").Text;
+        var weaponLabel = scene.GetNode<Label>("UI/LeftPanel/WeaponGroup/WeaponLabel").Text;
         AssertThat(weaponLabel).IsNotEqual("Weapon: none");
         AssertThat(weaponLabel).Contains(cardName);
         // Weapon goes to weapon slot, not discard
-        AssertThat(scene.GetNode<Label>("UI/DiscardLabel").Text).IsEqual("DISCARD (0)");
+        AssertThat(scene.GetNode<Label>("UI/RightPanel/DiscardGroup/DiscardLabel").Text).IsEqual("DISCARD (0)");
     }
 
     [TestCase(Description = "Clicking a potion card restores HP (capped at 20)")]
@@ -246,7 +246,7 @@ public class ScoundrelSceneTests
         await _runner!.AwaitIdleFrame();
 
         // 4 room cards returned to deck, then 4 new ones dealt → still 40 in deck
-        AssertThat(scene.GetNode<Label>("UI/DeckLabel").Text).IsEqual("DECK (40)");
+        AssertThat(scene.GetNode<Label>("UI/RightPanel/DeckGroup/DeckLabel").Text).IsEqual("DECK (40)");
 
         // Room must have 4 new cards
         var roomCards = (GArray)scene.GetNode("UI/RoomContainer").Call("get_all_cards");
@@ -301,8 +301,8 @@ public class ScoundrelSceneTests
     {
         await SetupFixedDeck();
         var scene       = _runner!.Scene();
-        var weaponSlot  = scene.GetNode("UI/WeaponSlot");
-        var discardPile = scene.GetNode("UI/DiscardPile");
+        var weaponSlot  = scene.GetNode("UI/LeftPanel/WeaponGroup/WeaponSlot");
+        var discardPile = scene.GetNode("UI/RightPanel/DiscardGroup/DiscardPile");
 
         // Equip 6_diamonds
         var weapon = FindRoomCard(scene, s => s == "diamonds");
@@ -337,7 +337,7 @@ public class ScoundrelSceneTests
     {
         await SetupFixedDeck();
         var scene       = _runner!.Scene();
-        var discardPile = scene.GetNode("UI/DiscardPile");
+        var discardPile = scene.GetNode("UI/RightPanel/DiscardGroup/DiscardPile");
 
         // No weapon equipped. FixedDeck Room 1 has 4_clubs and 8_spades.
         var clubs  = FindRoomCard(scene, s => s == "clubs");
@@ -425,8 +425,8 @@ public class ScoundrelSceneTests
 
         // Card discarded — room has 3 cards, weapon slot still empty.
         AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(3);
-        AssertThat(scene.GetNode<Label>("UI/WeaponLabel").Text).IsEqual("Weapon: none");
-        AssertThat((int)scene.GetNode("UI/DiscardPile").Call("get_card_count")).IsEqual(1);
+        AssertThat(scene.GetNode<Label>("UI/LeftPanel/WeaponGroup/WeaponLabel").Text).IsEqual("Weapon: none");
+        AssertThat((int)scene.GetNode("UI/RightPanel/DiscardGroup/DiscardPile").Call("get_card_count")).IsEqual(1);
     }
 
     [TestCase(Description = "Dragging a potion to the left zone drinks it, healing the player")]
@@ -493,7 +493,7 @@ public class ScoundrelSceneTests
         ClickCard(scene, weapon!);
         await _runner!.AwaitMillis(800); // let weapon move animation finish
 
-        AssertThat(scene.GetNode<Label>("UI/WeaponLabel").Text).IsNotEqual("Weapon: none");
+        AssertThat(scene.GetNode<Label>("UI/LeftPanel/WeaponGroup/WeaponLabel").Text).IsNotEqual("Weapon: none");
 
         // Drag 4_clubs (monster, value 4) to RIGHT zone — bare-handed, no weapon applied.
         var monster = FindRoomCard(scene, s => s == "clubs");
@@ -625,8 +625,8 @@ public class ScoundrelSceneTests
         // Strategy: equip weapon(6), fight 4_clubs (floor→4, badge on weapon, goes to discard),
         //           fight 8_spades (8 >= floor(4), weapon blocked → goes to discard bare-handed).
         var scene       = _runner!.Scene();
-        var weaponSlot  = scene.GetNode("UI/WeaponSlot");
-        var discardPile = scene.GetNode("UI/DiscardPile");
+        var weaponSlot  = scene.GetNode("UI/LeftPanel/WeaponGroup/WeaponSlot");
+        var discardPile = scene.GetNode("UI/RightPanel/DiscardGroup/DiscardPile");
 
         var weapon = FindRoomCard(scene, s => s == "diamonds");
         AssertThat(weapon).IsNotNull();
@@ -916,7 +916,7 @@ public class ScoundrelSceneTests
         await _runner!.AwaitMillis(200);
 
         var scene      = _runner!.Scene();
-        var weaponSlot = scene.GetNode("UI/WeaponSlot");
+        var weaponSlot = scene.GetNode("UI/LeftPanel/WeaponGroup/WeaponSlot");
 
         // Equip 6_diamonds (weapon1)
         var weapon1 = FindRoomCard(scene, s => s == "diamonds");
@@ -991,7 +991,7 @@ public class ScoundrelSceneTests
         await _runner!.AwaitMillis(200);
 
         var scene      = _runner!.Scene();
-        var weaponSlot = scene.GetNode("UI/WeaponSlot");
+        var weaponSlot = scene.GetNode("UI/LeftPanel/WeaponGroup/WeaponSlot");
 
         var weapon = FindRoomCard(scene, s => s == "diamonds");
         AssertThat(weapon).IsNotNull();
@@ -1048,7 +1048,7 @@ public class ScoundrelSceneTests
         await _runner!.AwaitMillis(200);
 
         var scene      = _runner!.Scene();
-        var weaponSlot = scene.GetNode("UI/WeaponSlot");
+        var weaponSlot = scene.GetNode("UI/LeftPanel/WeaponGroup/WeaponSlot");
 
         var weapon = FindRoomCard(scene, s => s == "diamonds");
         AssertThat(weapon).IsNotNull();
