@@ -36,10 +36,10 @@ theme_override_font_sizes/font_size = 22
 text = "HP: 20 / 20"
 
 [node name="WeaponLabel" type="Label" parent="UI" unique_id=180637555]
-offset_left = 8.0
-offset_top = 252.0
+offset_left = 30.0
+offset_top = 164.0
 offset_right = 380.0
-offset_bottom = 276.0
+offset_bottom = 182.0
 theme_override_font_sizes/font_size = 16
 text = "Weapon: none"
 
@@ -59,9 +59,9 @@ horizontal_alignment = 1
 layout_mode = 3
 anchors_preset = 0
 offset_left = 30.0
-offset_top = 298.0
+offset_top = 198.0
 offset_right = 180.0
-offset_bottom = 508.0
+offset_bottom = 408.0
 mouse_filter = 1
 script = ExtResource("4_pile")
 allow_card_movement = false
@@ -124,52 +124,44 @@ horizontal_alignment = 1
 
 [node name="InPlayHeader" type="Label" parent="UI" unique_id=1772774764]
 offset_left = 200.0
-offset_top = 298.0
+offset_top = 198.0
 offset_right = 385.0
-offset_bottom = 318.0
+offset_bottom = 218.0
 theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
 theme_override_font_sizes/font_size = 13
 text = "IN PLAY:"
 
 [node name="ClubsLabel" type="Label" parent="UI" unique_id=173415]
 offset_left = 200.0
-offset_top = 320.0
+offset_top = 220.0
 offset_right = 385.0
-offset_bottom = 344.0
+offset_bottom = 244.0
 theme_override_font_sizes/font_size = 16
 text = "♣  13"
 
 [node name="SpadesLabel" type="Label" parent="UI" unique_id=710810895]
 offset_left = 200.0
-offset_top = 348.0
+offset_top = 248.0
 offset_right = 385.0
-offset_bottom = 372.0
+offset_bottom = 272.0
 theme_override_font_sizes/font_size = 16
 text = "♠  13"
 
 [node name="HeartsLabel" type="Label" parent="UI" unique_id=1783802266]
 offset_left = 200.0
-offset_top = 376.0
+offset_top = 276.0
 offset_right = 385.0
-offset_bottom = 400.0
+offset_bottom = 300.0
 theme_override_font_sizes/font_size = 16
 text = "♥  9"
 
 [node name="DiamondsLabel" type="Label" parent="UI" unique_id=576063759]
 offset_left = 200.0
-offset_top = 404.0
+offset_top = 304.0
 offset_right = 385.0
-offset_bottom = 428.0
+offset_bottom = 328.0
 theme_override_font_sizes/font_size = 16
 text = "♦  9"
-
-[node name="WeaponLabel2" type="Label" parent="UI" unique_id=1589601194]
-offset_left = 30.0
-offset_top = 278.0
-offset_right = 180.0
-offset_bottom = 296.0
-text = "WEAPON SLOT"
-horizontal_alignment = 1
 
 [node name="LeftDropZone" type="Control" parent="UI" unique_id=1365540473]
 visible = false

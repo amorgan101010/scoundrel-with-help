@@ -110,7 +110,7 @@ public partial class ScoundrelGame : Node
         // D20 health display — replaces the hidden HealthLabel visually.
         _healthDie          = new HealthDie();
         _healthDie.Size     = new Vector2(130f, 130f);
-        _healthDie.Position = new Vector2(18f, 12f);
+        _healthDie.Position = new Vector2(40f, 12f);
         GetNode<CanvasLayer>("UI").AddChild(_healthDie);
 
         // Lift retry + help buttons and status text above the bounce layer (201).
