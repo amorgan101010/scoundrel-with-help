@@ -532,6 +532,7 @@ public partial class ScoundrelGame : Node
             timer.Timeout += () => {
                 if (!GodotObject.IsInstanceValid(ghost)) return;
                 ghost.Visible = true;
+                PlaySfx(_sfxCardDealt, "card_dealt");
                 var tween = CreateTween();
                 tween.TweenProperty(ghost, "position", targetPos, deckPos.DistanceTo(targetPos) / DealSpeed);
                 tween.TweenCallback(Callable.From(() => {
