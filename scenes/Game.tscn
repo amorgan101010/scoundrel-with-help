@@ -228,31 +228,27 @@ enable_drop_zone = false
 [node name="LeftDropZone" type="Control" parent="UI" unique_id=1365540473]
 visible = false
 layout_mode = 3
-anchors_preset = 0
-offset_top = 70.0
+anchor_bottom = 1.0
+grow_vertical = 2
 offset_right = 320.0
-offset_bottom = 620.0
 mouse_filter = 1
 script = ExtResource("6_dzc")
 card_face_up = false
 allow_card_movement = false
 restrict_to_top_card = false
-sensor_size = Vector2(320, 550)
 
 [node name="RightDropZone" type="Control" parent="UI" unique_id=1530563607]
 visible = false
 layout_mode = 3
-anchors_preset = 0
+anchor_bottom = 1.0
+grow_vertical = 2
 offset_left = 820.0
-offset_top = 70.0
 offset_right = 1120.0
-offset_bottom = 620.0
 mouse_filter = 1
 script = ExtResource("6_dzc")
 card_face_up = false
 allow_card_movement = false
 restrict_to_top_card = false
-sensor_size = Vector2(300, 550)
 
 [node name="RunButton" type="Button" parent="UI" unique_id=615236865]
 offset_left = 390.0
