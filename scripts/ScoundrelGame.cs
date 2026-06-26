@@ -493,7 +493,7 @@ public partial class ScoundrelGame : Node
         var rng = new System.Random();
         const float MinSpeed   = 120f, MaxSpeed = 340f;
         const float CardW      = 150f, CardH = 210f;
-        const float DealStep   = 0.35f; // seconds between each card being dealt
+        const float DealStep   = 0.45f; // seconds between each card being dealt
         const float DealSpeed  = 1200f; // px/s for the deal slide
 
         var vpSize  = GetViewport().GetVisibleRect().Size;
@@ -541,7 +541,7 @@ public partial class ScoundrelGame : Node
                 ghost.Visible = true;
                 var sfx = new AudioStreamPlayer();
                 sfx.Stream     = _sfxCardDealt.Stream;
-                sfx.PitchScale = 0.92f + (float)new System.Random().NextDouble() * 0.16f;
+                sfx.PitchScale = 0.84f + (float)new System.Random().NextDouble() * 0.32f;
                 AddChild(sfx);
                 sfx.Connect("finished", Callable.From(sfx.QueueFree));
                 sfx.Play();
