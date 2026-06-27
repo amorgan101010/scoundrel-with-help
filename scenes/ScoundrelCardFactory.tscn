@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://8n36yadkvxai" path="res://addons/card-framework/json_card_factory.gd" id="1_jlwb4"]
 [ext_resource type="PackedScene" uid="uid://brjlo8xing83p" path="res://addons/card-framework/card.tscn" id="2_1mca4"]
-[ext_resource type="Texture2D" path="res://card_assets/card_back.png" id="3_back1"]
+[ext_resource type="Texture2D" path="res://card_assets/card_back.svg" id="3_back1"]
 
 [node name="ScoundrelCardFactory" type="Node"]
 script = ExtResource("1_jlwb4")

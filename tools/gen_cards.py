@@ -601,6 +601,31 @@ def draw_weapon(draw, cx, cy, p, rank):
         draw.polygon([(cx,cy+22),(cx-8,cy+30),(cx,cy+36),(cx+8,cy+30)], fill=dm)
 
 
+# ── Card back ─────────────────────────────────────────────────────────────────
+
+def make_card_back():
+    bg     = (42,  20, 12)
+    stripe = (55,  28, 18)
+    border = (95,  55, 35)
+    dim    = (65,  35, 22)
+    text_c = (175, 140, 110)
+    accent = (120, 78, 50)
+
+    d = SVGCanvas(W, H)
+    d.rectangle([0, 0, W, H], fill=bg)
+    for i in range(-H, W + H, 12):
+        d.line([(i, 0), (i + H, H)], fill=stripe, width=1)
+    d.rectangle([1, 1, W-2, H-2], outline=border, width=3)
+    d.rectangle([6, 6, W-7, H-7], outline=dim, width=1)
+    for cx, cy in [(4, 4), (W-5, 4), (4, H-5), (W-5, H-5)]:
+        d.polygon([(cx, cy-4), (cx+4, cy), (cx, cy+4), (cx-4, cy)], fill=accent)
+    label = 'SCOUNDREL'
+    size  = 18  # twice the original ~9px
+    tw    = _GLYPHS.measure(label, size)
+    d.text(((W - tw) / 2, H / 2 - size / 2), label, fill=text_c, font=size)
+    return d.to_svg()
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def make_card(suit, rank, fonts):
@@ -645,7 +670,13 @@ def main():
                 json.dump(data, f, indent=2)
 
         print(f"  {fname}.svg")
-    print(f"\nDone — {len(cards)} cards.")
+
+    svg = make_card_back()
+    with open(os.path.join(OUT, 'card_back.svg'), 'w', encoding='utf-8') as f:
+        f.write(svg)
+    print("  card_back.svg")
+
+    print(f"\nDone — {len(cards)} cards + back.")
 
 
 if __name__ == '__main__':
