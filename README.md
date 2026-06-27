@@ -12,6 +12,16 @@ godot --path /home/aileen/Repositories/godot/scoundrel-with-help
 
 The main scene is `scenes/Game.tscn`.
 
+### macOS
+
+macOS quarantines downloaded binaries. Before running the exported app for the first time, strip the quarantine flag:
+
+```sh
+xattr -cr /path/to/Scoundrel.app
+```
+
+Then open it normally (double-click or `open /path/to/Scoundrel.app`).
+
 ## How to play
 
 - Start at 20 HP. Die at 0.
