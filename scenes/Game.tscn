@@ -47,18 +47,18 @@ mouse_filter = 2
 layout_mode = 3
 anchors_preset = 0
 offset_left = 40.0
-offset_top = 12.0
+offset_top = 115.0
 offset_right = 170.0
-offset_bottom = 142.0
+offset_bottom = 245.0
 script = ExtResource("7_hd")
 
 [node name="WeaponGroup" type="Control" parent="UI/LeftPanel" unique_id=111222333]
 layout_mode = 3
 anchors_preset = 0
 offset_left = 30.0
-offset_top = 164.0
+offset_top = 418.0
 offset_right = 380.0
-offset_bottom = 408.0
+offset_bottom = 662.0
 mouse_filter = 2
 
 [node name="WeaponLabel" type="Label" parent="UI/LeftPanel/WeaponGroup" unique_id=180637555]
@@ -169,9 +169,9 @@ layout_mode = 3
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -180.0
-offset_top = 48.0
+offset_top = 60.0
 offset_right = -30.0
-offset_bottom = 288.0
+offset_bottom = 300.0
 mouse_filter = 2
 
 [node name="DeckPile" type="Control" parent="UI/RightPanel/DeckGroup" unique_id=2038153143]
@@ -201,9 +201,9 @@ layout_mode = 3
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -180.0
-offset_top = 325.0
+offset_top = 414.0
 offset_right = -30.0
-offset_bottom = 576.0
+offset_bottom = 665.0
 mouse_filter = 2
 
 [node name="DiscardPile" type="Control" parent="UI/RightPanel/DiscardGroup" unique_id=44963075]
