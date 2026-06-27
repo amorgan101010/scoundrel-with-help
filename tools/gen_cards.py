@@ -1,11 +1,18 @@
 #!/usr/bin/env python3
-"""Generate all 44 Scoundrel card art images as SVGs (vector, scales to any resolution)."""
+"""Generate all 44 Scoundrel card art images as SVGs (vector, scales to any resolution).
 
-import os, math, json
+Requires fonttools:  python3 -m pip install fonttools
+"""
+
+import os, math, json, io, base64
+
+from fontTools.ttLib import TTFont
+from fontTools import subset as ft_subset
 
 W, H = 150, 210
-OUT      = "/home/aileen/Repositories/godot/scoundrel-with-help/card_assets"
-JSON_DIR = "/home/aileen/Repositories/godot/scoundrel-with-help/card_data"
+OUT       = "/home/aileen/Repositories/godot/scoundrel-with-help/card_assets"
+JSON_DIR  = "/home/aileen/Repositories/godot/scoundrel-with-help/card_data"
+FONT_PATH = "/home/aileen/Repositories/godot/scoundrel-with-help/assets/fonts/DejaVuSans-Bold.ttf"
 
 # ── Palettes ─────────────────────────────────────────────────────────────────
 P = {
@@ -39,6 +46,35 @@ NAMES = {
 }
 
 
+# ── Font subsetting ───────────────────────────────────────────────────────────
+
+def make_font_defs(font_path):
+    """Return an SVG <style> block embedding a base64-subsetted copy of the font."""
+    unicodes = (
+        {0x0020}                          # space
+        | set(range(0x0030, 0x003A))      # 0–9
+        | set(range(0x0041, 0x005B))      # A–Z
+        | {0x2660, 0x2663, 0x2665, 0x25C6}  # ♠ ♣ ♥ ◆
+    )
+    opts = ft_subset.Options()
+    opts.layout_features = []
+    font = TTFont(font_path)
+    subsetter = ft_subset.Subsetter(options=opts)
+    subsetter.populate(unicodes=sorted(unicodes))
+    subsetter.subset(font)
+    buf = io.BytesIO()
+    font.save(buf)
+    b64 = base64.b64encode(buf.getvalue()).decode()
+    return (
+        "<style>"
+        "@font-face{"
+        "font-family:'DejaVu Sans Bold';"
+        f"src:url('data:font/truetype;base64,{b64}')format('truetype');"
+        "font-weight:bold}"
+        "</style>"
+    )
+
+
 # ── SVG canvas ───────────────────────────────────────────────────────────────
 
 def _rgb(c):
@@ -48,8 +84,9 @@ def _rgb(c):
 class SVGCanvas:
     """Drop-in replacement for Pillow ImageDraw that emits SVG elements."""
 
-    def __init__(self, w, h):
+    def __init__(self, w, h, defs=''):
         self.w, self.h = w, h
+        self._defs = defs
         self._e = []
 
     def rectangle(self, bbox, fill=None, outline=None, width=1):
@@ -115,10 +152,12 @@ class SVGCanvas:
         self._e.append(f'<path d="{d}" fill="none" stroke="{col}" stroke-width="{width}"/>')
 
     def to_svg(self):
+        defs = f'<defs>{self._defs}</defs>\n' if self._defs else ''
         inner = '\n'.join(self._e)
         return (
             f'<svg xmlns="http://www.w3.org/2000/svg"'
             f' width="{self.w}" height="{self.h}" viewBox="0 0 {self.w} {self.h}">\n'
+            f'{defs}'
             f'{inner}\n</svg>\n'
         )
 
@@ -545,9 +584,9 @@ def draw_weapon(draw, cx, cy, p, rank):
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 
-def make_card(suit, rank, fonts):
+def make_card(suit, rank, fonts, font_defs=''):
     p = P[suit]
-    d = SVGCanvas(W, H)
+    d = SVGCanvas(W, H, defs=font_defs)
     draw_bg(d, p)
     cx, cy = 75, 97
     if   suit == 'clubs':    draw_clubs(d, cx, cy, p, rank)
@@ -560,6 +599,8 @@ def make_card(suit, rank, fonts):
 
 
 def main():
+    print("Subsetting font…")
+    font_defs = make_font_defs(FONT_PATH)
     fonts = load_fonts()
     cards = (
         [(s, r) for s in ('clubs','spades')
@@ -568,7 +609,7 @@ def main():
          for r in ('2','3','4','5','6','7','8','9','10')]
     )
     for suit, rank in cards:
-        svg = make_card(suit, rank, fonts)
+        svg = make_card(suit, rank, fonts, font_defs)
         fname = f"{rank}_{suit}"
 
         svg_path = os.path.join(OUT, f"{fname}.svg")
