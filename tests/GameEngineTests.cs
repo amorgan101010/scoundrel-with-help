@@ -21,7 +21,7 @@ public class CardModelTests
     [Test] public void Clubs_IsNotPotion()    => Assert.That(new CardModel(Suit.Clubs,    5).IsPotion, Is.False);
 
     [Test] public void Ace_MonsterValueIs14()
-        => Assert.That(new CardModel(Suit.Clubs, 1).MonsterValue, Is.EqualTo(14));
+        => Assert.That(new CardModel(Suit.Clubs, ScoundrelRules.AceRank).MonsterValue, Is.EqualTo(ScoundrelRules.AceMonsterValue));
     [Test] public void King_MonsterValueIs13()
         => Assert.That(new CardModel(Suit.Spades, 13).MonsterValue, Is.EqualTo(13));
     [Test] public void NumberCard_MonsterValueIsRank()
@@ -47,11 +47,11 @@ file static class Cards
     public static CardModel[] PadToFour(params CardModel[] cards)
     {
         var padded = new List<CardModel>(cards);
-        while (padded.Count < 4) padded.Insert(0, Monster(2));
+        while (padded.Count < ScoundrelRules.RoomSize) padded.Insert(0, Monster(2));
         return padded.ToArray();
     }
 
-    // Build a deck whose top 4 cards (last in array) are the supplied room cards.
+    // Build a deck whose top RoomSize cards (last in array) are the supplied room cards.
     public static GameEngine RoomOf(params CardModel[] roomCards)
     {
         var deck = PadToFour(roomCards);
@@ -89,12 +89,12 @@ public class MonsterCombatTests
     [Test]
     public void FightAce_MonsterValueIs14()
     {
-        var ace    = Cards.Monster(1);
+        var ace    = Cards.Monster(ScoundrelRules.AceRank);
         var engine = Cards.RoomOf(ace, Cards.Potion(2), Cards.Weapon(3), Cards.Potion(4));
 
         engine.TakeCard(ace);
 
-        Assert.That(engine.Health, Is.EqualTo(ScoundrelRules.StartHealth - 14));
+        Assert.That(engine.Health, Is.EqualTo(ScoundrelRules.StartHealth - ScoundrelRules.AceMonsterValue));
     }
 
     [Test]
@@ -376,7 +376,7 @@ public class RoomProgressTests
         engine.TakeCard(cards[1]);
         engine.TakeCard(cards[0]); // 4th card — should auto-deal next room
 
-        Assert.That(engine.Room.Count, Is.EqualTo(4));
+        Assert.That(engine.Room.Count, Is.EqualTo(ScoundrelRules.RoomSize));
         Assert.That(engine.CardsTakenThisRoom, Is.EqualTo(0)); // reset
     }
 
@@ -394,7 +394,7 @@ public class RoomProgressTests
         engine.TakeCard(c2);
 
         Assert.That(engine.CanNextRoom, Is.True);
-        Assert.That(engine.Room.Count, Is.EqualTo(1));
+        Assert.That(engine.Room.Count, Is.EqualTo(ScoundrelRules.RoomSize - ScoundrelRules.MinCardsTaken));
     }
 
     [Test]
@@ -418,7 +418,7 @@ public class RoomProgressTests
         engine.NextRoom();
 
         Assert.That(engine.Room, Contains.Item(leftover));
-        Assert.That(engine.Room.Count, Is.EqualTo(4)); // leftover + 3 new
+        Assert.That(engine.Room.Count, Is.EqualTo(ScoundrelRules.RoomSize)); // leftover + 3 new
     }
 
     [Test]
@@ -434,7 +434,7 @@ public class RoomProgressTests
         engine.TakeCard(engine.Room[0]);
         engine.TakeCard(engine.Room[0]);
         engine.TakeCard(engine.Room[0]);
-        Assert.That(engine.CardsTakenThisRoom, Is.EqualTo(3));
+        Assert.That(engine.CardsTakenThisRoom, Is.EqualTo(ScoundrelRules.MinCardsTaken));
 
         engine.NextRoom();
 
@@ -450,7 +450,7 @@ public class RoomProgressTests
         engine.TakeCard(engine.Room[0]);
         engine.TakeCard(engine.Room[0]);
 
-        Assert.Throws<InvalidOperationException>(() => engine.NextRoom());
+        Assert.Throws<InvalidOperationException>(() => engine.NextRoom(), $"Must take at least {ScoundrelRules.MinCardsTaken} cards");
     }
 }
 
@@ -465,11 +465,11 @@ public class RunTests
         var deck = Enumerable.Range(0, 8).Select(_ => Cards.Potion(2)).ToArray();
         var engine = new GameEngine(deck);
 
-        int deckBefore = engine.Deck.Count; // 4 (8 total, 4 dealt to room)
+        int deckBefore = engine.Deck.Count; // RoomSize (8 total, RoomSize dealt to room)
         engine.Run();
 
-        Assert.That(engine.Room.Count, Is.EqualTo(4));      // new room dealt
-        Assert.That(engine.Deck.Count, Is.EqualTo(deckBefore)); // same deck size (4 back in, 4 dealt out)
+        Assert.That(engine.Room.Count, Is.EqualTo(ScoundrelRules.RoomSize));      // new room dealt
+        Assert.That(engine.Deck.Count, Is.EqualTo(deckBefore)); // same deck size (RoomSize back in, RoomSize dealt out)
     }
 
     [Test]
@@ -509,7 +509,7 @@ public class RunTests
         engine.TakeCard(engine.Room[0]);
         engine.NextRoom(); // advances, resets RanLastRoom
 
-        Assert.That(engine.CanRun, Is.True);
+        Assert.That(engine.CanRun, Is.True, "Should be able to run after NextRoom");
     }
 
     [Test]
@@ -519,21 +519,21 @@ public class RunTests
         {
             Cards.Monster(3), Cards.Monster(4), Cards.Weapon(5), Cards.Potion(6)
         };
-        // 8-card deck: 4 filler at bottom, 4 room cards at top
+        // 8-card deck: RoomSize filler at bottom, RoomSize room cards at top
         var deck = new[]
         {
             Cards.Potion(2), Cards.Potion(2), Cards.Potion(2), Cards.Potion(2),
             roomCards[0], roomCards[1], roomCards[2], roomCards[3]
         };
         var engine = new GameEngine(deck);
-        // Room is dealt; deck has 4 filler cards
-        Assert.That(engine.Deck.Count, Is.EqualTo(4));
+        // Room is dealt; deck has RoomSize filler cards
+        Assert.That(engine.Deck.Count, Is.EqualTo(ScoundrelRules.RoomSize));
 
         engine.Run();
 
-        // The 4 room cards went back to deck, then 4 were dealt to new room
-        Assert.That(engine.Deck.Count, Is.EqualTo(4)); // 4 (back) + 4 filler - 4 (dealt) = 4
-        Assert.That(engine.Room.Count, Is.EqualTo(4));
+        // The RoomSize room cards went back to deck, then RoomSize were dealt to new room
+        Assert.That(engine.Deck.Count, Is.EqualTo(ScoundrelRules.RoomSize)); // RoomSize (back) + RoomSize filler - RoomSize (dealt) = RoomSize
+        Assert.That(engine.Room.Count, Is.EqualTo(ScoundrelRules.RoomSize));
     }
 
     [Test]
@@ -556,10 +556,10 @@ public class RunTests
 
         engine.Run();
 
-        // New room was dealt (4 cards).
-        Assert.That(engine.Room.Count, Is.EqualTo(4));
+        // New room was dealt (RoomSize cards).
+        Assert.That(engine.Room.Count, Is.EqualTo(ScoundrelRules.RoomSize));
         // Only the 3 remaining cards sank; the taken potion is NOT in the deck.
-        Assert.That(engine.Deck.Count, Is.EqualTo(3)); // 3 sank + 4 filler - 4 dealt
+        Assert.That(engine.Deck.Count, Is.EqualTo(3)); // 3 sank + RoomSize filler - RoomSize dealt
         Assert.That(engine.Deck.Take(3), Is.EquivalentTo(new[] { m3, m4, w5 }));
         Assert.That(engine.Deck, Does.Not.Contain(p6));
     }
@@ -576,11 +576,11 @@ public class RunTests
         var engine = new GameEngine(deck);
 
         engine.TakeCard(p5);
-        Assert.That(engine.PotionUsedThisRoom, Is.True);
+        Assert.That(engine.PotionUsedThisRoom, Is.True, "Potion should be marked as used");
 
         engine.Run();
 
-        Assert.That(engine.PotionUsedThisRoom, Is.False);
+        Assert.That(engine.PotionUsedThisRoom, Is.False, "Potion used flag should reset after run");
     }
 
     [Test]
@@ -597,8 +597,8 @@ public class RunTests
 
         // room2 is now the new room (previously the top of the remaining deck).
         // room1 cards returned to index 0 (bottom); room3 cards sit above them.
-        Assert.That(engine.Deck.Take(4),  Is.EquivalentTo(room1));
-        Assert.That(engine.Deck.Skip(4),  Is.EquivalentTo(room3));
+        Assert.That(engine.Deck.Take(ScoundrelRules.RoomSize),  Is.EquivalentTo(room1));
+        Assert.That(engine.Deck.Skip(ScoundrelRules.RoomSize),  Is.EquivalentTo(room3));
     }
 }
 
@@ -610,7 +610,7 @@ public class WinLoseTests
     [Test]
     public void TakeAllCards_Won()
     {
-        // 4-card deck → one room, take all 4 → win
+        // RoomSize-card deck → one room, take all RoomSize → win
         var deck = new[]
         {
             Cards.Potion(2), Cards.Potion(3), Cards.Potion(4), Cards.Potion(5)
@@ -622,14 +622,14 @@ public class WinLoseTests
         engine.TakeCard(engine.Room[0]);
         engine.TakeCard(engine.Room[0]);
 
-        Assert.That(engine.Won, Is.True);
-        Assert.That(engine.GameOver, Is.False);
+        Assert.That(engine.Won, Is.True, "Should win after taking all deck cards");
+        Assert.That(engine.GameOver, Is.False, "GameOver should be false when winning");
     }
 
     [Test]
     public void TakeLastCard_InPartialFinalRoom_Wins()
     {
-        // 5-card deck: room 1 gets 4, the 5th card is alone in room 2.
+        // (RoomSize+1)-card deck: room 1 gets RoomSize, the extra card is alone in room 2.
         var finalCard = Cards.Potion(2);
         var deck = new[]
         {
@@ -643,8 +643,8 @@ public class WinLoseTests
         engine.TakeCard(engine.Room[0]);
         engine.TakeCard(engine.Room[0]); // auto-deals room 2 (just finalCard)
 
-        Assert.That(engine.Room.Count, Is.EqualTo(1));
-        Assert.That(engine.Room[0], Is.EqualTo(finalCard));
+        Assert.That(engine.Room.Count, Is.EqualTo(1), "Final room should have 1 card");
+        Assert.That(engine.Room[0], Is.EqualTo(finalCard), "Final card should be the remaining card");
 
         engine.TakeCard(finalCard);
 

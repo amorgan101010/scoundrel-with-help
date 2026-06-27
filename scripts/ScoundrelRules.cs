@@ -9,11 +9,14 @@ public static class ScoundrelRules
     public const int StartHealth = 20;
     public const int RoomSize    = 4;
     public const int MinCardsTaken = 3;
+    public const int AceRank     = 1;
+    public const int AceMonsterValue = 14;
+    public const int DeckSize    = 40;
 
     /// <summary>
     /// Combat value of a black-suit card. Ace counts as 14 (strongest monster).
     /// </summary>
-    public static int MonsterValue(int rank) => rank == 1 ? 14 : rank;
+    public static int MonsterValue(int rank) => rank == AceRank ? AceMonsterValue : rank;
 
     /// <summary>
     /// True when the equipped weapon can be used against a monster.
