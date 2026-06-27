@@ -17,11 +17,15 @@ signal card_drag_started(card: Card)
 signal card_drag_ended()
 signal card_selected(card: Card)
 
+const CARD_W: int = 225
+const CARD_H: int = 315
+const SLOT_GAP: int = 20
+
 const SLOTS: Array[Vector2] = [
 	Vector2(0, 0),
-	Vector2(245, 0),
-	Vector2(0, 335),
-	Vector2(245, 335),
+	Vector2(CARD_W + SLOT_GAP, 0),
+	Vector2(0, CARD_H + SLOT_GAP),
+	Vector2(CARD_W + SLOT_GAP, CARD_H + SLOT_GAP),
 ]
 
 # Maps Card → slot index so positions stay stable as cards are removed.

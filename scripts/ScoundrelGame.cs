@@ -71,6 +71,41 @@ public partial class ScoundrelGame : Node
     // Set by PlaySfx; read by scene tests to assert which sound last played.
     public string LastSfxPlayed { get; private set; } = "";
 
+    // ── Layout constants ──────────────────────────────────────────────────
+    // Card dimensions — must match JsonCardFactory card_size and RoomContainer.CARD_W / CARD_H.
+    private const float CardWidth  = 225f;
+    private const float CardHeight = 315f;
+
+    // CanvasLayer Z-order. Bounce ghosts sit at LayerBounce; interactive UI must be ≥ LayerHud.
+    private const int LayerOverlay = 128;
+    private const int LayerBounce  = 201;
+    private const int LayerHud     = 202;
+    private const int LayerButtons = 203;
+
+    // Slain-monster badge geometry: layout slot dimensions vs. visible control size.
+    private const float BadgeLayoutWidth  = 45f;
+    private const float BadgeLayoutHeight = 66f;
+    private const float BadgeVisualWidth  = 30f;
+    private const float BadgeVisualHeight = 44f;
+    private const float BadgeNaturalStep  = 52.5f;
+
+    // Flavor label: 400px wide centered strip near the top of the screen.
+    private const float FlavorLabelHalfWidth    = 200f;
+    private const float FlavorLabelOffsetTop    = 103f;
+    private const float FlavorLabelOffsetBottom = 130f;
+    private const int   FlavorLabelFontSize     = 18;
+
+    // Zone label font size
+    private const int ZoneLabelFontSize = 28;
+
+    // Bounce animation tuning
+    private const float BounceMinSpeed   = 120f;
+    private const float BounceMaxSpeed   = 340f;
+    private const float BounceDealStep   = 0.45f;  // seconds between cards being dealt
+    private const float BounceDealSpeed  = 1200f;  // px/s for the deal slide
+    private const float BouncePitchMin   = 0.84f;
+    private const float BouncePitchRange = 0.32f;
+
     // ── Card name tables ──────────────────────────────────────────────────
     private static readonly string[] Ranks =
         { "ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "jack", "queen", "king" };
@@ -102,7 +137,7 @@ public partial class ScoundrelGame : Node
         _helpDialog     = GetNode<AcceptDialog>("UI/HelpDialog");
 
         _cardFactory = (GodotObject)_cardManager.Get("card_factory");
-        _cardFactory.Set("card_size", new Vector2(225f, 315f));
+        _cardFactory.Set("card_size", new Vector2(CardWidth, CardHeight));
 
         _healthDie = GetNode<HealthDie>("UI/LeftPanel/HealthDie");
 
@@ -110,7 +145,7 @@ public partial class ScoundrelGame : Node
         // HudLayer: status/flavor text (display only, game-over and in-game messages)
         var hudLayer = new CanvasLayer();
         hudLayer.Name  = "HudLayer";
-        hudLayer.Layer = 202;
+        hudLayer.Layer = LayerHud;
         AddChild(hudLayer);
         _statusLabel.Reparent(hudLayer, true);
 
@@ -118,12 +153,12 @@ public partial class ScoundrelGame : Node
         _flavorLabel.AnchorLeft          = 0.5f;
         _flavorLabel.AnchorRight         = 0.5f;
         _flavorLabel.GrowHorizontal      = Control.GrowDirection.Both;
-        _flavorLabel.OffsetLeft          = -200f;
-        _flavorLabel.OffsetRight         =  200f;
-        _flavorLabel.OffsetTop           =  103f;
-        _flavorLabel.OffsetBottom        =  130f;
+        _flavorLabel.OffsetLeft          = -FlavorLabelHalfWidth;
+        _flavorLabel.OffsetRight         =  FlavorLabelHalfWidth;
+        _flavorLabel.OffsetTop           =  FlavorLabelOffsetTop;
+        _flavorLabel.OffsetBottom        =  FlavorLabelOffsetBottom;
         _flavorLabel.HorizontalAlignment = HorizontalAlignment.Center;
-        _flavorLabel.AddThemeFontSizeOverride("font_size", 18);
+        _flavorLabel.AddThemeFontSizeOverride("font_size", FlavorLabelFontSize);
         _flavorLabel.AddThemeColorOverride("font_color", new Color(0.75f, 0.5f, 0.5f));
         _flavorLabel.MouseFilter         = Control.MouseFilterEnum.Ignore;
         _flavorLabel.Visible             = false;
@@ -132,13 +167,13 @@ public partial class ScoundrelGame : Node
         // ButtonLayer: interactive controls — must be above HudLayer so clicks are never blocked
         var buttonLayer = new CanvasLayer();
         buttonLayer.Name  = "ButtonLayer";
-        buttonLayer.Layer = 203;
+        buttonLayer.Layer = LayerButtons;
         AddChild(buttonLayer);
         GetNode<HBoxContainer>("UI/TopButtonGroup").Reparent(buttonLayer, true);
 
         // Dedicated overlay layer above everything (UI is layer 1, cards are layer 0).
         var overlayLayer = new CanvasLayer();
-        overlayLayer.Layer = 128;
+        overlayLayer.Layer = LayerOverlay;
         AddChild(overlayLayer);
         _leftHighlight  = AddZoneHighlight(overlayLayer, 0f,    1f/3f, new Color(0.25f, 0.8f, 0.25f, 0.30f));
         _rightHighlight = AddZoneHighlight(overlayLayer, 2f/3f, 1f,    new Color(0.25f, 0.5f, 1.0f,  0.30f));
@@ -493,14 +528,10 @@ public partial class ScoundrelGame : Node
     private void StartBounceAnimation(bool isGameOver)
     {
         _bounceLayer = new CanvasLayer();
-        _bounceLayer.Layer = 201;
+        _bounceLayer.Layer = LayerBounce;
         AddChild(_bounceLayer);
 
         var rng = new System.Random();
-        const float MinSpeed   = 120f, MaxSpeed = 340f;
-        const float CardW      = 225f, CardH = 315f;
-        const float DealStep   = 0.45f; // seconds between each card being dealt
-        const float DealSpeed  = 1200f; // px/s for the deal slide
 
         var vpSize  = GetViewport().GetVisibleRect().Size;
         var deckPos = (Vector2)_deckPile.Get("global_position");
@@ -523,36 +554,36 @@ public partial class ScoundrelGame : Node
 
             var ghost = new TextureRect();
             ghost.Texture           = texture;
-            ghost.CustomMinimumSize = new Vector2(CardW, CardH);
+            ghost.CustomMinimumSize = new Vector2(CardWidth, CardHeight);
             ghost.ExpandMode        = TextureRect.ExpandModeEnum.IgnoreSize;
             ghost.StretchMode       = TextureRect.StretchModeEnum.Scale;
             ghost.MouseFilter       = Control.MouseFilterEnum.Ignore;
-            ghost.Size              = new Vector2(CardW, CardH);
+            ghost.Size              = new Vector2(CardWidth, CardHeight);
             ghost.Position          = deckPos;
             ghost.Visible           = false;
             _bounceLayer.AddChild(ghost);
             _bounceTotal++;
 
             var targetPos = new Vector2(
-                (float)(rng.NextDouble() * (vpSize.X - CardW)),
-                (float)(rng.NextDouble() * (vpSize.Y - CardH)));
+                (float)(rng.NextDouble() * (vpSize.X - CardWidth)),
+                (float)(rng.NextDouble() * (vpSize.Y - CardHeight)));
             float angle = (float)(rng.NextDouble() * System.Math.PI * 2);
-            float speed = MinSpeed + (float)(rng.NextDouble() * (MaxSpeed - MinSpeed));
+            float speed = BounceMinSpeed + (float)(rng.NextDouble() * (BounceMaxSpeed - BounceMinSpeed));
             var vel = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * speed;
 
             // Staggered deal: show ghost after delay, slide to random spot, then bounce.
-            var timer = GetTree().CreateTimer(DealStep * i);
+            var timer = GetTree().CreateTimer(BounceDealStep * i);
             timer.Timeout += () => {
                 if (!GodotObject.IsInstanceValid(ghost)) return;
                 ghost.Visible = true;
                 var sfx = new AudioStreamPlayer();
                 sfx.Stream     = _sfxCardDealt.Stream;
-                sfx.PitchScale = 0.84f + (float)new System.Random().NextDouble() * 0.32f;
+                sfx.PitchScale = BouncePitchMin + (float)new System.Random().NextDouble() * BouncePitchRange;
                 AddChild(sfx);
                 sfx.Connect("finished", Callable.From(sfx.QueueFree));
                 sfx.Play();
                 var tween = CreateTween();
-                tween.TweenProperty(ghost, "position", targetPos, deckPos.DistanceTo(targetPos) / DealSpeed);
+                tween.TweenProperty(ghost, "position", targetPos, deckPos.DistanceTo(targetPos) / BounceDealSpeed);
                 tween.TweenCallback(Callable.From(() => {
                     if (!GodotObject.IsInstanceValid(ghost)) return;
                     _bounceState.Add((ghost, vel));
@@ -568,17 +599,16 @@ public partial class ScoundrelGame : Node
         if (!_bounceActive) return;
 
         var vpSize = GetViewport().GetVisibleRect().Size;
-        const float CardW = 225f, CardH = 315f;
 
         for (int i = 0; i < _bounceState.Count; i++)
         {
             var (ghost, vel) = _bounceState[i];
             var pos = ghost.Position + vel * (float)delta;
 
-            if (pos.X < 0)               { vel.X =  Mathf.Abs(vel.X); pos.X = 0; }
-            if (pos.X + CardW > vpSize.X) { vel.X = -Mathf.Abs(vel.X); pos.X = vpSize.X - CardW; }
-            if (pos.Y < 0)               { vel.Y =  Mathf.Abs(vel.Y); pos.Y = 0; }
-            if (pos.Y + CardH > vpSize.Y) { vel.Y = -Mathf.Abs(vel.Y); pos.Y = vpSize.Y - CardH; }
+            if (pos.X < 0)                      { vel.X =  Mathf.Abs(vel.X); pos.X = 0; }
+            if (pos.X + CardWidth > vpSize.X)   { vel.X = -Mathf.Abs(vel.X); pos.X = vpSize.X - CardWidth; }
+            if (pos.Y < 0)                      { vel.Y =  Mathf.Abs(vel.Y); pos.Y = 0; }
+            if (pos.Y + CardHeight > vpSize.Y)  { vel.Y = -Mathf.Abs(vel.Y); pos.Y = vpSize.Y - CardHeight; }
 
             ghost.Position  = pos;
             _bounceState[i] = (ghost, vel);
@@ -609,18 +639,15 @@ public partial class ScoundrelGame : Node
 
     private void AddSlainBadge(GodotObject weaponCard, CardModel monster)
     {
-        const float BadgeW = 45f, BadgeH = 66f, NaturalStep = 52.5f;
-        const float CardW = 225f, CardH = 315f;
-
         var weaponNode = (Node)weaponCard;
         weaponNode.AddChild(CreateBadgeControl(monster.Rank));
 
         var badges = SlainBadges(weaponNode);
         int count = badges.Count;
-        float step = count <= 1 ? NaturalStep
-                                : Mathf.Min(NaturalStep, (CardW - BadgeW) / (count - 1));
-        float startX = (CardW - ((count - 1) * step + BadgeW)) / 2f;
-        float y = CardH - BadgeH / 3f;
+        float step = count <= 1 ? BadgeNaturalStep
+                                : Mathf.Min(BadgeNaturalStep, (CardWidth - BadgeLayoutWidth) / (count - 1));
+        float startX = (CardWidth - ((count - 1) * step + BadgeLayoutWidth)) / 2f;
+        float y = CardHeight - BadgeLayoutHeight / 3f;
         for (int i = 0; i < count; i++)
             badges[i].Position = new Vector2(startX + i * step, y);
     }
@@ -631,7 +658,7 @@ public partial class ScoundrelGame : Node
 
         var badge = new Control();
         badge.Name = "slain_badge";
-        badge.Size = new Vector2(30f, 44f);
+        badge.Size = new Vector2(BadgeVisualWidth, BadgeVisualHeight);
         badge.MouseFilter = Control.MouseFilterEnum.Ignore;
         badge.ZIndex = 1;
         badge.AddToGroup("slain_badge");
@@ -758,7 +785,7 @@ public partial class ScoundrelGame : Node
         label.GrowVertical        = Control.GrowDirection.Both;
         label.HorizontalAlignment = HorizontalAlignment.Center;
         label.VerticalAlignment   = VerticalAlignment.Center;
-        label.AddThemeFontSizeOverride("font_size", 28);
+        label.AddThemeFontSizeOverride("font_size", ZoneLabelFontSize);
         label.AddThemeColorOverride("font_color", new Color(1f, 1f, 1f, 0.9f));
         label.MouseFilter         = Control.MouseFilterEnum.Ignore;
         label.Visible             = false;
