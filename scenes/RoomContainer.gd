@@ -10,6 +10,7 @@
 ## the signal because the mouse never reaches a zone sensor.
 ##
 ## card_drag_started / card_drag_ended let C# show/hide zone highlights.
+@tool
 class_name RoomContainer
 extends CardContainer
 
@@ -21,13 +22,18 @@ const CARD_W: int = 225
 const CARD_H: int = 315
 const SLOT_GAP: int = 20
 
-const SLOTS: Array[Vector2] = [
-	Vector2(0, 0),
-	Vector2(CARD_W + SLOT_GAP, 0),
-	Vector2(0, CARD_H + SLOT_GAP),
-	Vector2(CARD_W + SLOT_GAP, CARD_H + SLOT_GAP),
-]
+func _get_card_size() -> Vector2:
+	if card_manager != null:
+		return card_manager.card_size
+	return Vector2(CARD_W, CARD_H)
 
+func _slot_offset(slot: int) -> Vector2:
+	var cs = _get_card_size()
+	var w = cs.x
+	var h = cs.y
+	var col = slot % 2
+	var row = 1 if slot >= 2 else 0
+	return Vector2(col * (w + SLOT_GAP), row * (h + SLOT_GAP))
 # Maps Card → slot index so positions stay stable as cards are removed.
 var _slot_of: Dictionary = {}
 
@@ -80,7 +86,7 @@ func release_holding_cards() -> void:
 func _update_target_positions() -> void:
 	for card in _held_cards:
 		var slot: int = _slot_of.get(card, 0)
-		card.move(global_position + SLOTS[slot], 0.0)
+		card.move(global_position + _slot_offset(slot), 0.0)
 
 
 func _update_card_states() -> void:

@@ -14,7 +14,9 @@ public partial class ScoundrelGame : Node
     private Node _deckPile = null!;
     private Node _discardPile = null!;
     private Node _weaponSlot = null!;
-    private Node _roomContainer = null!;
+    private Control _roomContainer = null!;
+    private HBoxContainer _bottomButtonGroup = null!;
+    private HBoxContainer _topButtonGroup = null!;
     private Node _leftDropZone = null!;
     private Node _rightDropZone = null!;
 
@@ -72,9 +74,18 @@ public partial class ScoundrelGame : Node
     public string LastSfxPlayed { get; private set; } = "";
 
     // ── Layout constants ──────────────────────────────────────────────────
-    // Card dimensions — must match JsonCardFactory card_size and RoomContainer.CARD_W / CARD_H.
-    private const float CardWidth  = 225f;
-    private const float CardHeight = 315f;
+    // Base card dimensions for a 1080p viewport. These are scaled at runtime
+    // to match the current viewport size and applied to the card factory.
+    private const float BaseCardWidth  = 225f;
+    private const float BaseCardHeight = 315f;
+
+    // Current runtime card size (updated on startup and when viewport resizes)
+    private Vector2 _cardSize = new Vector2(BaseCardWidth, BaseCardHeight);
+    private float CardW => _cardSize.X;
+    private float CardH => _cardSize.Y;
+    // Viewport resize debouncing (time-based)
+    private const float ResizeDebounceSeconds = 0.12f; // debounce interval
+    private Timer _resizeTimer = null!;
 
     // CanvasLayer Z-order. Bounce ghosts sit at LayerBounce; interactive UI must be ≥ LayerHud.
     private const int LayerOverlay = 128;
@@ -120,7 +131,9 @@ public partial class ScoundrelGame : Node
         _deckPile       = GetNode<Node>("UI/RightPanel/DeckGroup/DeckPile");
         _discardPile    = GetNode<Node>("UI/RightPanel/DiscardGroup/DiscardPile");
         _weaponSlot     = GetNode<Node>("UI/LeftPanel/WeaponGroup/WeaponSlot");
-        _roomContainer  = GetNode<Node>("UI/RoomContainer");
+        _roomContainer  = GetNode<Control>("UI/RoomContainer");
+        _bottomButtonGroup = GetNode<HBoxContainer>("UI/BottomButtonGroup");
+        _topButtonGroup = GetNode<HBoxContainer>("UI/TopButtonGroup");
         _leftDropZone   = GetNode<Node>("UI/LeftPanel/LeftDropZone");
         _rightDropZone  = GetNode<Node>("UI/RightPanel/RightDropZone");
         _healthLabel    = GetNode<Label>("UI/HealthLabel");
@@ -137,7 +150,14 @@ public partial class ScoundrelGame : Node
         _helpDialog     = GetNode<AcceptDialog>("UI/HelpDialog");
 
         _cardFactory = (GodotObject)_cardManager.Get("card_factory");
-        _cardFactory.Set("card_size", new Vector2(CardWidth, CardHeight));
+        UpdateCardSize();
+        // Create resize debounce timer used to delay expensive layout work until
+        // the user has finished resizing. Start stopped; we'll start it on events.
+        _resizeTimer = new Timer();
+        _resizeTimer.OneShot = true;
+        _resizeTimer.WaitTime = ResizeDebounceSeconds;
+        AddChild(_resizeTimer);
+        _resizeTimer.Connect("timeout", Callable.From(OnResizeDebounceTimeout));
 
         _healthDie = GetNode<HealthDie>("UI/LeftPanel/HealthDie");
 
@@ -169,7 +189,8 @@ public partial class ScoundrelGame : Node
         buttonLayer.Name  = "ButtonLayer";
         buttonLayer.Layer = LayerButtons;
         AddChild(buttonLayer);
-        GetNode<HBoxContainer>("UI/TopButtonGroup").Reparent(buttonLayer, true);
+        _topButtonGroup.Reparent(buttonLayer, true);
+        _bottomButtonGroup.Reparent(buttonLayer, true);
 
         // Dedicated overlay layer above everything (UI is layer 1, cards are layer 0).
         var overlayLayer = new CanvasLayer();
@@ -508,6 +529,17 @@ public partial class ScoundrelGame : Node
 
     private void OnViewportResized()
     {
+        // Restart debounce timer; only when the timer finally times out do we
+        // recompute card sizes and update the help dialog.
+        if (_resizeTimer == null) return;
+        _resizeTimer.Stop();
+        _resizeTimer.Start();
+    }
+
+    private void OnResizeDebounceTimeout()
+    {
+        var vpSize = GetViewport().GetVisibleRect().Size;
+        UpdateCardSize(vpSize);
         if (!_helpDialog.Visible) return;
         ResizeHelpDialog();
         _helpDialog.PopupCentered();
@@ -521,14 +553,54 @@ public partial class ScoundrelGame : Node
         _helpDialog.Size = new Vector2I((int)width, (int)height);
     }
 
-    // ── End states ────────────────────────────────────────────────────────
+    private void UpdateCardSize(Vector2 vpSize = default)
+    {
+        if (vpSize == default) vpSize = GetViewport().GetVisibleRect().Size;
+        // Reference was designed for a 1080p height viewport.
+        float scale = vpSize.Y / 1080f;
+        if (scale <= 0f) scale = 1f;
+        _cardSize = new Vector2(BaseCardWidth * scale, BaseCardHeight * scale);
+
+        // Apply to factory so newly created cards use the size
+        _cardFactory.Set("card_size", _cardSize);
+        // Also set the CardManager's card_size so containers using
+        // `card_manager.card_size` (RoomContainer, Hand, etc.) get the
+        // updated value for layout calculations.
+        _cardManager.Set("card_size", _cardSize);
+
+        // Also update any already-created cards so visuals stay in sync
+        foreach (var godotCard in _godotCards.Values)
+            godotCard.Set("card_size", _cardSize);
+
+        // Tell the room container to recompute card target positions to match
+        // the new card size so cards don't overlap when viewport shrinks.
+        _roomContainer.Call("_update_target_positions");
+        UpdateButtonGroupWidths();
+    }
+
+    private void UpdateButtonGroupWidths()
+    {
+        var roomWidth = _roomContainer.GetRect().Size.X;
+        if (roomWidth <= 0)
+        {
+            CallDeferred(nameof(UpdateButtonGroupWidths));
+            return;
+        }
+
+        // Match the top/bottom button groups to the current room width, keeping
+        // them centered above and below the room container.
+        var halfWidth = (int)(roomWidth / 2f);
+        _topButtonGroup.OffsetLeft    = -halfWidth;
+        _topButtonGroup.OffsetRight   = halfWidth;
+        _bottomButtonGroup.OffsetLeft = -halfWidth;
+        _bottomButtonGroup.OffsetRight= halfWidth;
+    }
+
     private void ShowGameOver()
     {
         _statusLabel.Text    = "YOU DIED";
         _flavorLabel.Text    = "The monsters overrun the dungeon.";
         _flavorLabel.Visible = true;
-        foreach (var cardModel in _engine.Room)
-            _godotCards[cardModel.Name].Set("can_be_interacted_with", false);
         StartBounceAnimation(isGameOver: true);
     }
 
@@ -571,19 +643,19 @@ public partial class ScoundrelGame : Node
 
             var ghost = new TextureRect();
             ghost.Texture           = texture;
-            ghost.CustomMinimumSize = new Vector2(CardWidth, CardHeight);
+            ghost.CustomMinimumSize = new Vector2(CardW, CardH);
             ghost.ExpandMode        = TextureRect.ExpandModeEnum.IgnoreSize;
             ghost.StretchMode       = TextureRect.StretchModeEnum.Scale;
             ghost.MouseFilter       = Control.MouseFilterEnum.Ignore;
-            ghost.Size              = new Vector2(CardWidth, CardHeight);
+            ghost.Size              = new Vector2(CardW, CardH);
             ghost.Position          = deckPos;
             ghost.Visible           = false;
             _bounceLayer.AddChild(ghost);
             _bounceTotal++;
 
             var targetPos = new Vector2(
-                (float)(rng.NextDouble() * (vpSize.X - CardWidth)),
-                (float)(rng.NextDouble() * (vpSize.Y - CardHeight)));
+                (float)(rng.NextDouble() * (vpSize.X - CardW)),
+                (float)(rng.NextDouble() * (vpSize.Y - CardH)));
             float angle = (float)(rng.NextDouble() * System.Math.PI * 2);
             float speed = BounceMinSpeed + (float)(rng.NextDouble() * (BounceMaxSpeed - BounceMinSpeed));
             var vel = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * speed;
@@ -623,9 +695,9 @@ public partial class ScoundrelGame : Node
             var pos = ghost.Position + vel * (float)delta;
 
             if (pos.X < 0)                      { vel.X =  Mathf.Abs(vel.X); pos.X = 0; }
-            if (pos.X + CardWidth > vpSize.X)   { vel.X = -Mathf.Abs(vel.X); pos.X = vpSize.X - CardWidth; }
+            if (pos.X + CardW > vpSize.X)   { vel.X = -Mathf.Abs(vel.X); pos.X = vpSize.X - CardW; }
             if (pos.Y < 0)                      { vel.Y =  Mathf.Abs(vel.Y); pos.Y = 0; }
-            if (pos.Y + CardHeight > vpSize.Y)  { vel.Y = -Mathf.Abs(vel.Y); pos.Y = vpSize.Y - CardHeight; }
+            if (pos.Y + CardH > vpSize.Y)  { vel.Y = -Mathf.Abs(vel.Y); pos.Y = vpSize.Y - CardH; }
 
             ghost.Position  = pos;
             _bounceState[i] = (ghost, vel);
@@ -662,9 +734,9 @@ public partial class ScoundrelGame : Node
         var badges = SlainBadges(weaponNode);
         int count = badges.Count;
         float step = count <= 1 ? BadgeNaturalStep
-                                : Mathf.Min(BadgeNaturalStep, (CardWidth - BadgeLayoutWidth) / (count - 1));
-        float startX = (CardWidth - ((count - 1) * step + BadgeLayoutWidth)) / 2f;
-        float y = CardHeight - BadgeLayoutHeight / 3f;
+                    : Mathf.Min(BadgeNaturalStep, (CardW - BadgeLayoutWidth) / (count - 1));
+        float startX = (CardW - ((count - 1) * step + BadgeLayoutWidth)) / 2f;
+        float y = CardH - BadgeLayoutHeight / 3f;
         for (int i = 0; i < count; i++)
             badges[i].Position = new Vector2(startX + i * step, y);
     }
