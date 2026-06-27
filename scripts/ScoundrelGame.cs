@@ -196,6 +196,7 @@ public partial class ScoundrelGame : Node
         _nextRoomButton.Connect("pressed", Callable.From(OnNextRoomPressed));
         _retryButton.Connect("pressed",   Callable.From(OnRetryPressed));
         _helpButton.Connect("pressed",    Callable.From(OnHelpPressed));
+        GetViewport().Connect("size_changed", Callable.From(OnViewportResized));
 
         StartGame();
     }
@@ -501,11 +502,23 @@ public partial class ScoundrelGame : Node
 
     private void OnHelpPressed()
     {
+        ResizeHelpDialog();
+        _helpDialog.PopupCentered();
+    }
+
+    private void OnViewportResized()
+    {
+        if (!_helpDialog.Visible) return;
+        ResizeHelpDialog();
+        _helpDialog.PopupCentered();
+    }
+
+    private void ResizeHelpDialog()
+    {
         var viewportSize = GetViewport().GetVisibleRect().Size;
         var width = Mathf.Min(760f, viewportSize.X * 0.85f);
         var height = Mathf.Min(800f, viewportSize.Y * 0.85f);
         _helpDialog.Size = new Vector2I((int)width, (int)height);
-        _helpDialog.PopupCentered();
     }
 
     // ── End states ────────────────────────────────────────────────────────
