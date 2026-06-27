@@ -14,7 +14,9 @@ public partial class ScoundrelGame : Node
     private Node _deckPile = null!;
     private Node _discardPile = null!;
     private Node _weaponSlot = null!;
-    private Node _roomContainer = null!;
+    private Control _roomContainer = null!;
+    private HBoxContainer _bottomButtonGroup = null!;
+    private HBoxContainer _topButtonGroup = null!;
     private Node _leftDropZone = null!;
     private Node _rightDropZone = null!;
 
@@ -129,7 +131,9 @@ public partial class ScoundrelGame : Node
         _deckPile       = GetNode<Node>("UI/RightPanel/DeckGroup/DeckPile");
         _discardPile    = GetNode<Node>("UI/RightPanel/DiscardGroup/DiscardPile");
         _weaponSlot     = GetNode<Node>("UI/LeftPanel/WeaponGroup/WeaponSlot");
-        _roomContainer  = GetNode<Node>("UI/RoomContainer");
+        _roomContainer  = GetNode<Control>("UI/RoomContainer");
+        _bottomButtonGroup = GetNode<HBoxContainer>("UI/BottomButtonGroup");
+        _topButtonGroup = GetNode<HBoxContainer>("UI/TopButtonGroup");
         _leftDropZone   = GetNode<Node>("UI/LeftPanel/LeftDropZone");
         _rightDropZone  = GetNode<Node>("UI/RightPanel/RightDropZone");
         _healthLabel    = GetNode<Label>("UI/HealthLabel");
@@ -185,7 +189,8 @@ public partial class ScoundrelGame : Node
         buttonLayer.Name  = "ButtonLayer";
         buttonLayer.Layer = LayerButtons;
         AddChild(buttonLayer);
-        GetNode<HBoxContainer>("UI/TopButtonGroup").Reparent(buttonLayer, true);
+        _topButtonGroup.Reparent(buttonLayer, true);
+        _bottomButtonGroup.Reparent(buttonLayer, true);
 
         // Dedicated overlay layer above everything (UI is layer 1, cards are layer 0).
         var overlayLayer = new CanvasLayer();
@@ -570,16 +575,32 @@ public partial class ScoundrelGame : Node
         // Tell the room container to recompute card target positions to match
         // the new card size so cards don't overlap when viewport shrinks.
         _roomContainer.Call("_update_target_positions");
+        UpdateButtonGroupWidths();
     }
 
-    // ── End states ────────────────────────────────────────────────────────
+    private void UpdateButtonGroupWidths()
+    {
+        var roomWidth = _roomContainer.GetRect().Size.X;
+        if (roomWidth <= 0)
+        {
+            CallDeferred(nameof(UpdateButtonGroupWidths));
+            return;
+        }
+
+        // Match the top/bottom button groups to the current room width, keeping
+        // them centered above and below the room container.
+        var halfWidth = (int)(roomWidth / 2f);
+        _topButtonGroup.OffsetLeft    = -halfWidth;
+        _topButtonGroup.OffsetRight   = halfWidth;
+        _bottomButtonGroup.OffsetLeft = -halfWidth;
+        _bottomButtonGroup.OffsetRight= halfWidth;
+    }
+
     private void ShowGameOver()
     {
         _statusLabel.Text    = "YOU DIED";
         _flavorLabel.Text    = "The monsters overrun the dungeon.";
         _flavorLabel.Visible = true;
-        foreach (var cardModel in _engine.Room)
-            _godotCards[cardModel.Name].Set("can_be_interacted_with", false);
         StartBounceAnimation(isGameOver: true);
     }
 
