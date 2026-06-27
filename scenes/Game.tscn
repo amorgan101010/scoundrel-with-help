@@ -285,16 +285,22 @@ offset_bottom = -10.0
 text = "Next Room →"
 
 [node name="RetryButton" type="Button" parent="UI" unique_id=1426019074]
-offset_left = 441.0
+anchor_left = 0.5
+anchor_right = 0.5
+grow_horizontal = 2
+offset_left = -119.0
 offset_top = 10.0
-offset_right = 601.0
+offset_right = 41.0
 offset_bottom = 45.0
 text = "↺ New Game"
 
 [node name="HelpButton" type="Button" parent="UI" unique_id=1844877452]
-offset_left = 609.0
+anchor_left = 0.5
+anchor_right = 0.5
+grow_horizontal = 2
+offset_left = 49.0
 offset_top = 10.0
-offset_right = 679.0
+offset_right = 119.0
 offset_bottom = 45.0
 text = "? Help"
 
