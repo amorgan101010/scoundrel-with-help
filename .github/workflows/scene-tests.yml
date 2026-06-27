@@ -81,11 +81,11 @@ jobs:
 
       - name: Reimport assets
         if: steps.changed.outputs.run == 'true'
-        run: xvfb-run "$GODOT_BIN" --path "$GITHUB_WORKSPACE" --import --quit 2>/dev/null || true
+        run: xvfb-run --server-args="-screen 0 1920x1080x24" "$GODOT_BIN" --path "$GITHUB_WORKSPACE" --import --quit 2>/dev/null || true
 
       - name: Run scene tests
         if: steps.changed.outputs.run == 'true'
         run: |
-          xvfb-run "$GODOT_BIN" --path "$GITHUB_WORKSPACE" \
+          xvfb-run --server-args="-screen 0 1920x1080x24" "$GODOT_BIN" --path "$GITHUB_WORKSPACE" \
             -s res://addons/gdUnit4/bin/GdUnitCmdTool.gd \
             -a res://scene_tests/
