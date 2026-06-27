@@ -159,7 +159,7 @@ public class ScoundrelSceneTests
 
     // ── Tests ─────────────────────────────────────────────────────────────────
 
-    [TestCase(Description = $"Game starts with full HP, {ScoundrelRules.DeckSize}-card deck, no weapon, {ScoundrelRules.RoomSize} room cards")]
+    [TestCase(Description = "Game starts with full HP, 40-card deck, no weapon, 4 room cards")]
     public void InitialState()
     {
         var scene = _runner!.Scene();
