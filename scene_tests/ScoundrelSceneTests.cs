@@ -368,7 +368,7 @@ public class ScoundrelSceneTests
         Node? badgeNode = null;
         foreach (var child in weaponNode.GetChildren())
             if (child.IsInGroup("slain_badge")) { badgeNode = child; break; }
-        AssertThat(badgeNode).IsNotNull("Weapon card should have a slain badge after killing a monster");
+        AssertThat(badgeNode).IsNotNull();
 
         string badgeText = "";
         foreach (var grandchild in badgeNode!.GetChildren())
