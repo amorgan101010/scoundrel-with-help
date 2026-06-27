@@ -55,7 +55,7 @@ public class ScoundrelSceneTests
     {
         _runner = ISceneRunner.Load("res://scenes/Game.tscn", true);
         // Let _Ready() run and the initial deal animations settle.
-        await _runner.AwaitMillis(200);
+        await _runner.AwaitMillis(UITimings.AnimationSettleMs);
     }
 
     [AfterTest]
@@ -108,10 +108,10 @@ public class ScoundrelSceneTests
     }
 
     // Reset the scene to FixedDeck and wait for deal animations to settle.
-    // Pass settleMs=1200 for tests that send real mouse input — DraggableObject silently
+    // Pass settleMs=UITimings.DragAnimationMs for tests that send real mouse input — DraggableObject silently
     // rejects clicks while a card is in MOVING state (animating to its slot), and a fresh
     // StartGameWithDeck call gets no free frames from the loader like BeforeTest does.
-    private async Task SetupFixedDeck(uint settleMs = 200)
+    private async Task SetupFixedDeck(uint settleMs = UITimings.AnimationSettleMs)
     {
         var game = (ScoundrelGame)_runner!.Scene();
         game.StartGameWithDeck(new List<CardModel>(FixedDeck));
@@ -126,11 +126,11 @@ public class ScoundrelSceneTests
     {
         var pos = (Vector2)card.Get("global_position");
         _runner!.SimulateMouseMove(pos);
-        await _runner!.AwaitMillis(100);  // let hover state register
+        await _runner!.AwaitMillis(UITimings.MouseHoverDelayMs);  // let hover state register
         _runner!.SimulateMouseButtonPress(MouseButton.Left, false);
         await _runner!.AwaitIdleFrame();  // let HOLDING state register in _holding_cards
         _runner!.SimulateMouseButtonRelease(MouseButton.Left);
-        await _runner!.AwaitMillis(500);  // wait for game logic + animation
+        await _runner!.AwaitMillis(UITimings.PostInputSettleMs);  // wait for game logic + animation
     }
 
     // Returns the centre of RightDropZone in viewport coordinates. Used as the
@@ -148,29 +148,29 @@ public class ScoundrelSceneTests
         var pos    = (Vector2)card.Get("global_position");
         var target = dropTarget ?? RightZoneCenter();
         _runner!.SimulateMouseMove(pos);
-        await _runner!.AwaitMillis(100);
+        await _runner!.AwaitMillis(UITimings.MouseHoverDelayMs);
         _runner!.SimulateMouseButtonPress(MouseButton.Left, false);
-        await _runner!.AwaitMillis(80);
+        await _runner!.AwaitMillis(UITimings.MouseDragDelayMs);
         _runner!.SimulateMouseMove(target);
-        await _runner!.AwaitMillis(80);
+        await _runner!.AwaitMillis(UITimings.MouseDragDelayMs);
         _runner!.SimulateMouseButtonRelease(MouseButton.Left);
-        await _runner!.AwaitMillis(500);
+        await _runner!.AwaitMillis(UITimings.PostInputSettleMs);
     }
 
     // ── Tests ─────────────────────────────────────────────────────────────────
 
-    [TestCase(Description = "Game starts with full HP, 40-card deck, no weapon, 4 room cards")]
+    [TestCase(Description = $"Game starts with full HP, {ScoundrelRules.DeckSize}-card deck, no weapon, {ScoundrelRules.RoomSize} room cards")]
     public void InitialState()
     {
         var scene = _runner!.Scene();
 
-        AssertThat(scene.GetNode<Label>("UI/HealthLabel").Text).IsEqual("HP: 20 / 20");
+        AssertThat(scene.GetNode<Label>("UI/HealthLabel").Text).IsEqual($"HP: {ScoundrelRules.MaxHealth} / {ScoundrelRules.MaxHealth}");
         AssertThat(scene.GetNode<Label>("UI/LeftPanel/WeaponGroup/WeaponLabel").Text).IsEqual("Weapon: none");
-        AssertThat((int)scene.GetNode("UI/RightPanel/DeckGroup/DeckPile").Call("get_card_count")).IsEqual(40);
+        AssertThat((int)scene.GetNode("UI/RightPanel/DeckGroup/DeckPile").Call("get_card_count")).IsEqual(ScoundrelRules.DeckSize);
         AssertThat((int)scene.GetNode("UI/RightPanel/DiscardGroup/DiscardPile").Call("get_card_count")).IsEqual(0);
 
         var roomCards = (GArray)scene.GetNode("UI/RoomContainer").Call("get_all_cards");
-        AssertThat(roomCards.Count).IsEqual(4);
+        AssertThat(roomCards.Count).IsEqual(ScoundrelRules.RoomSize);
     }
 
     [TestCase(Description = "Clicking a monster card with no weapon reduces HP by its combat value")]
@@ -188,7 +188,7 @@ public class ScoundrelSceneTests
         ClickCard(scene, monster);
         await _runner!.AwaitIdleFrame();
 
-        AssertThat(ParseHP(scene)).IsEqual(20 - expectedDamage);
+        AssertThat(ParseHP(scene)).IsEqual(ScoundrelRules.MaxHealth - expectedDamage);
         AssertThat((int)scene.GetNode("UI/RightPanel/DiscardGroup/DiscardPile").Call("get_card_count")).IsEqual(1);
     }
 
@@ -235,7 +235,7 @@ public class ScoundrelSceneTests
         AssertThat(potion).IsNotNull();
 
         int potionRank = potion!.Get("card_info").AsGodotDictionary()["rank"].AsInt32();
-        int expectedHP = Math.Min(20, hpAfterHit + potionRank);
+        int expectedHP = Math.Min(ScoundrelRules.MaxHealth, hpAfterHit + potionRank);
 
         ClickCard(scene, potion);
         await _runner!.AwaitIdleFrame();
@@ -254,11 +254,11 @@ public class ScoundrelSceneTests
         await _runner!.AwaitIdleFrame();
 
         // 4 room cards returned to deck, then 4 new ones dealt → still 40 in deck
-        AssertThat((int)scene.GetNode("UI/RightPanel/DeckGroup/DeckPile").Call("get_card_count")).IsEqual(40);
+        AssertThat((int)scene.GetNode("UI/RightPanel/DeckGroup/DeckPile").Call("get_card_count")).IsEqual(ScoundrelRules.DeckSize);
 
         // Room must have 4 new cards
         var roomCards = (GArray)scene.GetNode("UI/RoomContainer").Call("get_all_cards");
-        AssertThat(roomCards.Count).IsEqual(4);
+        AssertThat(roomCards.Count).IsEqual(ScoundrelRules.RoomSize);
     }
 
     [TestCase(Description = "Run button is disabled for the room immediately after a run")]
@@ -289,9 +289,9 @@ public class ScoundrelSceneTests
         ClickCard(scene, FindRoomCard(scene, s => s == "diamonds")!); // 6_diamonds (weapon)
         await _runner!.AwaitMillis(50);
         ClickCard(scene, FindRoomCard(scene, s => s == "hearts")!);   // 5_hearts (potion)
-        await _runner!.AwaitMillis(50);
+        await _runner!.AwaitMillis(UITimings.InteractionDelayMs);
         ClickCard(scene, FindRoomCard(scene, s => s == "clubs")!);    // 4_clubs (0 dmg with weapon)
-        await _runner!.AwaitMillis(50);
+        await _runner!.AwaitMillis(UITimings.InteractionDelayMs);
 
         AssertThat(nextRoomButton.Visible).IsTrue();
         AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(1); // 8_spades remains
@@ -300,29 +300,29 @@ public class ScoundrelSceneTests
         nextRoomButton.EmitSignal("pressed");
         await _runner!.AwaitIdleFrame();
 
-        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(4);
+        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(ScoundrelRules.RoomSize);
         AssertThat(nextRoomButton.Visible).IsFalse(); // reset after advancing
     }
 
     [TestCase(Description = "Retry button resets the game to full HP with a fresh 4-card room")]
     public async Task RetryButton_ResetsGame()
     {
-        await SetupFixedDeck(1200u);
+        await SetupFixedDeck(UITimings.DragAnimationMs);
         var scene = _runner!.Scene();
         var room  = scene.GetNode("UI/RoomContainer");
 
         // Take one card so the room is no longer in the initial 4-card state.
         ClickCard(scene, FindRoomCard(scene, s => s == "diamonds")!); // equip weapon
-        await _runner!.AwaitMillis(200u);
-        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(3);
+        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);  // 200ms
+        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(ScoundrelRules.RoomSize - 1);
 
         // Retry — TopButtonGroup was reparented to ButtonLayer in _Ready().
         var retryButton = scene.GetNode<Button>("ButtonLayer/TopButtonGroup/RetryButton");
         retryButton.EmitSignal("pressed");
-        await _runner!.AwaitMillis(1200u); // wait for new deal to settle
+        await _runner!.AwaitMillis(UITimings.DragAnimationMs); // wait for new deal to settle
 
-        AssertThat(ParseHP(scene)).IsEqual(20);
-        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(4);
+        AssertThat(ParseHP(scene)).IsEqual(ScoundrelRules.MaxHealth);
+        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(ScoundrelRules.RoomSize);
     }
 
     [TestCase(Description = "Help button opens the help dialog")]
@@ -407,59 +407,59 @@ public class ScoundrelSceneTests
     [TestCase(Description = "Real mouse click on a room card does nothing (drag-only controls)")]
     public async Task MouseClickDoesNotTakeCard()
     {
-        await SetupFixedDeck(1200u);
+        await SetupFixedDeck(UITimings.DragAnimationMs);
         var scene = _runner!.Scene();
         var room  = scene.GetNode("UI/RoomContainer");
 
         var cards = (GArray)room.Call("get_all_cards");
-        AssertThat(cards.Count).IsEqual(4);
+        AssertThat(cards.Count).IsEqual(ScoundrelRules.RoomSize);
 
         // cards[0] is always 6_diamonds (weapon) in the fixed deck.
         await MouseClickCard(cards[0].AsGodotObject());
 
-        // Room should still have 4 cards — a bare click is ignored.
+        // Room should still have RoomSize cards — a bare click is ignored.
         var after = (GArray)room.Call("get_all_cards");
-        AssertThat(after.Count).IsEqual(4);
+        AssertThat(after.Count).IsEqual(ScoundrelRules.RoomSize);
     }
 
     [TestCase(Description = "Dragging a weapon to the left zone equips it")]
     public async Task MouseDragTakesCard()
     {
-        await SetupFixedDeck(1200u);
+        await SetupFixedDeck(UITimings.DragAnimationMs);
         var scene = _runner!.Scene();
         var room  = scene.GetNode("UI/RoomContainer");
 
         var cards = (GArray)room.Call("get_all_cards");
-        AssertThat(cards.Count).IsEqual(4);
+        AssertThat(cards.Count).IsEqual(ScoundrelRules.RoomSize);
 
         // cards[0] is always 6_diamonds (weapon) — drag to LEFT zone (fight/equip side).
         await MouseDragCard(cards[0].AsGodotObject(), new Vector2(192f, 345f));
 
         var after = (GArray)room.Call("get_all_cards");
-        AssertThat(after.Count).IsEqual(3);
+        AssertThat(after.Count).IsEqual(ScoundrelRules.RoomSize - 1);
     }
 
     [TestCase(Description = "Drag to the correct zone takes the card; click leaves the room unchanged")]
     public async Task DragTakesCard_ClickDoesNot()
     {
-        await SetupFixedDeck(1200u);
+        await SetupFixedDeck(UITimings.DragAnimationMs);
         var scene = _runner!.Scene();
         var room  = scene.GetNode("UI/RoomContainer");
 
-        // Part 1: click — room count must stay at 4 (no zone reached).
+        // Part 1: click — room count must stay at RoomSize (no zone reached).
         var cards = (GArray)room.Call("get_all_cards");
         await MouseClickCard(cards[0].AsGodotObject());
-        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(4);
+        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(ScoundrelRules.RoomSize);
 
-        // Part 2: drag 6_diamonds (weapon) to LEFT zone — room count drops to 3.
+        // Part 2: drag 6_diamonds (weapon) to LEFT zone — room count drops to RoomSize - 1.
         await MouseDragCard(cards[0].AsGodotObject(), new Vector2(192f, 345f));
-        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(3);
+        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(ScoundrelRules.RoomSize - 1);
     }
 
     [TestCase(Description = "Dragging a weapon to the right zone discards it without equipping")]
     public async Task DragWeaponToRightZoneDiscards()
     {
-        await SetupFixedDeck(1200u);
+        await SetupFixedDeck(UITimings.DragAnimationMs);
         var scene = _runner!.Scene();
         var room  = scene.GetNode("UI/RoomContainer");
 
@@ -467,8 +467,8 @@ public class ScoundrelSceneTests
         var cards = (GArray)room.Call("get_all_cards");
         await MouseDragCard(cards[0].AsGodotObject(), RightZoneCenter());
 
-        // Card discarded — room has 3 cards, weapon slot still empty.
-        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(3);
+        // Card discarded — room has RoomSize - 1 cards, weapon slot still empty.
+        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(ScoundrelRules.RoomSize - 1);
         AssertThat(scene.GetNode<Label>("UI/LeftPanel/WeaponGroup/WeaponLabel").Text).IsEqual("Weapon: none");
         AssertThat((int)scene.GetNode("UI/RightPanel/DiscardGroup/DiscardPile").Call("get_card_count")).IsEqual(1);
     }
@@ -476,28 +476,28 @@ public class ScoundrelSceneTests
     [TestCase(Description = "Dragging a potion to the left zone drinks it, healing the player")]
     public async Task DragPotionToLeftZoneDrinks()
     {
-        await SetupFixedDeck(1200u);
+        await SetupFixedDeck(UITimings.DragAnimationMs);
         var scene = _runner!.Scene();
         var room  = scene.GetNode("UI/RoomContainer");
 
-        // Take 8_spades damage first so the heal is detectable (HP 20 → 12).
+        // Take 8_spades damage first so the heal is detectable (HP MaxHealth → MaxHealth - 8).
         var monster = FindRoomCard(scene, s => s == "spades");
         AssertThat(monster).IsNotNull();
         ClickCard(scene, monster!);
-        await _runner!.AwaitMillis(200);
+        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);  // 200ms
 
         int hpAfterDamage = ParseHP(scene);
         var potion = FindRoomCard(scene, s => s == "hearts"); // 5_hearts
         AssertThat(potion).IsNotNull();
 
         int potionRank = potion!.Get("card_info").AsGodotDictionary()["rank"].AsInt32();
-        int expectedHP = Math.Min(20, hpAfterDamage + potionRank);
+        int expectedHP = Math.Min(ScoundrelRules.MaxHealth, hpAfterDamage + potionRank);
 
         // Drag left — LEFT zone is now "Drink"
         await MouseDragCard(potion, new Vector2(192f, 345f));
 
         AssertThat(ParseHP(scene)).IsEqual(expectedHP);
-        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(2);
+        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(ScoundrelRules.RoomSize - 2);
     }
 
     [TestCase(Description = "Dragging a potion to the right zone discards it without healing")]
@@ -511,7 +511,7 @@ public class ScoundrelSceneTests
         var monster = FindRoomCard(scene, s => s == "spades"); // 8_spades
         AssertThat(monster).IsNotNull();
         ClickCard(scene, monster!);
-        await _runner!.AwaitMillis(200);
+        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);  // 200ms
 
         int hpAfterDamage = ParseHP(scene);
         var potion = FindRoomCard(scene, s => s == "hearts");
@@ -522,20 +522,20 @@ public class ScoundrelSceneTests
 
         // HP unchanged — potion discarded, not drunk.
         AssertThat(ParseHP(scene)).IsEqual(hpAfterDamage);
-        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(2);
+        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(ScoundrelRules.RoomSize - 2);
     }
 
     [TestCase(Description = "Dragging a monster to the right zone fights bare-handed, ignoring equipped weapon")]
     public async Task DragMonsterToRightZoneIsBarehanded()
     {
-        await SetupFixedDeck(1200u);
+        await SetupFixedDeck(UITimings.DragAnimationMs);
         var scene = _runner!.Scene();
 
         // Equip 6_diamonds via direct signal so the weapon floor is fresh.
         var weapon = FindRoomCard(scene, s => s == "diamonds");
         AssertThat(weapon).IsNotNull();
         ClickCard(scene, weapon!);
-        await _runner!.AwaitMillis(800); // let weapon move animation finish
+        await _runner!.AwaitMillis(UITimings.DragAnimationMs / 1.5f); // wait shorter since weapon animates briefly
 
         AssertThat(scene.GetNode<Label>("UI/LeftPanel/WeaponGroup/WeaponLabel").Text).IsNotEqual("Weapon: none");
 
@@ -545,7 +545,7 @@ public class ScoundrelSceneTests
         await MouseDragCard(monster!, RightZoneCenter());
 
         // With weapon (value 6): damage would be 0.  Bare-handed: damage = 4.
-        AssertThat(ParseHP(scene)).IsEqual(16);
+        AssertThat(ParseHP(scene)).IsEqual(ScoundrelRules.MaxHealth - 4);
     }
 
     [TestCase(Description = "Dragging a void potion to the (hidden) left zone bounces it back without discarding")]
@@ -566,7 +566,7 @@ public class ScoundrelSceneTests
         };
         var game = (ScoundrelGame)_runner!.Scene();
         game.StartGameWithDeck(potionDeck);
-        await _runner!.AwaitMillis(1200u); // settle for real mouse input
+        await _runner!.AwaitMillis(UITimings.DragAnimationMs); // settle for real mouse input
 
         var scene = _runner!.Scene();
         var room  = scene.GetNode("UI/RoomContainer");
@@ -576,7 +576,7 @@ public class ScoundrelSceneTests
         var firstPotion = FindRoomCard(scene, s => s == "hearts");
         AssertThat(firstPotion).IsNotNull();
         ClickCard(scene, firstPotion!);
-        await _runner!.AwaitMillis(200);
+        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);  // 200ms
 
         var voidPotion = FindRoomCard(scene, s => s == "hearts");
         AssertThat(voidPotion).IsNotNull();
@@ -593,7 +593,7 @@ public class ScoundrelSceneTests
     [TestCase(Description = "Dragging a monster to the left zone when weapon floor is exceeded bounces it back")]
     public async Task DragMonsterExceedingFloorToLeftZoneBounces()
     {
-        await SetupFixedDeck(1200u);
+        await SetupFixedDeck(UITimings.DragAnimationMs);
         var scene = _runner!.Scene();
 
         // Equip 6_diamonds (value 6), then fight 4_clubs with weapon (floor → 4).

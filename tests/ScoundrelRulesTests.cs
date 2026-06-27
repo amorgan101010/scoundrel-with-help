@@ -7,7 +7,7 @@ public class MonsterValueTests
 {
     [Test]
     public void Ace_Returns14()
-        => Assert.That(ScoundrelRules.MonsterValue(1), Is.EqualTo(14));
+        => Assert.That(ScoundrelRules.MonsterValue(ScoundrelRules.AceRank), Is.EqualTo(ScoundrelRules.AceMonsterValue));
 
     [TestCase(2)]
     [TestCase(5)]
@@ -60,8 +60,8 @@ public class CalcDamageTests
 
     [Test]
     public void AceMonster_ReducedByWeapon()
-        // Ace = 14 monster value; weapon 10 → 4 damage
-        => Assert.That(ScoundrelRules.CalcDamage(14, 10), Is.EqualTo(4));
+        // Ace = AceMonsterValue monster value; weapon 10 → 4 damage
+        => Assert.That(ScoundrelRules.CalcDamage(ScoundrelRules.AceMonsterValue, 10), Is.EqualTo(4));
 
     [Test]
     public void DamageNeverNegative()
@@ -105,11 +105,11 @@ public class HealTests
 
     [Test]
     public void HealAtMax_StaysAtMax()
-        => Assert.That(ScoundrelRules.Heal(20, 5), Is.EqualTo(20));
+        => Assert.That(ScoundrelRules.Heal(ScoundrelRules.MaxHealth, 5), Is.EqualTo(ScoundrelRules.MaxHealth));
 
     [Test]
     public void HealWouldExceedMax_CapsAtMax()
-        => Assert.That(ScoundrelRules.Heal(17, 6), Is.EqualTo(20));
+        => Assert.That(ScoundrelRules.Heal(17, 6), Is.EqualTo(ScoundrelRules.MaxHealth));
 
     [Test]
     public void HealFromZero_AddsPotion()
@@ -191,11 +191,11 @@ public class TooltipForTests
             Is.EqualTo("Potion — heals 5 HP"));
 
     [Test]
-    public void Potion_HealCapped_ShowsCap()
-        // Health 18 + rank 5 = 23, caps at 20 → healed = 2
+    public void HealCapped_ShowsCap()
+        // Health 18 + rank 5 = 23, caps at MaxHealth → healed = 2
         => Assert.That(
             ScoundrelRules.TooltipFor(Potion(5), null, int.MaxValue, false, 18),
-            Is.EqualTo("Potion — heals 2 HP (capped at 20)"));
+            Is.EqualTo($"Potion — heals 2 HP (capped at {ScoundrelRules.MaxHealth})"));
 
     [Test]
     public void Potion_Void_ShowsVoidMessage()
