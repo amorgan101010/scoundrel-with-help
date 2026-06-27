@@ -81,6 +81,9 @@ public partial class ScoundrelGame : Node
     private Vector2 _cardSize = new Vector2(BaseCardWidth, BaseCardHeight);
     private float CardW => _cardSize.X;
     private float CardH => _cardSize.Y;
+    // Viewport resize debouncing (time-based)
+    private const float ResizeDebounceSeconds = 0.12f; // debounce interval
+    private Timer _resizeTimer = null!;
 
     // CanvasLayer Z-order. Bounce ghosts sit at LayerBounce; interactive UI must be ≥ LayerHud.
     private const int LayerOverlay = 128;
@@ -144,6 +147,13 @@ public partial class ScoundrelGame : Node
 
         _cardFactory = (GodotObject)_cardManager.Get("card_factory");
         UpdateCardSize();
+        // Create resize debounce timer used to delay expensive layout work until
+        // the user has finished resizing. Start stopped; we'll start it on events.
+        _resizeTimer = new Timer();
+        _resizeTimer.OneShot = true;
+        _resizeTimer.WaitTime = ResizeDebounceSeconds;
+        AddChild(_resizeTimer);
+        _resizeTimer.Connect("timeout", Callable.From(OnResizeDebounceTimeout));
 
         _healthDie = GetNode<HealthDie>("UI/LeftPanel/HealthDie");
 
@@ -514,8 +524,17 @@ public partial class ScoundrelGame : Node
 
     private void OnViewportResized()
     {
-        // Recompute card size for new viewport and update factory + existing cards.
-        UpdateCardSize();
+        // Restart debounce timer; only when the timer finally times out do we
+        // recompute card sizes and update the help dialog.
+        if (_resizeTimer == null) return;
+        _resizeTimer.Stop();
+        _resizeTimer.Start();
+    }
+
+    private void OnResizeDebounceTimeout()
+    {
+        var vpSize = GetViewport().GetVisibleRect().Size;
+        UpdateCardSize(vpSize);
         if (!_helpDialog.Visible) return;
         ResizeHelpDialog();
         _helpDialog.PopupCentered();
@@ -529,9 +548,9 @@ public partial class ScoundrelGame : Node
         _helpDialog.Size = new Vector2I((int)width, (int)height);
     }
 
-    private void UpdateCardSize()
+    private void UpdateCardSize(Vector2 vpSize = default)
     {
-        var vpSize = GetViewport().GetVisibleRect().Size;
+        if (vpSize == default) vpSize = GetViewport().GetVisibleRect().Size;
         // Reference was designed for a 1080p height viewport.
         float scale = vpSize.Y / 1080f;
         if (scale <= 0f) scale = 1f;
