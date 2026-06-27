@@ -229,7 +229,7 @@ public class ScoundrelSceneTests
         await _runner!.AwaitIdleFrame();
 
         int hpAfterHit = ParseHP(scene);
-        AssertThat(hpAfterHit).IsEqual(20 - damage);
+        AssertThat(hpAfterHit).IsEqual(ScoundrelRules.MaxHealth - damage);
 
         var potion = FindRoomCard(scene, s => s == "hearts");
         AssertThat(potion).IsNotNull();
@@ -294,14 +294,14 @@ public class ScoundrelSceneTests
         await _runner!.AwaitMillis(UITimings.InteractionDelayMs);
 
         AssertThat(nextRoomButton.Visible).IsTrue();
-        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(1); // 8_spades remains
+        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(1);
 
         // Click the button — should deal leftover + 3 new cards
         nextRoomButton.EmitSignal("pressed");
         await _runner!.AwaitIdleFrame();
 
         AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(ScoundrelRules.RoomSize);
-        AssertThat(nextRoomButton.Visible).IsFalse(); // reset after advancing
+        AssertThat(nextRoomButton.Visible).IsFalse();
     }
 
     [TestCase(Description = "Retry button resets the game to full HP with a fresh 4-card room")]
@@ -368,7 +368,7 @@ public class ScoundrelSceneTests
         Node? badgeNode = null;
         foreach (var child in weaponNode.GetChildren())
             if (child.IsInGroup("slain_badge")) { badgeNode = child; break; }
-        AssertThat(badgeNode).IsNotNull();
+        AssertThat(badgeNode).IsNotNull("Weapon card should have a slain badge after killing a monster");
 
         string badgeText = "";
         foreach (var grandchild in badgeNode!.GetChildren())
@@ -611,7 +611,7 @@ public class ScoundrelSceneTests
 
         // Card bounced back — room unchanged, no damage taken.
         var room = scene.GetNode("UI/RoomContainer");
-        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(2); // hearts + spades remain
+        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(2);
         AssertThat(ParseHP(scene)).IsEqual(hpBefore);
     }
 
