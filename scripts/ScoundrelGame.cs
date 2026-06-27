@@ -558,10 +558,18 @@ public partial class ScoundrelGame : Node
 
         // Apply to factory so newly created cards use the size
         _cardFactory.Set("card_size", _cardSize);
+        // Also set the CardManager's card_size so containers using
+        // `card_manager.card_size` (RoomContainer, Hand, etc.) get the
+        // updated value for layout calculations.
+        _cardManager.Set("card_size", _cardSize);
 
         // Also update any already-created cards so visuals stay in sync
         foreach (var godotCard in _godotCards.Values)
             godotCard.Set("card_size", _cardSize);
+
+        // Tell the room container to recompute card target positions to match
+        // the new card size so cards don't overlap when viewport shrinks.
+        _roomContainer.Call("_update_target_positions");
     }
 
     // ── End states ────────────────────────────────────────────────────────
