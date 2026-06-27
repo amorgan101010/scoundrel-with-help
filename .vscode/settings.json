@@ -1,3 +1,4 @@
 {
-    "FSharp.suggestGitignore": false
+    "FSharp.suggestGitignore": false,
+    "godotTools.editorPath.godot4": "/usr/lib/godot-mono/godot.linuxbsd.editor.x86_64.mono"
 }
