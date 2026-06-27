@@ -1,6 +1,6 @@
 {
   "name": "queen_spades",
-  "front_image": "queen_spades.png",
+  "front_image": "queen_spades.svg",
   "suit": "spades",
   "rank": 12
 }

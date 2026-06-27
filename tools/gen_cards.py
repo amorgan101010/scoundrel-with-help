@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-"""Generate all 44 Scoundrel card art images using Pillow."""
+"""Generate all 44 Scoundrel card art images as SVGs (vector, scales to any resolution)."""
 
-from PIL import Image, ImageDraw, ImageFont
-import os, math
+import os, math, json
 
 W, H = 150, 210
-FONT_PATH = "/usr/share/fonts/TTF/DejaVuSans-Bold.ttf"
-OUT = "/home/aileen/Repositories/godot/scoundrel-with-help/card_assets"
+OUT      = "/home/aileen/Repositories/godot/scoundrel-with-help/card_assets"
+JSON_DIR = "/home/aileen/Repositories/godot/scoundrel-with-help/card_data"
 
 # ── Palettes ─────────────────────────────────────────────────────────────────
 P = {
@@ -40,9 +39,94 @@ NAMES = {
 }
 
 
+# ── SVG canvas ───────────────────────────────────────────────────────────────
+
+def _rgb(c):
+    return f'rgb({c[0]},{c[1]},{c[2]})'
+
+
+class SVGCanvas:
+    """Drop-in replacement for Pillow ImageDraw that emits SVG elements."""
+
+    def __init__(self, w, h):
+        self.w, self.h = w, h
+        self._e = []
+
+    def rectangle(self, bbox, fill=None, outline=None, width=1):
+        x1, y1, x2, y2 = bbox
+        f = _rgb(fill) if fill else 'none'
+        s = f' stroke="{_rgb(outline)}" stroke-width="{width}"' if outline else ''
+        self._e.append(f'<rect x="{x1}" y="{y1}" width="{x2-x1}" height="{y2-y1}" fill="{f}"{s}/>')
+
+    def ellipse(self, bbox, fill=None, outline=None, width=1):
+        x1, y1, x2, y2 = bbox
+        cx = (x1+x2)/2; cy = (y1+y2)/2
+        rx = (x2-x1)/2; ry = (y2-y1)/2
+        f = _rgb(fill) if fill else 'none'
+        s = f' stroke="{_rgb(outline)}" stroke-width="{width}"' if outline else ''
+        self._e.append(f'<ellipse cx="{cx:.2f}" cy="{cy:.2f}" rx="{rx:.2f}" ry="{ry:.2f}" fill="{f}"{s}/>')
+
+    def polygon(self, pts, fill=None, outline=None, width=1):
+        ps = ' '.join(f'{x},{y}' for x, y in pts)
+        f = _rgb(fill) if fill else 'none'
+        s = f' stroke="{_rgb(outline)}" stroke-width="{width}"' if outline else ''
+        self._e.append(f'<polygon points="{ps}" fill="{f}"{s} stroke-linejoin="round"/>')
+
+    def line(self, pts, fill=None, width=1):
+        col = _rgb(fill) if fill else 'none'
+        if len(pts) == 2:
+            (x1, y1), (x2, y2) = pts
+            self._e.append(
+                f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}"'
+                f' stroke="{col}" stroke-width="{width}" stroke-linecap="round"/>'
+            )
+        else:
+            ps = ' '.join(f'{x},{y}' for x, y in pts)
+            self._e.append(
+                f'<polyline points="{ps}" fill="none"'
+                f' stroke="{col}" stroke-width="{width}" stroke-linecap="round" stroke-linejoin="round"/>'
+            )
+
+    def text(self, pos, txt, fill=None, font=12):
+        x, y = pos
+        size = font if isinstance(font, (int, float)) else 12
+        f = _rgb(fill) if fill else 'black'
+        safe = str(txt).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+        self._e.append(
+            f'<text x="{x}" y="{y}" font-family="\'DejaVu Sans Bold\',sans-serif"'
+            f' font-weight="bold" font-size="{size}" fill="{f}"'
+            f' dominant-baseline="hanging">{safe}</text>'
+        )
+
+    def textbbox(self, _pos, txt, font=12):
+        size = font if isinstance(font, (int, float)) else 12
+        return (0, 0, len(str(txt)) * size * 0.62, size)
+
+    def arc(self, bbox, start, end, fill=None, width=1):
+        x1, y1, x2, y2 = bbox
+        cx = (x1+x2)/2; cy = (y1+y2)/2
+        rx = (x2-x1)/2; ry = (y2-y1)/2
+        sr = math.radians(start); er = math.radians(end)
+        sx = cx + rx*math.cos(sr); sy = cy + ry*math.sin(sr)
+        ex = cx + rx*math.cos(er); ey = cy + ry*math.sin(er)
+        large = 1 if (end - start) % 360 > 180 else 0
+        col = _rgb(fill) if fill else 'none'
+        d = f'M {sx:.2f},{sy:.2f} A {rx:.2f},{ry:.2f} 0 {large},1 {ex:.2f},{ey:.2f}'
+        self._e.append(f'<path d="{d}" fill="none" stroke="{col}" stroke-width="{width}"/>')
+
+    def to_svg(self):
+        inner = '\n'.join(self._e)
+        return (
+            f'<svg xmlns="http://www.w3.org/2000/svg"'
+            f' width="{self.w}" height="{self.h}" viewBox="0 0 {self.w} {self.h}">\n'
+            f'{inner}\n</svg>\n'
+        )
+
+
+# ── Font sizes (SVG doesn't need font objects) ────────────────────────────────
+
 def load_fonts():
-    sizes = [22, 15, 11, 9]
-    return [ImageFont.truetype(FONT_PATH, s) for s in sizes]
+    return [22, 15, 11, 9]
 
 
 def draw_bg(draw, p):
@@ -462,9 +546,8 @@ def draw_weapon(draw, cx, cy, p, rank):
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def make_card(suit, rank, fonts):
-    p   = P[suit]
-    img = Image.new('RGB', (W, H), p['bg'])
-    d   = ImageDraw.Draw(img)
+    p = P[suit]
+    d = SVGCanvas(W, H)
     draw_bg(d, p)
     cx, cy = 75, 97
     if   suit == 'clubs':    draw_clubs(d, cx, cy, p, rank)
@@ -473,7 +556,7 @@ def make_card(suit, rank, fonts):
     elif suit == 'diamonds': draw_weapon(d, cx, cy, p, rank)
     draw_pip(d, rank, suit, p, fonts)
     draw_name_banner(d, NAMES[(suit, rank)], p, fonts[3])
-    return img
+    return d.to_svg()
 
 
 def main():
@@ -485,10 +568,22 @@ def main():
          for r in ('2','3','4','5','6','7','8','9','10')]
     )
     for suit, rank in cards:
-        img  = make_card(suit, rank, fonts)
-        path = os.path.join(OUT, f"{rank}_{suit}.png")
-        img.save(path)
-        print(f"  {rank}_{suit}.png")
+        svg = make_card(suit, rank, fonts)
+        fname = f"{rank}_{suit}"
+
+        svg_path = os.path.join(OUT, f"{fname}.svg")
+        with open(svg_path, 'w', encoding='utf-8') as f:
+            f.write(svg)
+
+        json_path = os.path.join(JSON_DIR, f"{fname}.json")
+        if os.path.exists(json_path):
+            with open(json_path) as f:
+                data = json.load(f)
+            data['front_image'] = f"{fname}.svg"
+            with open(json_path, 'w') as f:
+                json.dump(data, f, indent=2)
+
+        print(f"  {fname}.svg")
     print(f"\nDone — {len(cards)} cards.")
 
 

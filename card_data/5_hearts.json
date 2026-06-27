@@ -1,6 +1,6 @@
 {
   "name": "5_hearts",
-  "front_image": "5_hearts.png",
+  "front_image": "5_hearts.svg",
   "suit": "hearts",
   "rank": 5
 }
