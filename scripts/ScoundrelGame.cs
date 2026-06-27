@@ -95,10 +95,10 @@ public partial class ScoundrelGame : Node
         _statusLabel    = GetNode<Label>("UI/StatusLabel");
         _deckLabel      = GetNode<Label>("UI/RightPanel/DeckGroup/DeckLabel");
         _discardLabel   = GetNode<Label>("UI/RightPanel/DiscardGroup/DiscardLabel");
-        _clubsLabel     = GetNode<Label>("UI/LeftPanel/InPlayGroup/ClubsLabel");
-        _spadesLabel    = GetNode<Label>("UI/LeftPanel/InPlayGroup/SpadesLabel");
-        _heartsLabel    = GetNode<Label>("UI/LeftPanel/InPlayGroup/HeartsLabel");
-        _diamondsLabel  = GetNode<Label>("UI/LeftPanel/InPlayGroup/DiamondsLabel");
+        _clubsLabel     = GetNode<Label>("UI/LeftPanel/WeaponGroup/InPlayGroup/ClubsLabel");
+        _spadesLabel    = GetNode<Label>("UI/LeftPanel/WeaponGroup/InPlayGroup/SpadesLabel");
+        _heartsLabel    = GetNode<Label>("UI/LeftPanel/WeaponGroup/InPlayGroup/HeartsLabel");
+        _diamondsLabel  = GetNode<Label>("UI/LeftPanel/WeaponGroup/InPlayGroup/DiamondsLabel");
         _runButton      = GetNode<Button>("UI/BottomButtonGroup/RunButton");
         _nextRoomButton = GetNode<Button>("UI/BottomButtonGroup/NextRoomButton");
         _retryButton    = GetNode<Button>("UI/TopButtonGroup/RetryButton");
