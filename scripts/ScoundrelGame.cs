@@ -99,10 +99,10 @@ public partial class ScoundrelGame : Node
         _spadesLabel    = GetNode<Label>("UI/LeftPanel/InPlayGroup/SpadesLabel");
         _heartsLabel    = GetNode<Label>("UI/LeftPanel/InPlayGroup/HeartsLabel");
         _diamondsLabel  = GetNode<Label>("UI/LeftPanel/InPlayGroup/DiamondsLabel");
-        _runButton      = GetNode<Button>("UI/RunButton");
-        _nextRoomButton = GetNode<Button>("UI/NextRoomButton");
-        _retryButton    = GetNode<Button>("UI/RetryButton");
-        _helpButton     = GetNode<Button>("UI/HelpButton");
+        _runButton      = GetNode<Button>("UI/BottomButtonGroup/RunButton");
+        _nextRoomButton = GetNode<Button>("UI/BottomButtonGroup/NextRoomButton");
+        _retryButton    = GetNode<Button>("UI/TopButtonGroup/RetryButton");
+        _helpButton     = GetNode<Button>("UI/TopButtonGroup/HelpButton");
         _helpDialog     = GetNode<AcceptDialog>("UI/HelpDialog");
 
         _cardFactory = (GodotObject)_cardManager.Get("card_factory");
@@ -137,8 +137,7 @@ public partial class ScoundrelGame : Node
         buttonLayer.Name  = "ButtonLayer";
         buttonLayer.Layer = 203;
         AddChild(buttonLayer);
-        _retryButton.Reparent(buttonLayer, true);
-        _helpButton.Reparent(buttonLayer, true);
+        GetNode<HBoxContainer>("UI/TopButtonGroup").Reparent(buttonLayer, true);
 
         // Dedicated overlay layer above everything (UI is layer 1, cards are layer 0).
         var overlayLayer = new CanvasLayer();
