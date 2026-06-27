@@ -5,8 +5,92 @@
 [ext_resource type="PackedScene" uid="uid://bscndrlcfact1" path="res://scenes/ScoundrelCardFactory.tscn" id="3_cf"]
 [ext_resource type="Script" uid="uid://6ams8uvg43gu" path="res://addons/card-framework/pile.gd" id="4_pile"]
 [ext_resource type="Script" uid="uid://nge5xs0pqlvl" path="res://scenes/RoomContainer.gd" id="5_room"]
-[ext_resource type="Script" path="res://scenes/DropZoneContainer.gd" id="6_dzc"]
-[ext_resource type="Script" path="res://scripts/HealthDie.cs" id="7_hd"]
+[ext_resource type="Script" uid="uid://cov28geqoa6bq" path="res://scenes/DropZoneContainer.gd" id="6_dzc"]
+[ext_resource type="Script" uid="uid://buokfsbn6sbtb" path="res://scripts/HealthDie.cs" id="7_hd"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_red_n"]
+bg_color = Color(0.75, 0.18, 0.18, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_red_p"]
+bg_color = Color(0.6, 0.1, 0.1, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_red_h"]
+bg_color = Color(0.85, 0.28, 0.28, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_green_n"]
+bg_color = Color(0.18, 0.58, 0.18, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_green_p"]
+bg_color = Color(0.1, 0.45, 0.1, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_green_h"]
+bg_color = Color(0.28, 0.68, 0.28, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_blue_n"]
+bg_color = Color(0.2, 0.41, 0.8, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_blue_p"]
+bg_color = Color(0.13, 0.3, 0.65, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_blue_h"]
+bg_color = Color(0.3, 0.52, 0.9, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yellow_n"]
+bg_color = Color(0.82, 0.67, 0.05, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yellow_p"]
+bg_color = Color(0.68, 0.55, 0.02, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yellow_h"]
+bg_color = Color(0.9, 0.77, 0.15, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
 
 [node name="Game" type="Node" unique_id=1067270305]
 script = ExtResource("1_gm")
@@ -44,7 +128,6 @@ grow_vertical = 2
 mouse_filter = 2
 
 [node name="HealthDie" type="Control" parent="UI/LeftPanel" unique_id=876543210]
-layout_mode = 3
 anchors_preset = 0
 offset_left = 40.0
 offset_top = 83.0
@@ -53,7 +136,6 @@ offset_bottom = 278.0
 script = ExtResource("7_hd")
 
 [node name="WeaponGroup" type="Control" parent="UI/LeftPanel" unique_id=111222333]
-layout_mode = 3
 anchors_preset = 0
 offset_left = 30.0
 offset_top = 349.0
@@ -62,17 +144,14 @@ offset_bottom = 698.0
 mouse_filter = 2
 
 [node name="WeaponLabel" type="Label" parent="UI/LeftPanel/WeaponGroup" unique_id=180637555]
-offset_left = 0.0
-offset_top = 0.0
+layout_mode = 0
 offset_right = 430.0
 offset_bottom = 18.0
 theme_override_font_sizes/font_size = 16
 text = "Weapon: none"
 
 [node name="WeaponSlot" type="Control" parent="UI/LeftPanel/WeaponGroup" unique_id=249709180]
-layout_mode = 3
 anchors_preset = 0
-offset_left = 0.0
 offset_top = 34.0
 offset_right = 225.0
 offset_bottom = 349.0
@@ -83,7 +162,6 @@ restrict_to_top_card = false
 enable_drop_zone = false
 
 [node name="InPlayGroup" type="Control" parent="UI/LeftPanel/WeaponGroup" unique_id=444555666]
-layout_mode = 3
 anchors_preset = 0
 offset_left = 245.0
 offset_top = 34.0
@@ -92,8 +170,7 @@ offset_bottom = 164.0
 mouse_filter = 2
 
 [node name="InPlayHeader" type="Label" parent="UI/LeftPanel/WeaponGroup/InPlayGroup" unique_id=1772774764]
-offset_left = 0.0
-offset_top = 0.0
+layout_mode = 0
 offset_right = 185.0
 offset_bottom = 20.0
 theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
@@ -101,7 +178,7 @@ theme_override_font_sizes/font_size = 13
 text = "IN PLAY:"
 
 [node name="ClubsLabel" type="Label" parent="UI/LeftPanel/WeaponGroup/InPlayGroup" unique_id=173415]
-offset_left = 0.0
+layout_mode = 0
 offset_top = 22.0
 offset_right = 185.0
 offset_bottom = 46.0
@@ -109,7 +186,7 @@ theme_override_font_sizes/font_size = 16
 text = "♣  13"
 
 [node name="SpadesLabel" type="Label" parent="UI/LeftPanel/WeaponGroup/InPlayGroup" unique_id=710810895]
-offset_left = 0.0
+layout_mode = 0
 offset_top = 50.0
 offset_right = 185.0
 offset_bottom = 74.0
@@ -117,7 +194,7 @@ theme_override_font_sizes/font_size = 16
 text = "♠  13"
 
 [node name="HeartsLabel" type="Label" parent="UI/LeftPanel/WeaponGroup/InPlayGroup" unique_id=1783802266]
-offset_left = 0.0
+layout_mode = 0
 offset_top = 78.0
 offset_right = 185.0
 offset_bottom = 102.0
@@ -125,7 +202,7 @@ theme_override_font_sizes/font_size = 16
 text = "♥  9"
 
 [node name="DiamondsLabel" type="Label" parent="UI/LeftPanel/WeaponGroup/InPlayGroup" unique_id=576063759]
-offset_left = 0.0
+layout_mode = 0
 offset_top = 106.0
 offset_right = 185.0
 offset_bottom = 130.0
@@ -134,7 +211,8 @@ text = "♦  9"
 
 [node name="LeftDropZone" type="Control" parent="UI/LeftPanel" unique_id=1365540473]
 visible = false
-layout_mode = 3
+layout_mode = 1
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_vertical = 2
@@ -151,21 +229,22 @@ anchor_right = 0.5
 offset_left = -150.0
 offset_top = 55.0
 offset_right = 150.0
-offset_bottom = 95.0
+offset_bottom = 107.0
 grow_horizontal = 2
 theme_override_font_sizes/font_size = 36
 horizontal_alignment = 1
 
 [node name="RightPanel" type="Control" parent="UI" unique_id=789012345]
 layout_mode = 3
-anchor_left = 0.66666667
+anchor_left = 0.6666667
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_vertical = 2
 mouse_filter = 2
 
 [node name="DeckGroup" type="Control" parent="UI/RightPanel" unique_id=234567890]
-layout_mode = 3
+layout_mode = 1
+anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -255.0
@@ -175,22 +254,20 @@ offset_bottom = 338.0
 mouse_filter = 2
 
 [node name="DeckPile" type="Control" parent="UI/RightPanel/DeckGroup" unique_id=2038153143]
-layout_mode = 3
 anchors_preset = 0
-offset_left = 0.0
-offset_top = 0.0
 offset_right = 225.0
 offset_bottom = 315.0
 mouse_filter = 1
 script = ExtResource("4_pile")
-layout = 1
 card_face_up = false
+layout = 1
 allow_card_movement = false
 restrict_to_top_card = false
 enable_drop_zone = false
 
 [node name="DiscardGroup" type="Control" parent="UI/RightPanel" unique_id=345678901]
-layout_mode = 3
+layout_mode = 1
+anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -255.0
@@ -200,10 +277,7 @@ offset_bottom = 1058.0
 mouse_filter = 2
 
 [node name="DiscardPile" type="Control" parent="UI/RightPanel/DiscardGroup" unique_id=44963075]
-layout_mode = 3
 anchors_preset = 0
-offset_left = 0.0
-offset_top = 0.0
 offset_right = 225.0
 offset_bottom = 315.0
 mouse_filter = 1
@@ -214,7 +288,8 @@ enable_drop_zone = false
 
 [node name="RightDropZone" type="Control" parent="UI/RightPanel" unique_id=1530563607]
 visible = false
-layout_mode = 3
+layout_mode = 1
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_vertical = 2
@@ -226,67 +301,86 @@ restrict_to_top_card = false
 
 [node name="RoomContainer" type="Control" parent="UI" unique_id=355512689]
 layout_mode = 3
+anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-grow_horizontal = 2
-grow_vertical = 2
 offset_left = -235.0
 offset_top = -325.0
 offset_right = 235.0
 offset_bottom = 325.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 1
 script = ExtResource("5_room")
 enable_drop_zone = false
 
 [node name="BottomButtonGroup" type="HBoxContainer" parent="UI" unique_id=999000001]
+anchors_preset = 7
 anchor_left = 0.5
-anchor_right = 0.5
 anchor_top = 1.0
+anchor_right = 0.5
 anchor_bottom = 1.0
-grow_horizontal = 2
 offset_left = -235.0
 offset_top = -80.0
 offset_right = 235.0
 offset_bottom = -10.0
+grow_horizontal = 2
 
 [node name="RunButton" type="Button" parent="UI/BottomButtonGroup" unique_id=615236865]
+custom_minimum_size = Vector2(0, 70)
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 70)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_red_n")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_red_p")
+theme_override_styles/hover = SubResource("StyleBoxFlat_red_h")
 text = "RUN (skip room)"
 
 [node name="NextRoomButton" type="Button" parent="UI/BottomButtonGroup" unique_id=1785200382]
 visible = false
+custom_minimum_size = Vector2(0, 70)
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 70)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_green_n")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_green_p")
+theme_override_styles/hover = SubResource("StyleBoxFlat_green_h")
 text = "Next Room →"
 
 [node name="TopButtonGroup" type="HBoxContainer" parent="UI" unique_id=999000002]
+anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-grow_horizontal = 2
 offset_left = -235.0
 offset_top = 10.0
 offset_right = 235.0
 offset_bottom = 80.0
+grow_horizontal = 2
 
 [node name="RetryButton" type="Button" parent="UI/TopButtonGroup" unique_id=1426019074]
+custom_minimum_size = Vector2(0, 70)
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 70)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_blue_n")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_blue_p")
+theme_override_styles/hover = SubResource("StyleBoxFlat_blue_h")
 text = "↺ New Game"
 
 [node name="HelpButton" type="Button" parent="UI/TopButtonGroup" unique_id=1844877452]
+custom_minimum_size = Vector2(0, 70)
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 70)
+theme_override_colors/font_color = Color(0.1, 0.07, 0, 1)
 theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_yellow_n")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_yellow_p")
+theme_override_styles/hover = SubResource("StyleBoxFlat_yellow_h")
 text = "? Help"
 
 [node name="HelpDialog" type="AcceptDialog" parent="UI" unique_id=2005807090]
