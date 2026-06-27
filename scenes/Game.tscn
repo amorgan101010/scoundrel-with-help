@@ -158,11 +158,12 @@ horizontal_alignment = 1
 
 [node name="RightPanel" type="Control" parent="UI" unique_id=789012345]
 layout_mode = 3
+anchor_left = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-offset_left = 940.0
+offset_left = -180.0
 mouse_filter = 2
 
 [node name="DeckGroup" type="Control" parent="UI/RightPanel" unique_id=234567890]
