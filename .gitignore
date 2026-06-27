@@ -1,11 +1,14 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
+
+# Aileen's ignores
 .exe
 .zip
 samples/scratchpad/**
 vector_scratchpad/**
 tools/__pycache__/**
+.vscode/**
 
 # .NET build artifacts
 bin/
