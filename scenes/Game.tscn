@@ -55,9 +55,9 @@ script = ExtResource("7_hd")
 [node name="WeaponGroup" type="Control" parent="UI/LeftPanel" unique_id=111222333]
 layout_mode = 3
 anchors_preset = 0
-offset_left = 30.0
+offset_left = 208.0
 offset_top = 349.0
-offset_right = 460.0
+offset_right = 638.0
 offset_bottom = 698.0
 mouse_filter = 2
 
