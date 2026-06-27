@@ -501,6 +501,10 @@ public partial class ScoundrelGame : Node
 
     private void OnHelpPressed()
     {
+        var viewportSize = GetViewport().GetVisibleRect().Size;
+        var width = Mathf.Min(760f, viewportSize.X * 0.85f);
+        var height = Mathf.Min(800f, viewportSize.Y * 0.85f);
+        _helpDialog.Size = new Vector2I((int)width, (int)height);
         _helpDialog.PopupCentered();
     }
 
