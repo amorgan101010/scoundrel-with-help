@@ -4,6 +4,8 @@
 .exe
 .zip
 samples/scratchpad/**
+vector_scratchpad/**
+tools/__pycache__/**
 
 # .NET build artifacts
 bin/
