@@ -142,7 +142,7 @@ public class ScoundrelSceneTests
     }
 
     // Simulate a mouse drag: press on card, move to a drop zone, release.
-    // Default target is the centre of RightDropZone (rightmost 300px of viewport).
+    // Default target is the centre of RightDropZone (right third of viewport).
     private async Task MouseDragCard(GodotObject card, Vector2? dropTarget = null)
     {
         var pos    = (Vector2)card.Get("global_position");
