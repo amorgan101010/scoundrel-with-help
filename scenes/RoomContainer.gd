@@ -19,9 +19,9 @@ signal card_selected(card: Card)
 
 const SLOTS: Array[Vector2] = [
 	Vector2(0, 0),
-	Vector2(245, 0),
-	Vector2(0, 335),
-	Vector2(245, 335),
+	Vector2(170, 0),
+	Vector2(0, 230),
+	Vector2(170, 230),
 ]
 
 # Maps Card → slot index so positions stay stable as cards are removed.
