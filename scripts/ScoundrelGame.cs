@@ -27,8 +27,6 @@ public partial class ScoundrelGame : Node
     private HealthDie _healthDie = null!;
     private Label _weaponLabel = null!;
     private Label _statusLabel = null!;
-    private Label _deckLabel = null!;
-    private Label _discardLabel = null!;
     private Label _clubsLabel = null!;
     private Label _spadesLabel = null!;
     private Label _heartsLabel = null!;
@@ -93,8 +91,6 @@ public partial class ScoundrelGame : Node
         _healthLabel    = GetNode<Label>("UI/HealthLabel");
         _weaponLabel    = GetNode<Label>("UI/LeftPanel/WeaponGroup/WeaponLabel");
         _statusLabel    = GetNode<Label>("UI/StatusLabel");
-        _deckLabel      = GetNode<Label>("UI/RightPanel/DeckGroup/DeckLabel");
-        _discardLabel   = GetNode<Label>("UI/RightPanel/DiscardGroup/DiscardLabel");
         _clubsLabel     = GetNode<Label>("UI/LeftPanel/WeaponGroup/InPlayGroup/ClubsLabel");
         _spadesLabel    = GetNode<Label>("UI/LeftPanel/WeaponGroup/InPlayGroup/SpadesLabel");
         _heartsLabel    = GetNode<Label>("UI/LeftPanel/WeaponGroup/InPlayGroup/HeartsLabel");
@@ -727,8 +723,8 @@ public partial class ScoundrelGame : Node
 
         int deckCount    = (int)_deckPile.Call("get_card_count");
         int discardCount = (int)_discardPile.Call("get_card_count");
-        _deckLabel.Text    = $"DECK ({deckCount})";
-        _discardLabel.Text = $"DISCARD ({discardCount})";
+        _deckPile.Set("tooltip_text",     $"Deck: {deckCount} card{(deckCount == 1 ? "" : "s")}");
+        _discardPile.Set("tooltip_text",  $"Discard: {discardCount} card{(discardCount == 1 ? "" : "s")}");
 
         _clubsLabel.Text    = $"♣  {_inPlayClubs}";
         _spadesLabel.Text   = $"♠  {_inPlaySpades}";

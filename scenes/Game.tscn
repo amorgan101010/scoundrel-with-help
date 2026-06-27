@@ -169,9 +169,9 @@ layout_mode = 3
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -255.0
-offset_top = 8.0
+offset_top = 23.0
 offset_right = -30.0
-offset_bottom = 353.0
+offset_bottom = 338.0
 mouse_filter = 2
 
 [node name="DeckPile" type="Control" parent="UI/RightPanel/DeckGroup" unique_id=2038153143]
@@ -188,22 +188,14 @@ allow_card_movement = false
 restrict_to_top_card = false
 enable_drop_zone = false
 
-[node name="DeckLabel" type="Label" parent="UI/RightPanel/DeckGroup" unique_id=409472614]
-offset_left = 0.0
-offset_top = 319.0
-offset_right = 225.0
-offset_bottom = 345.0
-text = "DECK"
-horizontal_alignment = 1
-
 [node name="DiscardGroup" type="Control" parent="UI/RightPanel" unique_id=345678901]
 layout_mode = 3
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -255.0
-offset_top = 368.0
+offset_top = 383.0
 offset_right = -30.0
-offset_bottom = 713.0
+offset_bottom = 698.0
 mouse_filter = 2
 
 [node name="DiscardPile" type="Control" parent="UI/RightPanel/DiscardGroup" unique_id=44963075]
@@ -218,14 +210,6 @@ script = ExtResource("4_pile")
 allow_card_movement = false
 restrict_to_top_card = false
 enable_drop_zone = false
-
-[node name="DiscardLabel" type="Label" parent="UI/RightPanel/DiscardGroup" unique_id=1489401123]
-offset_left = 0.0
-offset_top = 319.0
-offset_right = 225.0
-offset_bottom = 345.0
-text = "DISCARD"
-horizontal_alignment = 1
 
 [node name="RightDropZone" type="Control" parent="UI/RightPanel" unique_id=1530563607]
 visible = false
