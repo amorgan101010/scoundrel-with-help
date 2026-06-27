@@ -106,6 +106,7 @@ public partial class ScoundrelGame : Node
         _helpDialog     = GetNode<AcceptDialog>("UI/HelpDialog");
 
         _cardFactory = (GodotObject)_cardManager.Get("card_factory");
+        _cardFactory.Set("card_size", new Vector2(225f, 315f));
 
         _healthDie = GetNode<HealthDie>("UI/LeftPanel/HealthDie");
 
@@ -501,7 +502,7 @@ public partial class ScoundrelGame : Node
 
         var rng = new System.Random();
         const float MinSpeed   = 120f, MaxSpeed = 340f;
-        const float CardW      = 150f, CardH = 210f;
+        const float CardW      = 225f, CardH = 315f;
         const float DealStep   = 0.45f; // seconds between each card being dealt
         const float DealSpeed  = 1200f; // px/s for the deal slide
 
@@ -571,7 +572,7 @@ public partial class ScoundrelGame : Node
         if (!_bounceActive) return;
 
         var vpSize = GetViewport().GetVisibleRect().Size;
-        const float CardW = 150f, CardH = 210f;
+        const float CardW = 225f, CardH = 315f;
 
         for (int i = 0; i < _bounceState.Count; i++)
         {
@@ -612,8 +613,8 @@ public partial class ScoundrelGame : Node
 
     private void AddSlainBadge(GodotObject weaponCard, CardModel monster)
     {
-        const float BadgeW = 30f, BadgeH = 44f, NaturalStep = 35f;
-        const float CardW = 150f, CardH = 210f;
+        const float BadgeW = 45f, BadgeH = 66f, NaturalStep = 52.5f;
+        const float CardW = 225f, CardH = 315f;
 
         var weaponNode = (Node)weaponCard;
         weaponNode.AddChild(CreateBadgeControl(monster.Rank));

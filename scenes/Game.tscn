@@ -47,24 +47,24 @@ mouse_filter = 2
 layout_mode = 3
 anchors_preset = 0
 offset_left = 40.0
-offset_top = 115.0
-offset_right = 170.0
-offset_bottom = 245.0
+offset_top = 83.0
+offset_right = 235.0
+offset_bottom = 278.0
 script = ExtResource("7_hd")
 
 [node name="WeaponGroup" type="Control" parent="UI/LeftPanel" unique_id=111222333]
 layout_mode = 3
 anchors_preset = 0
 offset_left = 30.0
-offset_top = 418.0
-offset_right = 380.0
-offset_bottom = 662.0
+offset_top = 366.0
+offset_right = 460.0
+offset_bottom = 715.0
 mouse_filter = 2
 
 [node name="WeaponLabel" type="Label" parent="UI/LeftPanel/WeaponGroup" unique_id=180637555]
 offset_left = 0.0
 offset_top = 0.0
-offset_right = 350.0
+offset_right = 430.0
 offset_bottom = 18.0
 theme_override_font_sizes/font_size = 16
 text = "Weapon: none"
@@ -74,8 +74,8 @@ layout_mode = 3
 anchors_preset = 0
 offset_left = 0.0
 offset_top = 34.0
-offset_right = 150.0
-offset_bottom = 244.0
+offset_right = 225.0
+offset_bottom = 349.0
 mouse_filter = 1
 script = ExtResource("4_pile")
 allow_card_movement = false
@@ -85,9 +85,9 @@ enable_drop_zone = false
 [node name="InPlayGroup" type="Control" parent="UI/LeftPanel/WeaponGroup" unique_id=444555666]
 layout_mode = 3
 anchors_preset = 0
-offset_left = 170.0
+offset_left = 245.0
 offset_top = 34.0
-offset_right = 355.0
+offset_right = 430.0
 offset_bottom = 164.0
 mouse_filter = 2
 
@@ -168,10 +168,10 @@ mouse_filter = 2
 layout_mode = 3
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -180.0
-offset_top = 60.0
+offset_left = -255.0
+offset_top = 8.0
 offset_right = -30.0
-offset_bottom = 300.0
+offset_bottom = 353.0
 mouse_filter = 2
 
 [node name="DeckPile" type="Control" parent="UI/RightPanel/DeckGroup" unique_id=2038153143]
@@ -179,8 +179,8 @@ layout_mode = 3
 anchors_preset = 0
 offset_left = 0.0
 offset_top = 0.0
-offset_right = 150.0
-offset_bottom = 210.0
+offset_right = 225.0
+offset_bottom = 315.0
 mouse_filter = 1
 script = ExtResource("4_pile")
 card_face_up = false
@@ -190,9 +190,9 @@ enable_drop_zone = false
 
 [node name="DeckLabel" type="Label" parent="UI/RightPanel/DeckGroup" unique_id=409472614]
 offset_left = 0.0
-offset_top = 214.0
-offset_right = 150.0
-offset_bottom = 240.0
+offset_top = 319.0
+offset_right = 225.0
+offset_bottom = 345.0
 text = "DECK"
 horizontal_alignment = 1
 
@@ -200,10 +200,10 @@ horizontal_alignment = 1
 layout_mode = 3
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -180.0
-offset_top = 414.0
+offset_left = -255.0
+offset_top = 368.0
 offset_right = -30.0
-offset_bottom = 665.0
+offset_bottom = 713.0
 mouse_filter = 2
 
 [node name="DiscardPile" type="Control" parent="UI/RightPanel/DiscardGroup" unique_id=44963075]
@@ -211,8 +211,8 @@ layout_mode = 3
 anchors_preset = 0
 offset_left = 0.0
 offset_top = 0.0
-offset_right = 150.0
-offset_bottom = 210.0
+offset_right = 225.0
+offset_bottom = 315.0
 mouse_filter = 1
 script = ExtResource("4_pile")
 allow_card_movement = false
@@ -221,9 +221,9 @@ enable_drop_zone = false
 
 [node name="DiscardLabel" type="Label" parent="UI/RightPanel/DiscardGroup" unique_id=1489401123]
 offset_left = 0.0
-offset_top = 225.0
-offset_right = 150.0
-offset_bottom = 251.0
+offset_top = 319.0
+offset_right = 225.0
+offset_bottom = 345.0
 text = "DISCARD"
 horizontal_alignment = 1
 
@@ -247,10 +247,10 @@ anchor_right = 0.5
 anchor_bottom = 0.5
 grow_horizontal = 2
 grow_vertical = 2
-offset_left = -160.0
-offset_top = -220.0
-offset_right = 160.0
-offset_bottom = 220.0
+offset_left = -235.0
+offset_top = -325.0
+offset_right = 235.0
+offset_bottom = 325.0
 mouse_filter = 1
 script = ExtResource("5_room")
 enable_drop_zone = false
@@ -261,9 +261,9 @@ anchor_right = 0.5
 anchor_top = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
-offset_left = -160.0
+offset_left = -235.0
 offset_top = -45.0
-offset_right = 160.0
+offset_right = 235.0
 offset_bottom = -10.0
 
 [node name="RunButton" type="Button" parent="UI/BottomButtonGroup" unique_id=615236865]
@@ -281,9 +281,9 @@ text = "Next Room →"
 anchor_left = 0.5
 anchor_right = 0.5
 grow_horizontal = 2
-offset_left = -160.0
+offset_left = -235.0
 offset_top = 10.0
-offset_right = 160.0
+offset_right = 235.0
 offset_bottom = 45.0
 
 [node name="RetryButton" type="Button" parent="UI/TopButtonGroup" unique_id=1426019074]
