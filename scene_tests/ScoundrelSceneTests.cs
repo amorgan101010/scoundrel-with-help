@@ -247,7 +247,7 @@ public class ScoundrelSceneTests
     public async Task RunShufflesRoomAndDealsNext()
     {
         var scene = _runner!.Scene();
-        var runButton = scene.GetNode<Button>("UI/BottomButtonGroup/RunButton");
+        var runButton = scene.GetNode<Button>("ButtonLayer/BottomButtonGroup/RunButton");
         AssertThat(runButton.Disabled).IsFalse();
 
         runButton.EmitSignal("pressed");
@@ -265,7 +265,7 @@ public class ScoundrelSceneTests
     public async Task CannotRunTwiceInARow()
     {
         var scene = _runner!.Scene();
-        var runButton = scene.GetNode<Button>("UI/BottomButtonGroup/RunButton");
+        var runButton = scene.GetNode<Button>("ButtonLayer/BottomButtonGroup/RunButton");
 
         AssertThat(runButton.Disabled).IsFalse();
         runButton.EmitSignal("pressed");
@@ -279,7 +279,7 @@ public class ScoundrelSceneTests
     {
         await SetupFixedDeck();
         var scene = _runner!.Scene();
-        var nextRoomButton = scene.GetNode<Button>("UI/BottomButtonGroup/NextRoomButton");
+        var nextRoomButton = scene.GetNode<Button>("ButtonLayer/BottomButtonGroup/NextRoomButton");
         var room = scene.GetNode("UI/RoomContainer");
 
         AssertThat(nextRoomButton.Visible).IsFalse();
@@ -619,7 +619,7 @@ public class ScoundrelSceneTests
     public async Task RunPositionsCardsAtRoomSlots()
     {
         var scene     = _runner!.Scene();
-        var runButton = scene.GetNode<Button>("UI/BottomButtonGroup/RunButton");
+        var runButton = scene.GetNode<Button>("ButtonLayer/BottomButtonGroup/RunButton");
         var room      = scene.GetNode("UI/RoomContainer");
 
         runButton.EmitSignal("pressed");
@@ -753,7 +753,7 @@ public class ScoundrelSceneTests
 
         AssertThat(ParseHP(scene)).IsEqual(0);
         AssertThat(scene.GetNode<Label>("HudLayer/StatusLabel").Text).IsEqual("YOU DIED");
-        AssertThat(scene.GetNode<Button>("UI/BottomButtonGroup/RunButton").Disabled).IsTrue();
+        AssertThat(scene.GetNode<Button>("ButtonLayer/BottomButtonGroup/RunButton").Disabled).IsTrue();
     }
 
     [TestCase(Description = "Taking first potion tints remaining room potions; wasted potion keeps tint")]
