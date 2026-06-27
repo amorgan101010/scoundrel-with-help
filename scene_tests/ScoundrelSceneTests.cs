@@ -142,7 +142,7 @@ public class ScoundrelSceneTests
     }
 
     // Simulate a mouse drag: press on card, move to a drop zone, release.
-    // Default target is the centre of RightDropZone (rightmost 300px of viewport).
+    // Default target is the centre of RightDropZone (right third of viewport).
     private async Task MouseDragCard(GodotObject card, Vector2? dropTarget = null)
     {
         var pos    = (Vector2)card.Get("global_position");
@@ -166,8 +166,8 @@ public class ScoundrelSceneTests
 
         AssertThat(scene.GetNode<Label>("UI/HealthLabel").Text).IsEqual("HP: 20 / 20");
         AssertThat(scene.GetNode<Label>("UI/LeftPanel/WeaponGroup/WeaponLabel").Text).IsEqual("Weapon: none");
-        AssertThat(scene.GetNode<Label>("UI/RightPanel/DeckGroup/DeckLabel").Text).IsEqual("DECK (40)");
-        AssertThat(scene.GetNode<Label>("UI/RightPanel/DiscardGroup/DiscardLabel").Text).IsEqual("DISCARD (0)");
+        AssertThat((int)scene.GetNode("UI/RightPanel/DeckGroup/DeckPile").Call("get_card_count")).IsEqual(40);
+        AssertThat((int)scene.GetNode("UI/RightPanel/DiscardGroup/DiscardPile").Call("get_card_count")).IsEqual(0);
 
         var roomCards = (GArray)scene.GetNode("UI/RoomContainer").Call("get_all_cards");
         AssertThat(roomCards.Count).IsEqual(4);
@@ -189,7 +189,7 @@ public class ScoundrelSceneTests
         await _runner!.AwaitIdleFrame();
 
         AssertThat(ParseHP(scene)).IsEqual(20 - expectedDamage);
-        AssertThat(scene.GetNode<Label>("UI/RightPanel/DiscardGroup/DiscardLabel").Text).IsEqual("DISCARD (1)");
+        AssertThat((int)scene.GetNode("UI/RightPanel/DiscardGroup/DiscardPile").Call("get_card_count")).IsEqual(1);
     }
 
     [TestCase(Description = "Clicking a diamond weapon equips it and updates the weapon label")]
@@ -211,7 +211,7 @@ public class ScoundrelSceneTests
         AssertThat(weaponLabel).IsNotEqual("Weapon: none");
         AssertThat(weaponLabel).Contains(cardName);
         // Weapon goes to weapon slot, not discard
-        AssertThat(scene.GetNode<Label>("UI/RightPanel/DiscardGroup/DiscardLabel").Text).IsEqual("DISCARD (0)");
+        AssertThat((int)scene.GetNode("UI/RightPanel/DiscardGroup/DiscardPile").Call("get_card_count")).IsEqual(0);
     }
 
     [TestCase(Description = "Clicking a potion card restores HP (capped at 20)")]
@@ -254,7 +254,7 @@ public class ScoundrelSceneTests
         await _runner!.AwaitIdleFrame();
 
         // 4 room cards returned to deck, then 4 new ones dealt → still 40 in deck
-        AssertThat(scene.GetNode<Label>("UI/RightPanel/DeckGroup/DeckLabel").Text).IsEqual("DECK (40)");
+        AssertThat((int)scene.GetNode("UI/RightPanel/DeckGroup/DeckPile").Call("get_card_count")).IsEqual(40);
 
         // Room must have 4 new cards
         var roomCards = (GArray)scene.GetNode("UI/RoomContainer").Call("get_all_cards");
@@ -628,13 +628,13 @@ public class ScoundrelSceneTests
         await _runner!.AwaitMillis(1200);
 
         var roomPos = (Vector2)room.Get("global_position");
-        // Slot offsets from RoomContainer.gd: SLOTS = [V2(0,0), V2(170,0), V2(0,230), V2(170,230)]
+        // Slot offsets from RoomContainer.gd: SLOTS = [V2(0,0), V2(245,0), V2(0,335), V2(245,335)]
         Vector2[] validSlots =
         {
             roomPos,
-            roomPos + new Vector2(170f, 0f),
-            roomPos + new Vector2(0f,   230f),
-            roomPos + new Vector2(170f, 230f),
+            roomPos + new Vector2(245f, 0f),
+            roomPos + new Vector2(0f,   335f),
+            roomPos + new Vector2(245f, 335f),
         };
 
         var roomCards = (GArray)room.Call("get_all_cards");

@@ -38,33 +38,33 @@ text = "HP: 20 / 20"
 
 [node name="LeftPanel" type="Control" parent="UI" unique_id=321654987]
 layout_mode = 3
+anchor_right = 0.33333334
 anchor_bottom = 1.0
 grow_vertical = 2
-offset_right = 385.0
 mouse_filter = 2
 
 [node name="HealthDie" type="Control" parent="UI/LeftPanel" unique_id=876543210]
 layout_mode = 3
 anchors_preset = 0
 offset_left = 40.0
-offset_top = 12.0
-offset_right = 170.0
-offset_bottom = 142.0
+offset_top = 83.0
+offset_right = 235.0
+offset_bottom = 278.0
 script = ExtResource("7_hd")
 
 [node name="WeaponGroup" type="Control" parent="UI/LeftPanel" unique_id=111222333]
 layout_mode = 3
 anchors_preset = 0
 offset_left = 30.0
-offset_top = 164.0
-offset_right = 380.0
-offset_bottom = 408.0
+offset_top = 349.0
+offset_right = 460.0
+offset_bottom = 698.0
 mouse_filter = 2
 
 [node name="WeaponLabel" type="Label" parent="UI/LeftPanel/WeaponGroup" unique_id=180637555]
 offset_left = 0.0
 offset_top = 0.0
-offset_right = 350.0
+offset_right = 430.0
 offset_bottom = 18.0
 theme_override_font_sizes/font_size = 16
 text = "Weapon: none"
@@ -74,24 +74,24 @@ layout_mode = 3
 anchors_preset = 0
 offset_left = 0.0
 offset_top = 34.0
-offset_right = 150.0
-offset_bottom = 244.0
+offset_right = 225.0
+offset_bottom = 349.0
 mouse_filter = 1
 script = ExtResource("4_pile")
 allow_card_movement = false
 restrict_to_top_card = false
 enable_drop_zone = false
 
-[node name="InPlayGroup" type="Control" parent="UI/LeftPanel" unique_id=444555666]
+[node name="InPlayGroup" type="Control" parent="UI/LeftPanel/WeaponGroup" unique_id=444555666]
 layout_mode = 3
 anchors_preset = 0
-offset_left = 200.0
-offset_top = 198.0
-offset_right = 385.0
-offset_bottom = 328.0
+offset_left = 245.0
+offset_top = 34.0
+offset_right = 430.0
+offset_bottom = 164.0
 mouse_filter = 2
 
-[node name="InPlayHeader" type="Label" parent="UI/LeftPanel/InPlayGroup" unique_id=1772774764]
+[node name="InPlayHeader" type="Label" parent="UI/LeftPanel/WeaponGroup/InPlayGroup" unique_id=1772774764]
 offset_left = 0.0
 offset_top = 0.0
 offset_right = 185.0
@@ -100,7 +100,7 @@ theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
 theme_override_font_sizes/font_size = 13
 text = "IN PLAY:"
 
-[node name="ClubsLabel" type="Label" parent="UI/LeftPanel/InPlayGroup" unique_id=173415]
+[node name="ClubsLabel" type="Label" parent="UI/LeftPanel/WeaponGroup/InPlayGroup" unique_id=173415]
 offset_left = 0.0
 offset_top = 22.0
 offset_right = 185.0
@@ -108,7 +108,7 @@ offset_bottom = 46.0
 theme_override_font_sizes/font_size = 16
 text = "♣  13"
 
-[node name="SpadesLabel" type="Label" parent="UI/LeftPanel/InPlayGroup" unique_id=710810895]
+[node name="SpadesLabel" type="Label" parent="UI/LeftPanel/WeaponGroup/InPlayGroup" unique_id=710810895]
 offset_left = 0.0
 offset_top = 50.0
 offset_right = 185.0
@@ -116,7 +116,7 @@ offset_bottom = 74.0
 theme_override_font_sizes/font_size = 16
 text = "♠  13"
 
-[node name="HeartsLabel" type="Label" parent="UI/LeftPanel/InPlayGroup" unique_id=1783802266]
+[node name="HeartsLabel" type="Label" parent="UI/LeftPanel/WeaponGroup/InPlayGroup" unique_id=1783802266]
 offset_left = 0.0
 offset_top = 78.0
 offset_right = 185.0
@@ -124,7 +124,7 @@ offset_bottom = 102.0
 theme_override_font_sizes/font_size = 16
 text = "♥  9"
 
-[node name="DiamondsLabel" type="Label" parent="UI/LeftPanel/InPlayGroup" unique_id=576063759]
+[node name="DiamondsLabel" type="Label" parent="UI/LeftPanel/WeaponGroup/InPlayGroup" unique_id=576063759]
 offset_left = 0.0
 offset_top = 106.0
 offset_right = 185.0
@@ -135,9 +135,9 @@ text = "♦  9"
 [node name="LeftDropZone" type="Control" parent="UI/LeftPanel" unique_id=1365540473]
 visible = false
 layout_mode = 3
+anchor_right = 1.0
 anchor_bottom = 1.0
 grow_vertical = 2
-offset_right = 320.0
 mouse_filter = 1
 script = ExtResource("6_dzc")
 card_face_up = false
@@ -158,21 +158,20 @@ horizontal_alignment = 1
 
 [node name="RightPanel" type="Control" parent="UI" unique_id=789012345]
 layout_mode = 3
-anchor_left = 1.0
+anchor_left = 0.66666667
 anchor_right = 1.0
 anchor_bottom = 1.0
-grow_horizontal = 2
 grow_vertical = 2
-offset_left = -180.0
 mouse_filter = 2
 
 [node name="DeckGroup" type="Control" parent="UI/RightPanel" unique_id=234567890]
 layout_mode = 3
-anchors_preset = 0
-offset_left = 0.0
-offset_top = 48.0
-offset_right = 150.0
-offset_bottom = 288.0
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -255.0
+offset_top = 23.0
+offset_right = -30.0
+offset_bottom = 338.0
 mouse_filter = 2
 
 [node name="DeckPile" type="Control" parent="UI/RightPanel/DeckGroup" unique_id=2038153143]
@@ -180,30 +179,24 @@ layout_mode = 3
 anchors_preset = 0
 offset_left = 0.0
 offset_top = 0.0
-offset_right = 150.0
-offset_bottom = 210.0
+offset_right = 225.0
+offset_bottom = 315.0
 mouse_filter = 1
 script = ExtResource("4_pile")
+layout = 1
 card_face_up = false
 allow_card_movement = false
 restrict_to_top_card = false
 enable_drop_zone = false
 
-[node name="DeckLabel" type="Label" parent="UI/RightPanel/DeckGroup" unique_id=409472614]
-offset_left = 0.0
-offset_top = 214.0
-offset_right = 150.0
-offset_bottom = 240.0
-text = "DECK"
-horizontal_alignment = 1
-
 [node name="DiscardGroup" type="Control" parent="UI/RightPanel" unique_id=345678901]
 layout_mode = 3
-anchors_preset = 0
-offset_left = 0.0
-offset_top = 325.0
-offset_right = 150.0
-offset_bottom = 576.0
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -255.0
+offset_top = 743.0
+offset_right = -30.0
+offset_bottom = 1058.0
 mouse_filter = 2
 
 [node name="DiscardPile" type="Control" parent="UI/RightPanel/DiscardGroup" unique_id=44963075]
@@ -211,30 +204,20 @@ layout_mode = 3
 anchors_preset = 0
 offset_left = 0.0
 offset_top = 0.0
-offset_right = 150.0
-offset_bottom = 210.0
+offset_right = 225.0
+offset_bottom = 315.0
 mouse_filter = 1
 script = ExtResource("4_pile")
 allow_card_movement = false
 restrict_to_top_card = false
 enable_drop_zone = false
 
-[node name="DiscardLabel" type="Label" parent="UI/RightPanel/DiscardGroup" unique_id=1489401123]
-offset_left = 0.0
-offset_top = 225.0
-offset_right = 150.0
-offset_bottom = 251.0
-text = "DISCARD"
-horizontal_alignment = 1
-
 [node name="RightDropZone" type="Control" parent="UI/RightPanel" unique_id=1530563607]
 visible = false
 layout_mode = 3
 anchor_right = 1.0
 anchor_bottom = 1.0
-grow_horizontal = 2
 grow_vertical = 2
-offset_left = -120.0
 mouse_filter = 1
 script = ExtResource("6_dzc")
 card_face_up = false
@@ -249,10 +232,10 @@ anchor_right = 0.5
 anchor_bottom = 0.5
 grow_horizontal = 2
 grow_vertical = 2
-offset_left = -160.0
-offset_top = -220.0
-offset_right = 160.0
-offset_bottom = 220.0
+offset_left = -235.0
+offset_top = -325.0
+offset_right = 235.0
+offset_bottom = 325.0
 mouse_filter = 1
 script = ExtResource("5_room")
 enable_drop_zone = false
@@ -263,9 +246,9 @@ anchor_right = 0.5
 anchor_top = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
-offset_left = -160.0
+offset_left = -235.0
 offset_top = -45.0
-offset_right = 160.0
+offset_right = 235.0
 offset_bottom = -10.0
 
 [node name="RunButton" type="Button" parent="UI/BottomButtonGroup" unique_id=615236865]
@@ -283,9 +266,9 @@ text = "Next Room →"
 anchor_left = 0.5
 anchor_right = 0.5
 grow_horizontal = 2
-offset_left = -160.0
+offset_left = -235.0
 offset_top = 10.0
-offset_right = 160.0
+offset_right = 235.0
 offset_bottom = 45.0
 
 [node name="RetryButton" type="Button" parent="UI/TopButtonGroup" unique_id=1426019074]

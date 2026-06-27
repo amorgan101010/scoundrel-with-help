@@ -27,8 +27,6 @@ public partial class ScoundrelGame : Node
     private HealthDie _healthDie = null!;
     private Label _weaponLabel = null!;
     private Label _statusLabel = null!;
-    private Label _deckLabel = null!;
-    private Label _discardLabel = null!;
     private Label _clubsLabel = null!;
     private Label _spadesLabel = null!;
     private Label _heartsLabel = null!;
@@ -93,12 +91,10 @@ public partial class ScoundrelGame : Node
         _healthLabel    = GetNode<Label>("UI/HealthLabel");
         _weaponLabel    = GetNode<Label>("UI/LeftPanel/WeaponGroup/WeaponLabel");
         _statusLabel    = GetNode<Label>("UI/StatusLabel");
-        _deckLabel      = GetNode<Label>("UI/RightPanel/DeckGroup/DeckLabel");
-        _discardLabel   = GetNode<Label>("UI/RightPanel/DiscardGroup/DiscardLabel");
-        _clubsLabel     = GetNode<Label>("UI/LeftPanel/InPlayGroup/ClubsLabel");
-        _spadesLabel    = GetNode<Label>("UI/LeftPanel/InPlayGroup/SpadesLabel");
-        _heartsLabel    = GetNode<Label>("UI/LeftPanel/InPlayGroup/HeartsLabel");
-        _diamondsLabel  = GetNode<Label>("UI/LeftPanel/InPlayGroup/DiamondsLabel");
+        _clubsLabel     = GetNode<Label>("UI/LeftPanel/WeaponGroup/InPlayGroup/ClubsLabel");
+        _spadesLabel    = GetNode<Label>("UI/LeftPanel/WeaponGroup/InPlayGroup/SpadesLabel");
+        _heartsLabel    = GetNode<Label>("UI/LeftPanel/WeaponGroup/InPlayGroup/HeartsLabel");
+        _diamondsLabel  = GetNode<Label>("UI/LeftPanel/WeaponGroup/InPlayGroup/DiamondsLabel");
         _runButton      = GetNode<Button>("UI/BottomButtonGroup/RunButton");
         _nextRoomButton = GetNode<Button>("UI/BottomButtonGroup/NextRoomButton");
         _retryButton    = GetNode<Button>("UI/TopButtonGroup/RetryButton");
@@ -106,6 +102,7 @@ public partial class ScoundrelGame : Node
         _helpDialog     = GetNode<AcceptDialog>("UI/HelpDialog");
 
         _cardFactory = (GodotObject)_cardManager.Get("card_factory");
+        _cardFactory.Set("card_size", new Vector2(225f, 315f));
 
         _healthDie = GetNode<HealthDie>("UI/LeftPanel/HealthDie");
 
@@ -143,10 +140,10 @@ public partial class ScoundrelGame : Node
         var overlayLayer = new CanvasLayer();
         overlayLayer.Layer = 128;
         AddChild(overlayLayer);
-        _leftHighlight  = AddZoneHighlight(overlayLayer, 0,    320, false, new Color(0.25f, 0.8f, 0.25f, 0.30f));
-        _rightHighlight = AddZoneHighlight(overlayLayer, -300, 0,   true,  new Color(0.25f, 0.5f, 1.0f,  0.30f), anchorFromRight: true);
-        _leftLabel      = AddZoneLabel(overlayLayer, 0,    320, false);
-        _rightLabel     = AddZoneLabel(overlayLayer, -300, 0,   true, anchorFromRight: true);
+        _leftHighlight  = AddZoneHighlight(overlayLayer, 0f,    1f/3f, new Color(0.25f, 0.8f, 0.25f, 0.30f));
+        _rightHighlight = AddZoneHighlight(overlayLayer, 2f/3f, 1f,    new Color(0.25f, 0.5f, 1.0f,  0.30f));
+        _leftLabel      = AddZoneLabel(overlayLayer, 0f,    1f/3f);
+        _rightLabel     = AddZoneLabel(overlayLayer, 2f/3f, 1f);
 
         _sfxPunch         = CreateSfxPlayer("res://samples/punch.wav");
         _sfxBubbles       = CreateSfxPlayer("res://samples/bubbles.wav");
@@ -501,7 +498,7 @@ public partial class ScoundrelGame : Node
 
         var rng = new System.Random();
         const float MinSpeed   = 120f, MaxSpeed = 340f;
-        const float CardW      = 150f, CardH = 210f;
+        const float CardW      = 225f, CardH = 315f;
         const float DealStep   = 0.45f; // seconds between each card being dealt
         const float DealSpeed  = 1200f; // px/s for the deal slide
 
@@ -571,7 +568,7 @@ public partial class ScoundrelGame : Node
         if (!_bounceActive) return;
 
         var vpSize = GetViewport().GetVisibleRect().Size;
-        const float CardW = 150f, CardH = 210f;
+        const float CardW = 225f, CardH = 315f;
 
         for (int i = 0; i < _bounceState.Count; i++)
         {
@@ -612,8 +609,8 @@ public partial class ScoundrelGame : Node
 
     private void AddSlainBadge(GodotObject weaponCard, CardModel monster)
     {
-        const float BadgeW = 30f, BadgeH = 44f, NaturalStep = 35f;
-        const float CardW = 150f, CardH = 210f;
+        const float BadgeW = 45f, BadgeH = 66f, NaturalStep = 52.5f;
+        const float CardW = 225f, CardH = 315f;
 
         var weaponNode = (Node)weaponCard;
         weaponNode.AddChild(CreateBadgeControl(monster.Rank));
@@ -726,8 +723,8 @@ public partial class ScoundrelGame : Node
 
         int deckCount    = (int)_deckPile.Call("get_card_count");
         int discardCount = (int)_discardPile.Call("get_card_count");
-        _deckLabel.Text    = $"DECK ({deckCount})";
-        _discardLabel.Text = $"DISCARD ({discardCount})";
+        _deckPile.Set("tooltip_text",     $"Deck: {deckCount} card{(deckCount == 1 ? "" : "s")}");
+        _discardPile.Set("tooltip_text",  $"Discard: {discardCount} card{(discardCount == 1 ? "" : "s")}");
 
         _clubsLabel.Text    = $"♣  {_inPlayClubs}";
         _spadesLabel.Text   = $"♠  {_inPlaySpades}";
@@ -752,18 +749,13 @@ public partial class ScoundrelGame : Node
         player.Play();
     }
 
-    private static Label AddZoneLabel(Node parent, float left, float right, bool stretchRight, bool anchorFromRight = false)
+    private static Label AddZoneLabel(Node parent, float anchorLeft, float anchorRight)
     {
         var label = new Label();
+        label.AnchorLeft          = anchorLeft;
+        label.AnchorRight         = anchorRight;
         label.AnchorBottom        = 1.0f;
         label.GrowVertical        = Control.GrowDirection.Both;
-        label.OffsetLeft          = left;
-        if (stretchRight) {
-            if (anchorFromRight) label.AnchorLeft = 1.0f;
-            label.AnchorRight    = 1.0f;
-            label.GrowHorizontal = Control.GrowDirection.Both;
-        }
-        else { label.OffsetRight = right; }
         label.HorizontalAlignment = HorizontalAlignment.Center;
         label.VerticalAlignment   = VerticalAlignment.Center;
         label.AddThemeFontSizeOverride("font_size", 28);
@@ -774,18 +766,13 @@ public partial class ScoundrelGame : Node
         return label;
     }
 
-    private static ColorRect AddZoneHighlight(Node parent, float left, float right, bool stretchRight, Color color, bool anchorFromRight = false)
+    private static ColorRect AddZoneHighlight(Node parent, float anchorLeft, float anchorRight, Color color)
     {
         var rect = new ColorRect();
+        rect.AnchorLeft   = anchorLeft;
+        rect.AnchorRight  = anchorRight;
         rect.AnchorBottom = 1.0f;
         rect.GrowVertical = Control.GrowDirection.Both;
-        rect.OffsetLeft   = left;
-        if (stretchRight) {
-            if (anchorFromRight) rect.AnchorLeft = 1.0f;
-            rect.AnchorRight    = 1.0f;
-            rect.GrowHorizontal = Control.GrowDirection.Both;
-        }
-        else { rect.OffsetRight = right; }
         rect.Color        = color;
         rect.MouseFilter  = Control.MouseFilterEnum.Ignore;
         rect.Visible      = false;
