@@ -133,12 +133,20 @@ public class ScoundrelSceneTests
         await _runner!.AwaitMillis(500);  // wait for game logic + animation
     }
 
+    // Returns the centre of RightDropZone in viewport coordinates. Used as the
+    // default drag target so tests aren't coupled to a fixed viewport width.
+    private Vector2 RightZoneCenter()
+    {
+        var zone = _runner!.Scene().GetNode<Control>("UI/RightPanel/RightDropZone");
+        return zone.GlobalPosition + zone.Size * 0.5f;
+    }
+
     // Simulate a mouse drag: press on card, move to a drop zone, release.
-    // Default target is inside the RightDropZone (x:820-1120, y:70-620).
+    // Default target is the centre of RightDropZone (rightmost 300px of viewport).
     private async Task MouseDragCard(GodotObject card, Vector2? dropTarget = null)
     {
         var pos    = (Vector2)card.Get("global_position");
-        var target = dropTarget ?? new Vector2(850f, 300f); // RightDropZone centre
+        var target = dropTarget ?? RightZoneCenter();
         _runner!.SimulateMouseMove(pos);
         await _runner!.AwaitMillis(100);
         _runner!.SimulateMouseButtonPress(MouseButton.Left, false);
@@ -421,7 +429,7 @@ public class ScoundrelSceneTests
 
         // cards[0] = 6_diamonds (weapon). Right zone (x:820-1120) is the discard side.
         var cards = (GArray)room.Call("get_all_cards");
-        await MouseDragCard(cards[0].AsGodotObject(), new Vector2(850f, 300f));
+        await MouseDragCard(cards[0].AsGodotObject(), RightZoneCenter());
 
         // Card discarded — room has 3 cards, weapon slot still empty.
         AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(3);
@@ -474,7 +482,7 @@ public class ScoundrelSceneTests
         AssertThat(potion).IsNotNull();
 
         // Drag right — RIGHT zone is now "Discard" (no healing)
-        await MouseDragCard(potion!, new Vector2(850f, 300f));
+        await MouseDragCard(potion!, RightZoneCenter());
 
         // HP unchanged — potion discarded, not drunk.
         AssertThat(ParseHP(scene)).IsEqual(hpAfterDamage);
@@ -498,7 +506,7 @@ public class ScoundrelSceneTests
         // Drag 4_clubs (monster, value 4) to RIGHT zone — bare-handed, no weapon applied.
         var monster = FindRoomCard(scene, s => s == "clubs");
         AssertThat(monster).IsNotNull();
-        await MouseDragCard(monster!, new Vector2(850f, 300f));
+        await MouseDragCard(monster!, RightZoneCenter());
 
         // With weapon (value 6): damage would be 0.  Bare-handed: damage = 4.
         AssertThat(ParseHP(scene)).IsEqual(16);
@@ -828,7 +836,7 @@ public class ScoundrelSceneTests
 
         var potion = FindRoomCard(scene, s => s == "hearts");
         AssertThat(potion).IsNotNull();
-        await MouseDragCard(potion!, new Vector2(850f, 300f));
+        await MouseDragCard(potion!, RightZoneCenter());
 
         AssertThat(((ScoundrelGame)scene).LastSfxPlayed).IsEqual("potion_discarded");
     }
@@ -855,7 +863,7 @@ public class ScoundrelSceneTests
 
         var weapon = FindRoomCard(scene, s => s == "diamonds");
         AssertThat(weapon).IsNotNull();
-        await MouseDragCard(weapon!, new Vector2(850f, 300f));
+        await MouseDragCard(weapon!, RightZoneCenter());
 
         AssertThat(((ScoundrelGame)scene).LastSfxPlayed).IsEqual("weapon_discarded");
     }

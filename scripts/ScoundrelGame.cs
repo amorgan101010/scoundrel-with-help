@@ -144,10 +144,10 @@ public partial class ScoundrelGame : Node
         var overlayLayer = new CanvasLayer();
         overlayLayer.Layer = 128;
         AddChild(overlayLayer);
-        _leftHighlight  = AddZoneHighlight(overlayLayer, 0,   320, false, new Color(0.25f, 0.8f, 0.25f, 0.30f));
-        _rightHighlight = AddZoneHighlight(overlayLayer, 820, 0,   true,  new Color(0.25f, 0.5f, 1.0f,  0.30f));
-        _leftLabel      = AddZoneLabel(overlayLayer, 0,   320, false);
-        _rightLabel     = AddZoneLabel(overlayLayer, 820, 0,   true);
+        _leftHighlight  = AddZoneHighlight(overlayLayer, 0,    320, false, new Color(0.25f, 0.8f, 0.25f, 0.30f));
+        _rightHighlight = AddZoneHighlight(overlayLayer, -300, 0,   true,  new Color(0.25f, 0.5f, 1.0f,  0.30f), anchorFromRight: true);
+        _leftLabel      = AddZoneLabel(overlayLayer, 0,    320, false);
+        _rightLabel     = AddZoneLabel(overlayLayer, -300, 0,   true, anchorFromRight: true);
 
         _sfxPunch         = CreateSfxPlayer("res://samples/punch.wav");
         _sfxBubbles       = CreateSfxPlayer("res://samples/bubbles.wav");
@@ -753,14 +753,18 @@ public partial class ScoundrelGame : Node
         player.Play();
     }
 
-    private static Label AddZoneLabel(Node parent, float left, float right, bool stretchRight)
+    private static Label AddZoneLabel(Node parent, float left, float right, bool stretchRight, bool anchorFromRight = false)
     {
         var label = new Label();
         label.AnchorBottom        = 1.0f;
         label.GrowVertical        = Control.GrowDirection.Both;
         label.OffsetLeft          = left;
-        if (stretchRight) { label.AnchorRight = 1.0f; label.GrowHorizontal = Control.GrowDirection.Both; }
-        else              { label.OffsetRight = right; }
+        if (stretchRight) {
+            if (anchorFromRight) label.AnchorLeft = 1.0f;
+            label.AnchorRight    = 1.0f;
+            label.GrowHorizontal = Control.GrowDirection.Both;
+        }
+        else { label.OffsetRight = right; }
         label.HorizontalAlignment = HorizontalAlignment.Center;
         label.VerticalAlignment   = VerticalAlignment.Center;
         label.AddThemeFontSizeOverride("font_size", 28);
@@ -771,14 +775,18 @@ public partial class ScoundrelGame : Node
         return label;
     }
 
-    private static ColorRect AddZoneHighlight(Node parent, float left, float right, bool stretchRight, Color color)
+    private static ColorRect AddZoneHighlight(Node parent, float left, float right, bool stretchRight, Color color, bool anchorFromRight = false)
     {
         var rect = new ColorRect();
         rect.AnchorBottom = 1.0f;
         rect.GrowVertical = Control.GrowDirection.Both;
         rect.OffsetLeft   = left;
-        if (stretchRight) { rect.AnchorRight = 1.0f; rect.GrowHorizontal = Control.GrowDirection.Both; }
-        else              { rect.OffsetRight = right; }
+        if (stretchRight) {
+            if (anchorFromRight) rect.AnchorLeft = 1.0f;
+            rect.AnchorRight    = 1.0f;
+            rect.GrowHorizontal = Control.GrowDirection.Both;
+        }
+        else { rect.OffsetRight = right; }
         rect.Color        = color;
         rect.MouseFilter  = Control.MouseFilterEnum.Ignore;
         rect.Visible      = false;

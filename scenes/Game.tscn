@@ -158,11 +158,12 @@ horizontal_alignment = 1
 
 [node name="RightPanel" type="Control" parent="UI" unique_id=789012345]
 layout_mode = 3
+anchor_left = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-offset_left = 940.0
+offset_left = -180.0
 mouse_filter = 2
 
 [node name="DeckGroup" type="Control" parent="UI/RightPanel" unique_id=234567890]
@@ -257,37 +258,49 @@ script = ExtResource("5_room")
 enable_drop_zone = false
 
 [node name="RunButton" type="Button" parent="UI" unique_id=615236865]
+anchor_left = 0.5
+anchor_right = 0.5
 anchor_top = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
 grow_vertical = 0
-offset_left = 390.0
+offset_left = -170.0
 offset_top = -45.0
-offset_right = 555.0
+offset_right = -5.0
 offset_bottom = -10.0
 text = "RUN (skip room)"
 
 [node name="NextRoomButton" type="Button" parent="UI" unique_id=1785200382]
 visible = false
+anchor_left = 0.5
+anchor_right = 0.5
 anchor_top = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
 grow_vertical = 0
-offset_left = 565.0
+offset_left = 5.0
 offset_top = -45.0
-offset_right = 730.0
+offset_right = 170.0
 offset_bottom = -10.0
 text = "Next Room →"
 
 [node name="RetryButton" type="Button" parent="UI" unique_id=1426019074]
-offset_left = 441.0
+anchor_left = 0.5
+anchor_right = 0.5
+grow_horizontal = 2
+offset_left = -119.0
 offset_top = 10.0
-offset_right = 601.0
+offset_right = 41.0
 offset_bottom = 45.0
 text = "↺ New Game"
 
 [node name="HelpButton" type="Button" parent="UI" unique_id=1844877452]
-offset_left = 609.0
+anchor_left = 0.5
+anchor_right = 0.5
+grow_horizontal = 2
+offset_left = 49.0
 offset_top = 10.0
-offset_right = 679.0
+offset_right = 119.0
 offset_bottom = 45.0
 text = "? Help"
 
