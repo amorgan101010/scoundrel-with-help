@@ -247,7 +247,7 @@ public class ScoundrelSceneTests
     public async Task RunShufflesRoomAndDealsNext()
     {
         var scene = _runner!.Scene();
-        var runButton = scene.GetNode<Button>("UI/RunButton");
+        var runButton = scene.GetNode<Button>("UI/BottomButtonGroup/RunButton");
         AssertThat(runButton.Disabled).IsFalse();
 
         runButton.EmitSignal("pressed");
@@ -265,7 +265,7 @@ public class ScoundrelSceneTests
     public async Task CannotRunTwiceInARow()
     {
         var scene = _runner!.Scene();
-        var runButton = scene.GetNode<Button>("UI/RunButton");
+        var runButton = scene.GetNode<Button>("UI/BottomButtonGroup/RunButton");
 
         AssertThat(runButton.Disabled).IsFalse();
         runButton.EmitSignal("pressed");
@@ -279,7 +279,7 @@ public class ScoundrelSceneTests
     {
         await SetupFixedDeck();
         var scene = _runner!.Scene();
-        var nextRoomButton = scene.GetNode<Button>("UI/NextRoomButton");
+        var nextRoomButton = scene.GetNode<Button>("UI/BottomButtonGroup/NextRoomButton");
         var room = scene.GetNode("UI/RoomContainer");
 
         AssertThat(nextRoomButton.Visible).IsFalse();
@@ -302,6 +302,42 @@ public class ScoundrelSceneTests
 
         AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(4);
         AssertThat(nextRoomButton.Visible).IsFalse(); // reset after advancing
+    }
+
+    [TestCase(Description = "Retry button resets the game to full HP with a fresh 4-card room")]
+    public async Task RetryButton_ResetsGame()
+    {
+        await SetupFixedDeck(1200u);
+        var scene = _runner!.Scene();
+        var room  = scene.GetNode("UI/RoomContainer");
+
+        // Take one card so the room is no longer in the initial 4-card state.
+        ClickCard(scene, FindRoomCard(scene, s => s == "diamonds")!); // equip weapon
+        await _runner!.AwaitMillis(200u);
+        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(3);
+
+        // Retry — TopButtonGroup was reparented to ButtonLayer in _Ready().
+        var retryButton = scene.GetNode<Button>("ButtonLayer/TopButtonGroup/RetryButton");
+        retryButton.EmitSignal("pressed");
+        await _runner!.AwaitMillis(1200u); // wait for new deal to settle
+
+        AssertThat(ParseHP(scene)).IsEqual(20);
+        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(4);
+    }
+
+    [TestCase(Description = "Help button opens the help dialog")]
+    public async Task HelpButton_OpensDialog()
+    {
+        var scene      = _runner!.Scene();
+        var helpDialog = scene.GetNode<AcceptDialog>("UI/HelpDialog");
+        AssertThat(helpDialog.Visible).IsFalse();
+
+        // HelpButton is in TopButtonGroup which was reparented to ButtonLayer.
+        var helpButton = scene.GetNode<Button>("ButtonLayer/TopButtonGroup/HelpButton");
+        helpButton.EmitSignal("pressed");
+        await _runner!.AwaitIdleFrame();
+
+        AssertThat(helpDialog.Visible).IsTrue();
     }
 
     [TestCase(Description = "Monster killed with weapon goes to discard and adds a badge to the weapon card")]
@@ -583,7 +619,7 @@ public class ScoundrelSceneTests
     public async Task RunPositionsCardsAtRoomSlots()
     {
         var scene     = _runner!.Scene();
-        var runButton = scene.GetNode<Button>("UI/RunButton");
+        var runButton = scene.GetNode<Button>("UI/BottomButtonGroup/RunButton");
         var room      = scene.GetNode("UI/RoomContainer");
 
         runButton.EmitSignal("pressed");
@@ -717,7 +753,7 @@ public class ScoundrelSceneTests
 
         AssertThat(ParseHP(scene)).IsEqual(0);
         AssertThat(scene.GetNode<Label>("HudLayer/StatusLabel").Text).IsEqual("YOU DIED");
-        AssertThat(scene.GetNode<Button>("UI/RunButton").Disabled).IsTrue();
+        AssertThat(scene.GetNode<Button>("UI/BottomButtonGroup/RunButton").Disabled).IsTrue();
     }
 
     [TestCase(Description = "Taking first potion tints remaining room potions; wasted potion keeps tint")]
