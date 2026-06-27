@@ -535,7 +535,7 @@ public class ScoundrelSceneTests
         var weapon = FindRoomCard(scene, s => s == "diamonds");
         AssertThat(weapon).IsNotNull();
         ClickCard(scene, weapon!);
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs / 1.5f); // wait shorter since weapon animates briefly
+        await _runner!.AwaitMillis((uint)(UITimings.DragAnimationMs / 1.5f)); // wait shorter since weapon animates briefly
 
         AssertThat(scene.GetNode<Label>("UI/LeftPanel/WeaponGroup/WeaponLabel").Text).IsNotEqual("Weapon: none");
 
