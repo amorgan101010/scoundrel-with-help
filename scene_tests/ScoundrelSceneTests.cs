@@ -304,6 +304,42 @@ public class ScoundrelSceneTests
         AssertThat(nextRoomButton.Visible).IsFalse(); // reset after advancing
     }
 
+    [TestCase(Description = "Retry button resets the game to full HP with a fresh 4-card room")]
+    public async Task RetryButton_ResetsGame()
+    {
+        await SetupFixedDeck(1200u);
+        var scene = _runner!.Scene();
+        var room  = scene.GetNode("UI/RoomContainer");
+
+        // Take one card so the room is no longer in the initial 4-card state.
+        ClickCard(scene, FindRoomCard(scene, s => s == "diamonds")!); // equip weapon
+        await _runner!.AwaitMillis(200u);
+        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(3);
+
+        // Retry — TopButtonGroup was reparented to ButtonLayer in _Ready().
+        var retryButton = scene.GetNode<Button>("ButtonLayer/TopButtonGroup/RetryButton");
+        retryButton.EmitSignal("pressed");
+        await _runner!.AwaitMillis(1200u); // wait for new deal to settle
+
+        AssertThat(ParseHP(scene)).IsEqual(20);
+        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(4);
+    }
+
+    [TestCase(Description = "Help button opens the help dialog")]
+    public async Task HelpButton_OpensDialog()
+    {
+        var scene      = _runner!.Scene();
+        var helpDialog = scene.GetNode<AcceptDialog>("UI/HelpDialog");
+        AssertThat(helpDialog.Visible).IsFalse();
+
+        // HelpButton is in TopButtonGroup which was reparented to ButtonLayer.
+        var helpButton = scene.GetNode<Button>("ButtonLayer/TopButtonGroup/HelpButton");
+        helpButton.EmitSignal("pressed");
+        await _runner!.AwaitIdleFrame();
+
+        AssertThat(helpDialog.Visible).IsTrue();
+    }
+
     [TestCase(Description = "Monster killed with weapon goes to discard and adds a badge to the weapon card")]
     public async Task WeaponedMonsterGetsSlainBadgeOnWeapon()
     {
