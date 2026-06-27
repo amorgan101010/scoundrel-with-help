@@ -1,12 +1,18 @@
 #!/usr/bin/env python3
-"""Generate all 44 Scoundrel card art images using Pillow."""
+"""Generate all 44 Scoundrel card art images as SVGs (vector, scales to any resolution).
 
-from PIL import Image, ImageDraw, ImageFont
-import os, math
+Requires fonttools:  python3 -m pip install fonttools
+"""
+
+import os, math, json
+
+from fontTools.ttLib import TTFont
+from fontTools.pens.svgPathPen import SVGPathPen
 
 W, H = 150, 210
-FONT_PATH = "/usr/share/fonts/TTF/DejaVuSans-Bold.ttf"
-OUT = "/home/aileen/Repositories/godot/scoundrel-with-help/card_assets"
+OUT       = "/home/aileen/Repositories/godot/scoundrel-with-help/card_assets"
+JSON_DIR  = "/home/aileen/Repositories/godot/scoundrel-with-help/card_data"
+FONT_PATH = "/home/aileen/Repositories/godot/scoundrel-with-help/assets/fonts/DejaVuSans-Bold.ttf"
 
 # ── Palettes ─────────────────────────────────────────────────────────────────
 P = {
@@ -40,9 +46,145 @@ NAMES = {
 }
 
 
+# ── Glyph renderer — converts text to SVG <path> outlines ────────────────────
+
+class GlyphRenderer:
+    """Rasterizes text as SVG <path> elements using fontTools SVGPathPen.
+
+    ThorVG (Godot's SVG backend) cannot resolve font-family references, so
+    <text> elements are invisible. Outline paths have no runtime font dependency.
+    """
+
+    def __init__(self, font_path):
+        font = TTFont(font_path)
+        self._glyph_set = font.getGlyphSet()
+        self._cmap      = font.getBestCmap()
+        self._hmtx      = font['hmtx'].metrics
+        self._upm       = font['head'].unitsPerEm
+        self._ascender  = font['hhea'].ascent  # for Pillow-style top-left y coord
+
+    def render(self, x, y, txt, size, fill):
+        """Return list of SVG <path> elements for txt at Pillow top-left (x, y)."""
+        scale    = size / self._upm
+        baseline = y + self._ascender * scale
+        elems    = []
+        cx       = float(x)
+        for ch in str(txt):
+            cp = ord(ch)
+            if cp not in self._cmap:
+                cx += size * 0.3
+                continue
+            gname = self._cmap[cp]
+            pen   = SVGPathPen(self._glyph_set)
+            self._glyph_set[gname].draw(pen)
+            if pen.getCommands():
+                elems.append(
+                    f'<path transform="translate({cx:.2f},{baseline:.2f})'
+                    f' scale({scale:.5f},{-scale:.5f})"'
+                    f' d="{pen.getCommands()}" fill="{fill}"/>'
+                )
+            cx += self._hmtx[gname][0] * scale
+        return elems
+
+    def measure(self, txt, size):
+        """Return the pixel width of txt rendered at the given size."""
+        scale = size / self._upm
+        total = 0
+        for ch in str(txt):
+            cp = ord(ch)
+            if cp in self._cmap:
+                total += self._hmtx[self._cmap[cp]][0]
+            else:
+                total += int(self._upm * 0.3)
+        return total * scale
+
+
+_GLYPHS: 'GlyphRenderer | None' = None
+
+
+# ── SVG canvas ───────────────────────────────────────────────────────────────
+
+def _rgb(c):
+    return f'rgb({c[0]},{c[1]},{c[2]})'
+
+
+class SVGCanvas:
+    """Drop-in replacement for Pillow ImageDraw that emits SVG elements."""
+
+    def __init__(self, w, h):
+        self.w, self.h = w, h
+        self._e = []
+
+    def rectangle(self, bbox, fill=None, outline=None, width=1):
+        x1, y1, x2, y2 = bbox
+        f = _rgb(fill) if fill else 'none'
+        s = f' stroke="{_rgb(outline)}" stroke-width="{width}"' if outline else ''
+        self._e.append(f'<rect x="{x1}" y="{y1}" width="{x2-x1}" height="{y2-y1}" fill="{f}"{s}/>')
+
+    def ellipse(self, bbox, fill=None, outline=None, width=1):
+        x1, y1, x2, y2 = bbox
+        cx = (x1+x2)/2; cy = (y1+y2)/2
+        rx = (x2-x1)/2; ry = (y2-y1)/2
+        f = _rgb(fill) if fill else 'none'
+        s = f' stroke="{_rgb(outline)}" stroke-width="{width}"' if outline else ''
+        self._e.append(f'<ellipse cx="{cx:.2f}" cy="{cy:.2f}" rx="{rx:.2f}" ry="{ry:.2f}" fill="{f}"{s}/>')
+
+    def polygon(self, pts, fill=None, outline=None, width=1):
+        ps = ' '.join(f'{x},{y}' for x, y in pts)
+        f = _rgb(fill) if fill else 'none'
+        s = f' stroke="{_rgb(outline)}" stroke-width="{width}"' if outline else ''
+        self._e.append(f'<polygon points="{ps}" fill="{f}"{s} stroke-linejoin="round"/>')
+
+    def line(self, pts, fill=None, width=1):
+        col = _rgb(fill) if fill else 'none'
+        if len(pts) == 2:
+            (x1, y1), (x2, y2) = pts
+            self._e.append(
+                f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}"'
+                f' stroke="{col}" stroke-width="{width}" stroke-linecap="round"/>'
+            )
+        else:
+            ps = ' '.join(f'{x},{y}' for x, y in pts)
+            self._e.append(
+                f'<polyline points="{ps}" fill="none"'
+                f' stroke="{col}" stroke-width="{width}" stroke-linecap="round" stroke-linejoin="round"/>'
+            )
+
+    def text(self, pos, txt, fill=None, font=12):
+        x, y = pos
+        size = font if isinstance(font, (int, float)) else 12
+        f    = _rgb(fill) if fill else 'black'
+        self._e.extend(_GLYPHS.render(x, y, str(txt), size, f))
+
+    def textbbox(self, _pos, txt, font=12):
+        size = font if isinstance(font, (int, float)) else 12
+        return (0, 0, _GLYPHS.measure(str(txt), size), size)
+
+    def arc(self, bbox, start, end, fill=None, width=1):
+        x1, y1, x2, y2 = bbox
+        cx = (x1+x2)/2; cy = (y1+y2)/2
+        rx = (x2-x1)/2; ry = (y2-y1)/2
+        sr = math.radians(start); er = math.radians(end)
+        sx = cx + rx*math.cos(sr); sy = cy + ry*math.sin(sr)
+        ex = cx + rx*math.cos(er); ey = cy + ry*math.sin(er)
+        large = 1 if (end - start) % 360 > 180 else 0
+        col = _rgb(fill) if fill else 'none'
+        d = f'M {sx:.2f},{sy:.2f} A {rx:.2f},{ry:.2f} 0 {large},1 {ex:.2f},{ey:.2f}'
+        self._e.append(f'<path d="{d}" fill="none" stroke="{col}" stroke-width="{width}"/>')
+
+    def to_svg(self):
+        inner = '\n'.join(self._e)
+        return (
+            f'<svg xmlns="http://www.w3.org/2000/svg"'
+            f' width="{self.w}" height="{self.h}" viewBox="0 0 {self.w} {self.h}">\n'
+            f'{inner}\n</svg>\n'
+        )
+
+
+# ── Font sizes (SVG doesn't need font objects) ────────────────────────────────
+
 def load_fonts():
-    sizes = [22, 15, 11, 9]
-    return [ImageFont.truetype(FONT_PATH, s) for s in sizes]
+    return [22, 15, 11, 9]
 
 
 def draw_bg(draw, p):
@@ -459,12 +601,36 @@ def draw_weapon(draw, cx, cy, p, rank):
         draw.polygon([(cx,cy+22),(cx-8,cy+30),(cx,cy+36),(cx+8,cy+30)], fill=dm)
 
 
+# ── Card back ─────────────────────────────────────────────────────────────────
+
+def make_card_back():
+    bg     = (42,  20, 12)
+    stripe = (55,  28, 18)
+    border = (95,  55, 35)
+    dim    = (65,  35, 22)
+    text_c = (175, 140, 110)
+    accent = (120, 78, 50)
+
+    d = SVGCanvas(W, H)
+    d.rectangle([0, 0, W, H], fill=bg)
+    for i in range(-H, W + H, 12):
+        d.line([(i, 0), (i + H, H)], fill=stripe, width=1)
+    d.rectangle([1, 1, W-2, H-2], outline=border, width=3)
+    d.rectangle([6, 6, W-7, H-7], outline=dim, width=1)
+    for cx, cy in [(4, 4), (W-5, 4), (4, H-5), (W-5, H-5)]:
+        d.polygon([(cx, cy-4), (cx+4, cy), (cx, cy+4), (cx-4, cy)], fill=accent)
+    label = 'SCOUNDREL'
+    size  = 18  # twice the original ~9px
+    tw    = _GLYPHS.measure(label, size)
+    d.text(((W - tw) / 2, H / 2 - size / 2), label, fill=text_c, font=size)
+    return d.to_svg()
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def make_card(suit, rank, fonts):
-    p   = P[suit]
-    img = Image.new('RGB', (W, H), p['bg'])
-    d   = ImageDraw.Draw(img)
+    p = P[suit]
+    d = SVGCanvas(W, H)
     draw_bg(d, p)
     cx, cy = 75, 97
     if   suit == 'clubs':    draw_clubs(d, cx, cy, p, rank)
@@ -473,10 +639,13 @@ def make_card(suit, rank, fonts):
     elif suit == 'diamonds': draw_weapon(d, cx, cy, p, rank)
     draw_pip(d, rank, suit, p, fonts)
     draw_name_banner(d, NAMES[(suit, rank)], p, fonts[3])
-    return img
+    return d.to_svg()
 
 
 def main():
+    global _GLYPHS
+    print("Loading font…")
+    _GLYPHS = GlyphRenderer(FONT_PATH)
     fonts = load_fonts()
     cards = (
         [(s, r) for s in ('clubs','spades')
@@ -485,11 +654,29 @@ def main():
          for r in ('2','3','4','5','6','7','8','9','10')]
     )
     for suit, rank in cards:
-        img  = make_card(suit, rank, fonts)
-        path = os.path.join(OUT, f"{rank}_{suit}.png")
-        img.save(path)
-        print(f"  {rank}_{suit}.png")
-    print(f"\nDone — {len(cards)} cards.")
+        svg = make_card(suit, rank, fonts)
+        fname = f"{rank}_{suit}"
+
+        svg_path = os.path.join(OUT, f"{fname}.svg")
+        with open(svg_path, 'w', encoding='utf-8') as f:
+            f.write(svg)
+
+        json_path = os.path.join(JSON_DIR, f"{fname}.json")
+        if os.path.exists(json_path):
+            with open(json_path) as f:
+                data = json.load(f)
+            data['front_image'] = f"{fname}.svg"
+            with open(json_path, 'w') as f:
+                json.dump(data, f, indent=2)
+
+        print(f"  {fname}.svg")
+
+    svg = make_card_back()
+    with open(os.path.join(OUT, 'card_back.svg'), 'w', encoding='utf-8') as f:
+        f.write(svg)
+    print("  card_back.svg")
+
+    print(f"\nDone — {len(cards)} cards + back.")
 
 
 if __name__ == '__main__':

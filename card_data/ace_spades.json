@@ -1,6 +1,6 @@
 {
   "name": "ace_spades",
-  "front_image": "ace_spades.png",
+  "front_image": "ace_spades.svg",
   "suit": "spades",
   "rank": 1
 }

@@ -1,6 +1,6 @@
 {
   "name": "jack_clubs",
-  "front_image": "jack_clubs.png",
+  "front_image": "jack_clubs.svg",
   "suit": "clubs",
   "rank": 11
 }
