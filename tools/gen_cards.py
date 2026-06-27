@@ -4,10 +4,10 @@
 Requires fonttools:  python3 -m pip install fonttools
 """
 
-import os, math, json, io, base64
+import os, math, json
 
 from fontTools.ttLib import TTFont
-from fontTools import subset as ft_subset
+from fontTools.pens.svgPathPen import SVGPathPen
 
 W, H = 150, 210
 OUT       = "/home/aileen/Repositories/godot/scoundrel-with-help/card_assets"
@@ -46,33 +46,60 @@ NAMES = {
 }
 
 
-# ── Font subsetting ───────────────────────────────────────────────────────────
+# ── Glyph renderer — converts text to SVG <path> outlines ────────────────────
 
-def make_font_defs(font_path):
-    """Return an SVG <style> block embedding a base64-subsetted copy of the font."""
-    unicodes = (
-        {0x0020}                          # space
-        | set(range(0x0030, 0x003A))      # 0–9
-        | set(range(0x0041, 0x005B))      # A–Z
-        | {0x2660, 0x2663, 0x2665, 0x25C6}  # ♠ ♣ ♥ ◆
-    )
-    opts = ft_subset.Options()
-    opts.layout_features = []
-    font = TTFont(font_path)
-    subsetter = ft_subset.Subsetter(options=opts)
-    subsetter.populate(unicodes=sorted(unicodes))
-    subsetter.subset(font)
-    buf = io.BytesIO()
-    font.save(buf)
-    b64 = base64.b64encode(buf.getvalue()).decode()
-    return (
-        "<style>"
-        "@font-face{"
-        "font-family:'DejaVu Sans Bold';"
-        f"src:url('data:font/truetype;base64,{b64}')format('truetype');"
-        "font-weight:bold}"
-        "</style>"
-    )
+class GlyphRenderer:
+    """Rasterizes text as SVG <path> elements using fontTools SVGPathPen.
+
+    ThorVG (Godot's SVG backend) cannot resolve font-family references, so
+    <text> elements are invisible. Outline paths have no runtime font dependency.
+    """
+
+    def __init__(self, font_path):
+        font = TTFont(font_path)
+        self._glyph_set = font.getGlyphSet()
+        self._cmap      = font.getBestCmap()
+        self._hmtx      = font['hmtx'].metrics
+        self._upm       = font['head'].unitsPerEm
+        self._ascender  = font['hhea'].ascent  # for Pillow-style top-left y coord
+
+    def render(self, x, y, txt, size, fill):
+        """Return list of SVG <path> elements for txt at Pillow top-left (x, y)."""
+        scale    = size / self._upm
+        baseline = y + self._ascender * scale
+        elems    = []
+        cx       = float(x)
+        for ch in str(txt):
+            cp = ord(ch)
+            if cp not in self._cmap:
+                cx += size * 0.3
+                continue
+            gname = self._cmap[cp]
+            pen   = SVGPathPen(self._glyph_set)
+            self._glyph_set[gname].draw(pen)
+            if pen.getCommands():
+                elems.append(
+                    f'<path transform="translate({cx:.2f},{baseline:.2f})'
+                    f' scale({scale:.5f},{-scale:.5f})"'
+                    f' d="{pen.getCommands()}" fill="{fill}"/>'
+                )
+            cx += self._hmtx[gname][0] * scale
+        return elems
+
+    def measure(self, txt, size):
+        """Return the pixel width of txt rendered at the given size."""
+        scale = size / self._upm
+        total = 0
+        for ch in str(txt):
+            cp = ord(ch)
+            if cp in self._cmap:
+                total += self._hmtx[self._cmap[cp]][0]
+            else:
+                total += int(self._upm * 0.3)
+        return total * scale
+
+
+_GLYPHS: 'GlyphRenderer | None' = None
 
 
 # ── SVG canvas ───────────────────────────────────────────────────────────────
@@ -84,9 +111,8 @@ def _rgb(c):
 class SVGCanvas:
     """Drop-in replacement for Pillow ImageDraw that emits SVG elements."""
 
-    def __init__(self, w, h, defs=''):
+    def __init__(self, w, h):
         self.w, self.h = w, h
-        self._defs = defs
         self._e = []
 
     def rectangle(self, bbox, fill=None, outline=None, width=1):
@@ -127,17 +153,12 @@ class SVGCanvas:
     def text(self, pos, txt, fill=None, font=12):
         x, y = pos
         size = font if isinstance(font, (int, float)) else 12
-        f = _rgb(fill) if fill else 'black'
-        safe = str(txt).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-        self._e.append(
-            f'<text x="{x}" y="{y}" font-family="\'DejaVu Sans Bold\',sans-serif"'
-            f' font-weight="bold" font-size="{size}" fill="{f}"'
-            f' dominant-baseline="hanging">{safe}</text>'
-        )
+        f    = _rgb(fill) if fill else 'black'
+        self._e.extend(_GLYPHS.render(x, y, str(txt), size, f))
 
     def textbbox(self, _pos, txt, font=12):
         size = font if isinstance(font, (int, float)) else 12
-        return (0, 0, len(str(txt)) * size * 0.62, size)
+        return (0, 0, _GLYPHS.measure(str(txt), size), size)
 
     def arc(self, bbox, start, end, fill=None, width=1):
         x1, y1, x2, y2 = bbox
@@ -152,12 +173,10 @@ class SVGCanvas:
         self._e.append(f'<path d="{d}" fill="none" stroke="{col}" stroke-width="{width}"/>')
 
     def to_svg(self):
-        defs = f'<defs>{self._defs}</defs>\n' if self._defs else ''
         inner = '\n'.join(self._e)
         return (
             f'<svg xmlns="http://www.w3.org/2000/svg"'
             f' width="{self.w}" height="{self.h}" viewBox="0 0 {self.w} {self.h}">\n'
-            f'{defs}'
             f'{inner}\n</svg>\n'
         )
 
@@ -584,9 +603,9 @@ def draw_weapon(draw, cx, cy, p, rank):
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 
-def make_card(suit, rank, fonts, font_defs=''):
+def make_card(suit, rank, fonts):
     p = P[suit]
-    d = SVGCanvas(W, H, defs=font_defs)
+    d = SVGCanvas(W, H)
     draw_bg(d, p)
     cx, cy = 75, 97
     if   suit == 'clubs':    draw_clubs(d, cx, cy, p, rank)
@@ -599,8 +618,9 @@ def make_card(suit, rank, fonts, font_defs=''):
 
 
 def main():
-    print("Subsetting font…")
-    font_defs = make_font_defs(FONT_PATH)
+    global _GLYPHS
+    print("Loading font…")
+    _GLYPHS = GlyphRenderer(FONT_PATH)
     fonts = load_fonts()
     cards = (
         [(s, r) for s in ('clubs','spades')
@@ -609,7 +629,7 @@ def main():
          for r in ('2','3','4','5','6','7','8','9','10')]
     )
     for suit, rank in cards:
-        svg = make_card(suit, rank, fonts, font_defs)
+        svg = make_card(suit, rank, fonts)
         fname = f"{rank}_{suit}"
 
         svg_path = os.path.join(OUT, f"{fname}.svg")
