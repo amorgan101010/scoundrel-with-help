@@ -63,11 +63,7 @@ public partial class ScoundrelGame : Node
     private int _bounceTotal;
 
     // ── Sound effects ─────────────────────────────────────────────────────
-    private AudioManager _audioManager;
-
-
-    // Set by PlaySfx; read by scene tests to assert which sound last played.
-    public string LastSfxPlayed { get; private set; } = "";
+    public AudioManager _audioManager;
 
     // ── Layout constants ──────────────────────────────────────────────────
     // Base card dimensions for a 1080p viewport. These are scaled at runtime
@@ -839,20 +835,6 @@ public partial class ScoundrelGame : Node
     }
 
     // ── Utilities ─────────────────────────────────────────────────────────
-    private AudioStreamPlayer CreateSfxPlayer(string path)
-    {
-        var player = new AudioStreamPlayer();
-        player.Stream = GD.Load<AudioStream>(path);
-        AddChild(player);
-        return player;
-    }
-
-    private void PlaySfx(AudioStreamPlayer player, string name)
-    {
-        LastSfxPlayed = name;
-        player.Play();
-    }
-
     private static Label AddZoneLabel(Node parent, float anchorLeft, float anchorRight)
     {
         var label = new Label();

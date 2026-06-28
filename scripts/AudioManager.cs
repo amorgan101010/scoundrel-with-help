@@ -2,12 +2,16 @@ using Godot;
 
 public partial class AudioManager : Node
 {
-    private AudioStreamPlayer _sfxPunch = null!;
-    private AudioStreamPlayer _sfxBubbles = null!;
-    private AudioStreamPlayer _sfxPotionDiscard = null!;
-    private AudioStreamPlayer _sfxSwordDrawn = null!;
-    private AudioStreamPlayer _sfxWeaponDiscard = null!;
-    private AudioStreamPlayer _sfxCardDealt = null!;
+    public AudioStreamPlayer _sfxPunch = null!;
+    public AudioStreamPlayer _sfxBubbles = null!;
+    public AudioStreamPlayer _sfxPotionDiscard = null!;
+    public AudioStreamPlayer _sfxSwordDrawn = null!;
+    public AudioStreamPlayer _sfxWeaponDiscard = null!;
+    public AudioStreamPlayer _sfxCardDealt = null!;
+
+
+    // Set by PlaySfx; read by scene tests to assert which sound last played.
+    public string LastSfxPlayed { get; private set; } = "";
 
     public override void _Ready()
     {
@@ -34,32 +38,32 @@ public partial class AudioManager : Node
 
     public void PlayPunch()
     {
-        _sfxPunch.Play();
+        PlaySfx(_sfxPunch);
     }
 
     public void PlayBubbles()
     {
-        _sfxBubbles.Play();
+        PlaySfx(_sfxBubbles);
     }
 
     public void PlayPotionDiscard()
     {
-        _sfxPotionDiscard.Play();
+        PlaySfx(_sfxPotionDiscard);
     }
 
     public void PlaySwordDrawn()
     {
-        _sfxSwordDrawn.Play();
+        PlaySfx(_sfxSwordDrawn);
     }
 
     public void PlayWeaponDiscard()
     {
-        _sfxWeaponDiscard.Play();
+        PlaySfx(_sfxWeaponDiscard);
     }
 
     public void PlayCardDealt()
     {
-        _sfxCardDealt.Play();
+        PlaySfx(_sfxCardDealt);
     }
 
     public void EndOfGame(float BouncePitchMin, float BouncePitchRange)
@@ -72,5 +76,11 @@ public partial class AudioManager : Node
         AddChild(sfx);
         sfx.Connect("finished", Callable.From(sfx.QueueFree));
         sfx.Play();
+    }
+
+    private void PlaySfx(AudioStreamPlayer player)
+    {
+        LastSfxPlayed = nameof(player);
+        player.Play();
     }
 }
