@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Godot;
 
 public partial class AudioManager : Node
@@ -78,9 +79,9 @@ public partial class AudioManager : Node
         sfx.Play();
     }
 
-    private void PlaySfx(AudioStreamPlayer player)
+    private void PlaySfx(AudioStreamPlayer player, [CallerArgumentExpression("player")] string sfxName = "")
     {
-        LastSfxPlayed = nameof(player);
+        LastSfxPlayed = sfxName;
         player.Play();
     }
 }
