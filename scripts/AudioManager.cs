@@ -3,12 +3,12 @@ using Godot;
 
 public partial class AudioManager : Node
 {
-    required public AudioStreamPlayer _sfxPunch;
-    required public AudioStreamPlayer _sfxBubbles;
-    required public AudioStreamPlayer _sfxPotionDiscard;
-    required public AudioStreamPlayer _sfxSwordDrawn;
-    required public AudioStreamPlayer _sfxWeaponDiscard;
-    required public AudioStreamPlayer _sfxCardDealt;
+    public AudioStreamPlayer _sfxPunch = null!;
+    public AudioStreamPlayer _sfxBubbles = null!;
+    public AudioStreamPlayer _sfxPotionDiscard = null!;
+    public AudioStreamPlayer _sfxSwordDrawn = null!;
+    public AudioStreamPlayer _sfxWeaponDiscard = null!;
+    public AudioStreamPlayer _sfxCardDealt = null!;
 
 
     // Set by PlaySfx; read by scene tests to assert which sound last played.
@@ -16,19 +16,20 @@ public partial class AudioManager : Node
 
     public override void _Ready()
     {
-        // Set up your sound players here
         _sfxPunch = new AudioStreamPlayer();
         _sfxBubbles = new AudioStreamPlayer();
         _sfxPotionDiscard = new AudioStreamPlayer();
         _sfxSwordDrawn = new AudioStreamPlayer();
         _sfxWeaponDiscard = new AudioStreamPlayer();
         _sfxCardDealt = new AudioStreamPlayer();
+
         _sfxPunch.Stream = GD.Load<AudioStream>("res://samples/punch.wav");
         _sfxBubbles.Stream = GD.Load<AudioStream>("res://samples/bubbles.wav");
         _sfxPotionDiscard.Stream = GD.Load<AudioStream>("res://samples/potion_discarded.wav");
         _sfxSwordDrawn.Stream = GD.Load<AudioStream>("res://samples/sword_drawn.wav"); // Will be replaced with the actual sword drawn sound
         _sfxWeaponDiscard.Stream = GD.Load<AudioStream>("res://samples/weapon_discarded.wav");
         _sfxCardDealt.Stream = GD.Load<AudioStream>("res://samples/card_dealt.wav");
+
         AddChild(_sfxPunch);
         AddChild(_sfxBubbles);
         AddChild(_sfxPotionDiscard);
