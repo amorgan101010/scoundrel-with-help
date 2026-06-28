@@ -17,6 +17,7 @@ The main scene is `scenes/Game.tscn`.
 macOS quarantines downloaded binaries. Before running the exported app for the first time, strip the quarantine flag:
 
 ```sh
+# Drag the app file onto the terminal to save keystrokes!
 xattr -cr /path/to/Scoundrel.app
 ```
 
@@ -29,7 +30,7 @@ Then open it normally (double-click or `open /path/to/Scoundrel.app`).
 - **Monsters** (clubs / spades) deal damage equal to their value (A=14, 2–10=face, J=11, Q=12, K=13), reduced by your equipped weapon. Using a weapon degrades it — next use must be against a lower-value monster.
 - **Weapons** (diamonds) equip on pickup, replacing the current weapon. Value = rank.
 - **Potions** (hearts) restore HP equal to rank, capped at 20. Limit one per room.
-- **Run**: skip the entire room and shuffle all 4 cards back into the deck. Cannot run two rooms in a row.
+- **Run**: skip the entire room and shuffle all 4 cards to the back of the deck. Cannot run two rooms in a row.
 
 ## Project layout
 
