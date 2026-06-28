@@ -837,13 +837,15 @@ public partial class ScoundrelGame : Node
     // ── Utilities ─────────────────────────────────────────────────────────
     private static Label AddZoneLabel(Node parent, float anchorLeft, float anchorRight)
     {
-        var label = new Label();
-        label.AnchorLeft          = anchorLeft;
-        label.AnchorRight         = anchorRight;
-        label.AnchorBottom        = 1.0f;
-        label.GrowVertical        = Control.GrowDirection.Both;
-        label.HorizontalAlignment = HorizontalAlignment.Center;
-        label.VerticalAlignment   = VerticalAlignment.Center;
+        var label = new Label
+        {
+            AnchorLeft = anchorLeft,
+            AnchorRight = anchorRight,
+            AnchorBottom = 1.0f,
+            GrowVertical = Control.GrowDirection.Both,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center
+        };
         label.AddThemeFontSizeOverride("font_size", ZoneLabelFontSize);
         label.AddThemeColorOverride("font_color", new Color(1f, 1f, 1f, 0.9f));
         label.MouseFilter         = Control.MouseFilterEnum.Ignore;
