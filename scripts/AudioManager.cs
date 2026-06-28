@@ -3,12 +3,12 @@ using Godot;
 
 public partial class AudioManager : Node
 {
-    public AudioStreamPlayer _sfxPunch = null!;
-    public AudioStreamPlayer _sfxBubbles = null!;
-    public AudioStreamPlayer _sfxPotionDiscard = null!;
-    public AudioStreamPlayer _sfxSwordDrawn = null!;
-    public AudioStreamPlayer _sfxWeaponDiscard = null!;
-    public AudioStreamPlayer _sfxCardDealt = null!;
+    required public AudioStreamPlayer _sfxPunch;
+    required public AudioStreamPlayer _sfxBubbles;
+    required public AudioStreamPlayer _sfxPotionDiscard;
+    required public AudioStreamPlayer _sfxSwordDrawn;
+    required public AudioStreamPlayer _sfxWeaponDiscard;
+    required public AudioStreamPlayer _sfxCardDealt;
 
 
     // Set by PlaySfx; read by scene tests to assert which sound last played.

@@ -63,7 +63,7 @@ public partial class ScoundrelGame : Node
     private int _bounceTotal;
 
     // ── Sound effects ─────────────────────────────────────────────────────
-    public AudioManager _audioManager;
+    required public AudioManager AudioManager {get; set;}
 
     // ── Layout constants ──────────────────────────────────────────────────
     // Base card dimensions for a 1080p viewport. These are scaled at runtime
@@ -193,11 +193,11 @@ public partial class ScoundrelGame : Node
         _leftLabel      = AddZoneLabel(overlayLayer, 0f,    1f/3f);
         _rightLabel     = AddZoneLabel(overlayLayer, 2f/3f, 1f);
 
-        _audioManager = new AudioManager
+        AudioManager = new AudioManager
         {
             Name = "AudioManager"
         };
-        AddChild(_audioManager);
+        AddChild(AudioManager);
 
         _roomContainer.Connect("card_drag_started", Callable.From<GodotObject>(OnCardDragStarted));
         _roomContainer.Connect("card_drag_ended",   Callable.From(OnCardDragEnded));
@@ -313,7 +313,7 @@ public partial class ScoundrelGame : Node
         }
 
         if (anyMoved)
-            _audioManager.PlayCardDealt();
+            AudioManager.PlayCardDealt();
 
         if (_engine.PotionUsedThisRoom)
             TintRemainingPotions();
@@ -372,7 +372,7 @@ public partial class ScoundrelGame : Node
         {
             case Suit.Clubs:
             case Suit.Spades:
-                _audioManager.PlayPunch();
+                AudioManager.PlayPunch();
                 DecrementSuit(cardModel);
                 if (willUseWeapon)
                     AddSlainBadge(_godotCards[oldWeapon!.Name], cardModel);
@@ -381,9 +381,9 @@ public partial class ScoundrelGame : Node
 
             case Suit.Hearts:
                 if (activateCard && !potionUsedBefore)
-                    _audioManager.PlayBubbles();
+                    AudioManager.PlayBubbles();
                 else if (!activateCard)
-                    _audioManager.PlayPotionDiscard();
+                    AudioManager.PlayPotionDiscard();
                 if (activateCard && !potionWastedBefore && _engine.PotionWastedThisRoom)
                     ShowBriefMessage("Potion wasted! (one per room)");
                 DecrementSuit(cardModel);
@@ -393,7 +393,7 @@ public partial class ScoundrelGame : Node
             case Suit.Diamonds:
                 if (activateCard)
                 {
-                    _audioManager.PlaySwordDrawn();
+                    AudioManager.PlaySwordDrawn();
                     if (oldWeapon != null)
                     {
                         DecrementSuit(oldWeapon);
@@ -406,7 +406,7 @@ public partial class ScoundrelGame : Node
                 }
                 else
                 {
-                    _audioManager.PlayWeaponDiscard();
+                    AudioManager.PlayWeaponDiscard();
                     DecrementSuit(cardModel);
                     MoveToDiscard(card);
                 }
@@ -654,7 +654,7 @@ public partial class ScoundrelGame : Node
             timer.Timeout += () => {
                 if (!GodotObject.IsInstanceValid(ghost)) return;
                 ghost.Visible = true;
-                _audioManager.EndOfGame(BouncePitchMin, BouncePitchRange);
+                AudioManager.EndOfGame(BouncePitchMin, BouncePitchRange);
                 var tween = CreateTween();
                 tween.TweenProperty(ghost, "position", targetPos, deckPos.DistanceTo(targetPos) / BounceDealSpeed);
                 tween.TweenCallback(Callable.From(() => {
