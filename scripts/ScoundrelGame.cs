@@ -64,11 +64,7 @@ public partial class ScoundrelGame : Node
 
     // ── Sound effects ─────────────────────────────────────────────────────
     private AudioManager _audioManager;
-    private AudioStreamPlayer _sfxBubbles = null!;
-    private AudioStreamPlayer _sfxPotionDiscard = null!;
-    private AudioStreamPlayer _sfxSwordDrawn = null!;
-    private AudioStreamPlayer _sfxWeaponDiscard = null!;
-    private AudioStreamPlayer _sfxCardDealt = null!;
+
 
     // Set by PlaySfx; read by scene tests to assert which sound last played.
     public string LastSfxPlayed { get; private set; } = "";
@@ -207,14 +203,6 @@ public partial class ScoundrelGame : Node
         };
         AddChild(_audioManager);
 
-        _sfxBubbles       = CreateSfxPlayer("res://samples/bubbles.wav");
-        _sfxBubbles.VolumeDb = 8f;
-        _sfxPotionDiscard = CreateSfxPlayer("res://samples/potion_discarded.wav");
-        _sfxPotionDiscard.VolumeDb = -7f;
-        _sfxSwordDrawn    = CreateSfxPlayer("res://samples/sword_drawn.wav");
-        _sfxWeaponDiscard = CreateSfxPlayer("res://samples/weapon_discarded.wav");
-        _sfxCardDealt     = CreateSfxPlayer("res://samples/card_dealt.wav");
-
         _roomContainer.Connect("card_drag_started", Callable.From<GodotObject>(OnCardDragStarted));
         _roomContainer.Connect("card_drag_ended",   Callable.From(OnCardDragEnded));
         _roomContainer.Connect("card_selected",     Callable.From<GodotObject>(OnCardSelected));
@@ -329,7 +317,7 @@ public partial class ScoundrelGame : Node
         }
 
         if (anyMoved)
-            PlaySfx(_sfxCardDealt, "card_dealt");
+            _audioManager.PlayCardDealt();
 
         if (_engine.PotionUsedThisRoom)
             TintRemainingPotions();
@@ -397,9 +385,9 @@ public partial class ScoundrelGame : Node
 
             case Suit.Hearts:
                 if (activateCard && !potionUsedBefore)
-                    PlaySfx(_sfxBubbles, "bubbles");
+                    _audioManager.PlayBubbles();
                 else if (!activateCard)
-                    PlaySfx(_sfxPotionDiscard, "potion_discarded");
+                    _audioManager.PlayPotionDiscard();
                 if (activateCard && !potionWastedBefore && _engine.PotionWastedThisRoom)
                     ShowBriefMessage("Potion wasted! (one per room)");
                 DecrementSuit(cardModel);
@@ -409,7 +397,7 @@ public partial class ScoundrelGame : Node
             case Suit.Diamonds:
                 if (activateCard)
                 {
-                    PlaySfx(_sfxSwordDrawn, "sword_drawn");
+                    _audioManager.PlaySwordDrawn();
                     if (oldWeapon != null)
                     {
                         DecrementSuit(oldWeapon);
@@ -422,7 +410,7 @@ public partial class ScoundrelGame : Node
                 }
                 else
                 {
-                    PlaySfx(_sfxWeaponDiscard, "weapon_discarded");
+                    _audioManager.PlayWeaponDiscard();
                     DecrementSuit(cardModel);
                     MoveToDiscard(card);
                 }
@@ -670,12 +658,7 @@ public partial class ScoundrelGame : Node
             timer.Timeout += () => {
                 if (!GodotObject.IsInstanceValid(ghost)) return;
                 ghost.Visible = true;
-                var sfx = new AudioStreamPlayer();
-                sfx.Stream     = _sfxCardDealt.Stream;
-                sfx.PitchScale = BouncePitchMin + (float)new System.Random().NextDouble() * BouncePitchRange;
-                AddChild(sfx);
-                sfx.Connect("finished", Callable.From(sfx.QueueFree));
-                sfx.Play();
+                _audioManager.EndOfGame(BouncePitchMin, BouncePitchRange);
                 var tween = CreateTween();
                 tween.TweenProperty(ghost, "position", targetPos, deckPos.DistanceTo(targetPos) / BounceDealSpeed);
                 tween.TweenCallback(Callable.From(() => {
