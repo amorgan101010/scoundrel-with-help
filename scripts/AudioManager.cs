@@ -2,7 +2,7 @@ using Godot;
 
 public partial class AudioManager : Node
 {
-    private AudioStreamPlayer _sfxPunch;
+    private AudioStreamPlayer _sfxPunch = null!;
 
     public override void _Ready()
     {

@@ -63,7 +63,7 @@ public partial class ScoundrelGame : Node
     private int _bounceTotal;
 
     // ── Sound effects ─────────────────────────────────────────────────────
-    private AudioStreamPlayer _sfxPunch = null!;
+    private AudioManager _audioManager;
     private AudioStreamPlayer _sfxBubbles = null!;
     private AudioStreamPlayer _sfxPotionDiscard = null!;
     private AudioStreamPlayer _sfxSwordDrawn = null!;
@@ -201,7 +201,10 @@ public partial class ScoundrelGame : Node
         _leftLabel      = AddZoneLabel(overlayLayer, 0f,    1f/3f);
         _rightLabel     = AddZoneLabel(overlayLayer, 2f/3f, 1f);
 
-        _sfxPunch         = CreateSfxPlayer("res://samples/punch.wav");
+        _audioManager = new AudioManager();
+        _audioManager.Name = "AudioManager";
+        AddChild(_audioManager);
+
         _sfxBubbles       = CreateSfxPlayer("res://samples/bubbles.wav");
         _sfxBubbles.VolumeDb = 8f;
         _sfxPotionDiscard = CreateSfxPlayer("res://samples/potion_discarded.wav");
@@ -383,7 +386,7 @@ public partial class ScoundrelGame : Node
         {
             case Suit.Clubs:
             case Suit.Spades:
-                PlaySfx(_sfxPunch, "punch");
+                _audioManager.PlayPunch();
                 DecrementSuit(cardModel);
                 if (willUseWeapon)
                     AddSlainBadge(_godotCards[oldWeapon!.Name], cardModel);
