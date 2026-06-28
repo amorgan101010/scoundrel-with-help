@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Godot;
 
 public class ScoundrelAnalyzer
 {
@@ -31,6 +32,7 @@ public class ScoundrelAnalyzer
             {
                 // Generate a random seed for this run
                 int seed = random.Next();
+    	        GD.Print($"Analyzing seed {seed} ({i + 1}/{numberOfGames})...");
                 AnalyzeSeed(seed);
             }
         });
