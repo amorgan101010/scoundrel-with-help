@@ -145,9 +145,11 @@ public partial class ScoundrelGame : Node
         UpdateCardSize();
         // Create resize debounce timer used to delay expensive layout work until
         // the user has finished resizing. Start stopped; we'll start it on events.
-        _resizeTimer = new Timer();
-        _resizeTimer.OneShot = true;
-        _resizeTimer.WaitTime = ResizeDebounceSeconds;
+        _resizeTimer = new Timer
+        {
+            OneShot = true,
+            WaitTime = ResizeDebounceSeconds
+        };
         AddChild(_resizeTimer);
         _resizeTimer.Connect("timeout", Callable.From(OnResizeDebounceTimeout));
 
@@ -155,21 +157,27 @@ public partial class ScoundrelGame : Node
 
         // Lift retry + help buttons and status text above the bounce layer (201).
         // HudLayer: status/flavor text (display only, game-over and in-game messages)
-        var hudLayer = new CanvasLayer();
-        hudLayer.Name  = "HudLayer";
-        hudLayer.Layer = LayerHud;
+        var hudLayer = new CanvasLayer
+        {
+            Name = "HudLayer",
+            Layer = LayerHud
+        };
         AddChild(hudLayer);
         _statusLabel.Reparent(hudLayer, true);
 
-        _flavorLabel = new Label();
-        _flavorLabel.AnchorLeft          = 0.5f;
-        _flavorLabel.AnchorRight         = 0.5f;
-        _flavorLabel.GrowHorizontal      = Control.GrowDirection.Both;
-        _flavorLabel.OffsetLeft          = -FlavorLabelHalfWidth;
-        _flavorLabel.OffsetRight         =  FlavorLabelHalfWidth;
-        _flavorLabel.OffsetTop           =  FlavorLabelOffsetTop;
-        _flavorLabel.OffsetBottom        =  FlavorLabelOffsetBottom;
-        _flavorLabel.HorizontalAlignment = HorizontalAlignment.Center;
+        /// TODO: This needs to be a node I can arrange in the scene tree, not a runtime-created label.
+        /// It will be in a group with StatusLabel.
+        _flavorLabel = new Label
+        {
+            AnchorLeft = 0.5f,
+            AnchorRight = 0.5f,
+            GrowHorizontal = Control.GrowDirection.Both,
+            OffsetLeft = -FlavorLabelHalfWidth,
+            OffsetRight = FlavorLabelHalfWidth,
+            OffsetTop = FlavorLabelOffsetTop,
+            OffsetBottom = FlavorLabelOffsetBottom,
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
         _flavorLabel.AddThemeFontSizeOverride("font_size", FlavorLabelFontSize);
         _flavorLabel.AddThemeColorOverride("font_color", new Color(0.75f, 0.5f, 0.5f));
         _flavorLabel.MouseFilter         = Control.MouseFilterEnum.Ignore;
@@ -177,16 +185,20 @@ public partial class ScoundrelGame : Node
         hudLayer.AddChild(_flavorLabel);
 
         // ButtonLayer: interactive controls — must be above HudLayer so clicks are never blocked
-        var buttonLayer = new CanvasLayer();
-        buttonLayer.Name  = "ButtonLayer";
-        buttonLayer.Layer = LayerButtons;
+        var buttonLayer = new CanvasLayer
+        {
+            Name = "ButtonLayer",
+            Layer = LayerButtons
+        };
         AddChild(buttonLayer);
         _topButtonGroup.Reparent(buttonLayer, true);
         _bottomButtonGroup.Reparent(buttonLayer, true);
 
         // Dedicated overlay layer above everything (UI is layer 1, cards are layer 0).
-        var overlayLayer = new CanvasLayer();
-        overlayLayer.Layer = LayerOverlay;
+        var overlayLayer = new CanvasLayer
+        {
+            Layer = LayerOverlay
+        };
         AddChild(overlayLayer);
         _leftHighlight  = AddZoneHighlight(overlayLayer, 0f,    1f/3f, new Color(0.25f, 0.8f, 0.25f, 0.30f));
         _rightHighlight = AddZoneHighlight(overlayLayer, 2f/3f, 1f,    new Color(0.25f, 0.5f, 1.0f,  0.30f));
@@ -605,8 +617,10 @@ public partial class ScoundrelGame : Node
     // ── Bounce animation ──────────────────────────────────────────────────
     private void StartBounceAnimation(bool isGameOver)
     {
-        _bounceLayer = new CanvasLayer();
-        _bounceLayer.Layer = LayerBounce;
+        _bounceLayer = new CanvasLayer
+        {
+            Layer = LayerBounce
+        };
         AddChild(_bounceLayer);
 
         var rng = new System.Random();
@@ -630,15 +644,17 @@ public partial class ScoundrelGame : Node
             var texture = GD.Load<Texture2D>($"res://card_assets/{info["front_image"].AsString()}");
             if (texture == null) continue;
 
-            var ghost = new TextureRect();
-            ghost.Texture           = texture;
-            ghost.CustomMinimumSize = new Vector2(CardW, CardH);
-            ghost.ExpandMode        = TextureRect.ExpandModeEnum.IgnoreSize;
-            ghost.StretchMode       = TextureRect.StretchModeEnum.Scale;
-            ghost.MouseFilter       = Control.MouseFilterEnum.Ignore;
-            ghost.Size              = new Vector2(CardW, CardH);
-            ghost.Position          = deckPos;
-            ghost.Visible           = false;
+            var ghost = new TextureRect
+            {
+                Texture = texture,
+                CustomMinimumSize = new Vector2(CardW, CardH),
+                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+                StretchMode = TextureRect.StretchModeEnum.Scale,
+                MouseFilter = Control.MouseFilterEnum.Ignore,
+                Size = new Vector2(CardW, CardH),
+                Position = deckPos,
+                Visible = false
+            };
             _bounceLayer.AddChild(ghost);
             _bounceTotal++;
 
@@ -729,25 +745,33 @@ public partial class ScoundrelGame : Node
     {
         string text = rank switch { 1 => "A", 11 => "J", 12 => "Q", 13 => "K", _ => rank.ToString() };
 
-        var badge = new Control();
-        badge.Name = "slain_badge";
-        badge.Size = new Vector2(BadgeVisualWidth, BadgeVisualHeight);
-        badge.MouseFilter = Control.MouseFilterEnum.Ignore;
-        badge.ZIndex = 1;
+        var badge = new Control
+        {
+            Name = "slain_badge",
+            Size = new Vector2(BadgeVisualWidth, BadgeVisualHeight),
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+            ZIndex = 1
+        };
         badge.AddToGroup("slain_badge");
 
-        var bg = new ColorRect();
-        bg.Color = new Color(0.08f, 0.08f, 0.08f, 0.88f);
-        bg.AnchorRight = 1f; bg.AnchorBottom = 1f;
-        bg.MouseFilter = Control.MouseFilterEnum.Ignore;
+        var bg = new ColorRect
+        {
+            Color = new Color(0.08f, 0.08f, 0.08f, 0.88f),
+            AnchorRight = 1f,
+            AnchorBottom = 1f,
+            MouseFilter = Control.MouseFilterEnum.Ignore
+        };
         badge.AddChild(bg);
 
-        var label = new Label();
-        label.Text = text;
-        label.HorizontalAlignment = HorizontalAlignment.Center;
-        label.VerticalAlignment = VerticalAlignment.Center;
-        label.AnchorRight = 1f; label.AnchorBottom = 1f;
-        label.MouseFilter = Control.MouseFilterEnum.Ignore;
+        var label = new Label
+        {
+            Text = text,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            AnchorRight = 1f,
+            AnchorBottom = 1f,
+            MouseFilter = Control.MouseFilterEnum.Ignore
+        };
         badge.AddChild(label);
 
         return badge;
@@ -856,14 +880,16 @@ public partial class ScoundrelGame : Node
 
     private static ColorRect AddZoneHighlight(Node parent, float anchorLeft, float anchorRight, Color color)
     {
-        var rect = new ColorRect();
-        rect.AnchorLeft   = anchorLeft;
-        rect.AnchorRight  = anchorRight;
-        rect.AnchorBottom = 1.0f;
-        rect.GrowVertical = Control.GrowDirection.Both;
-        rect.Color        = color;
-        rect.MouseFilter  = Control.MouseFilterEnum.Ignore;
-        rect.Visible      = false;
+        var rect = new ColorRect
+        {
+            AnchorLeft = anchorLeft,
+            AnchorRight = anchorRight,
+            AnchorBottom = 1.0f,
+            GrowVertical = Control.GrowDirection.Both,
+            Color = color,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+            Visible = false
+        };
         parent.AddChild(rect);
         return rect;
     }
