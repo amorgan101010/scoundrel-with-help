@@ -8,9 +8,9 @@ using System.Linq;
 /// </summary>
 public class GameEngine
 {
-    private readonly List<CardModel> _deck;
-    private readonly List<CardModel> _discard = new();
-    private readonly List<CardModel> _room    = new();
+    private List<CardModel> _deck;
+    private List<CardModel> _discard = new();
+    private List<CardModel> _room    = new();
 
     public int Health { get; private set; } = ScoundrelRules.StartHealth;
     public CardModel? EquippedWeapon { get; private set; }
@@ -127,6 +127,32 @@ public class GameEngine
 
         RanLastRoom = true;
         DealRoom();
+    }
+
+    // -- Monte Carlo
+    public GameEngine Clone()
+    {
+        var clone = (GameEngine)this.MemberwiseClone();
+    
+        // Deep copy the collections to prevent reference sharing
+        clone._deck = new List<CardModel>(this._deck);
+        clone._discard = new List<CardModel>(this._discard);
+        clone._room = new List<CardModel>(this._room);
+    
+        // EquippedWeapon is a CardModel. Assuming CardModel is a class, 
+        // you might want to clone it too, or if it's treated immutably, sharing the reference is fine.
+    
+        return clone;
+    }
+
+    // Generate a unique hash or string to represent the exact state of the game
+    public string GetStateHash()
+    {
+        var deckString = string.Join(",", _deck.Select(c => c.GetHashCode()));
+        var roomString = string.Join(",", _room.Select(c => c.GetHashCode()));
+        var weaponVal = EquippedWeapon?.WeaponValue ?? 0;
+    
+        return $"{Health}_{weaponVal}_{WeaponFloor}_{PotionUsedThisRoom}_{RanLastRoom}_{CardsTakenThisRoom}|{deckString}|{roomString}";
     }
 
     // ── Internal ──────────────────────────────────────────────────────────

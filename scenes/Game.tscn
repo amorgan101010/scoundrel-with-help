@@ -7,6 +7,7 @@
 [ext_resource type="Script" uid="uid://nge5xs0pqlvl" path="res://scenes/RoomContainer.gd" id="5_room"]
 [ext_resource type="Script" uid="uid://cov28geqoa6bq" path="res://scenes/DropZoneContainer.gd" id="6_dzc"]
 [ext_resource type="Script" uid="uid://buokfsbn6sbtb" path="res://scripts/HealthDie.cs" id="7_hd"]
+[ext_resource type="Script" uid="uid://vbppk7yogkae" path="res://scenes/AnalyzeButton.cs" id="8_400sg"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_red_n"]
 bg_color = Color(0.75, 0.18, 0.18, 1)
@@ -420,3 +421,12 @@ RUN: Skip an entire room — all 4 cards sink to the bottom of the deck.
 
 DEATH: Reach 0 HP.
 WIN: Clear the deck"
+
+[node name="AnalyzeButton" type="Button" parent="UI" unique_id=2031336204]
+offset_left = 362.0
+offset_top = 12.0
+offset_right = 574.0
+offset_bottom = 75.0
+theme_override_font_sizes/font_size = 26
+text = "Analyze!"
+script = ExtResource("8_400sg")
