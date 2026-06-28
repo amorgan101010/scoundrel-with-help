@@ -833,7 +833,7 @@ public class ScoundrelSceneTests
     {
         await SetupFixedDeck();
         var game = (ScoundrelGame)_runner!.Scene();
-        AssertThat(game.LastSfxPlayed).IsEqual("card_dealt");
+        AssertThat(game.AudioManager.LastSfxPlayed).IsEqual(nameof(game.AudioManager._sfxCardDealt));
     }
 
     [TestCase(Description = "Fighting a monster plays the punch sound")]
@@ -847,7 +847,9 @@ public class ScoundrelSceneTests
         ClickCard(scene, monster!);
         await _runner!.AwaitIdleFrame();
 
-        AssertThat(((ScoundrelGame)scene).LastSfxPlayed).IsEqual("punch");
+        var game = (ScoundrelGame)scene;
+
+        AssertThat(game.AudioManager.LastSfxPlayed).IsEqual(nameof(game.AudioManager._sfxPunch));
     }
 
     [TestCase(Description = "Drinking a potion plays the bubbles sound")]
@@ -861,7 +863,8 @@ public class ScoundrelSceneTests
         ClickCard(scene, potion!);
         await _runner!.AwaitIdleFrame();
 
-        AssertThat(((ScoundrelGame)scene).LastSfxPlayed).IsEqual("bubbles");
+        var game = (ScoundrelGame)scene;
+        AssertThat(game.AudioManager.LastSfxPlayed).IsEqual(nameof(game.AudioManager._sfxBubbles));
     }
 
     [TestCase(Description = "Discarding a potion to the right zone plays the potion-discard sound")]
@@ -874,7 +877,8 @@ public class ScoundrelSceneTests
         AssertThat(potion).IsNotNull();
         await MouseDragCard(potion!, RightZoneCenter());
 
-        AssertThat(((ScoundrelGame)scene).LastSfxPlayed).IsEqual("potion_discarded");
+        var game = (ScoundrelGame)scene;
+        AssertThat(game.AudioManager.LastSfxPlayed).IsEqual(nameof(game.AudioManager._sfxPotionDiscard));
     }
 
     [TestCase(Description = "Equipping a weapon plays the sword-drawn sound")]
@@ -888,7 +892,8 @@ public class ScoundrelSceneTests
         ClickCard(scene, weapon!);
         await _runner!.AwaitIdleFrame();
 
-        AssertThat(((ScoundrelGame)scene).LastSfxPlayed).IsEqual("sword_drawn");
+        var game = (ScoundrelGame)scene;
+        AssertThat(game.AudioManager.LastSfxPlayed).IsEqual(nameof(game.AudioManager._sfxSwordDrawn));
     }
 
     [TestCase(Description = "Discarding a weapon to the right zone plays the weapon-discard sound")]
@@ -901,7 +906,8 @@ public class ScoundrelSceneTests
         AssertThat(weapon).IsNotNull();
         await MouseDragCard(weapon!, RightZoneCenter());
 
-        AssertThat(((ScoundrelGame)scene).LastSfxPlayed).IsEqual("weapon_discarded");
+        var game = (ScoundrelGame)scene;
+        AssertThat(game.AudioManager.LastSfxPlayed).IsEqual(nameof(game.AudioManager._sfxWeaponDiscard));
     }
 
     [TestCase(Description = "Taking the last room card triggers auto-deal, ending on the card-dealt sound")]
@@ -934,7 +940,8 @@ public class ScoundrelSceneTests
 
         // Taking the 4th card empties the room → auto-deal → SyncRoomToGodot fires
         // card_dealt after the action sound, so card_dealt is the last sound heard.
-        AssertThat(((ScoundrelGame)scene).LastSfxPlayed).IsEqual("card_dealt");
+        var game = (ScoundrelGame)scene;
+        AssertThat(game.AudioManager.LastSfxPlayed).IsEqual(nameof(game.AudioManager._sfxCardDealt));
     }
 
     [TestCase(Description = "Slain badges are cleared from the old weapon when it is replaced by a new one")]

@@ -63,15 +63,7 @@ public partial class ScoundrelGame : Node
     private int _bounceTotal;
 
     // ── Sound effects ─────────────────────────────────────────────────────
-    private AudioStreamPlayer _sfxPunch = null!;
-    private AudioStreamPlayer _sfxBubbles = null!;
-    private AudioStreamPlayer _sfxPotionDiscard = null!;
-    private AudioStreamPlayer _sfxSwordDrawn = null!;
-    private AudioStreamPlayer _sfxWeaponDiscard = null!;
-    private AudioStreamPlayer _sfxCardDealt = null!;
-
-    // Set by PlaySfx; read by scene tests to assert which sound last played.
-    public string LastSfxPlayed { get; private set; } = "";
+    required public AudioManager AudioManager {get; set;}
 
     // ── Layout constants ──────────────────────────────────────────────────
     // Base card dimensions for a 1080p viewport. These are scaled at runtime
@@ -201,14 +193,11 @@ public partial class ScoundrelGame : Node
         _leftLabel      = AddZoneLabel(overlayLayer, 0f,    1f/3f);
         _rightLabel     = AddZoneLabel(overlayLayer, 2f/3f, 1f);
 
-        _sfxPunch         = CreateSfxPlayer("res://samples/punch.wav");
-        _sfxBubbles       = CreateSfxPlayer("res://samples/bubbles.wav");
-        _sfxBubbles.VolumeDb = 8f;
-        _sfxPotionDiscard = CreateSfxPlayer("res://samples/potion_discarded.wav");
-        _sfxPotionDiscard.VolumeDb = -7f;
-        _sfxSwordDrawn    = CreateSfxPlayer("res://samples/sword_drawn.wav");
-        _sfxWeaponDiscard = CreateSfxPlayer("res://samples/weapon_discarded.wav");
-        _sfxCardDealt     = CreateSfxPlayer("res://samples/card_dealt.wav");
+        AudioManager = new AudioManager
+        {
+            Name = "AudioManager"
+        };
+        AddChild(AudioManager);
 
         _roomContainer.Connect("card_drag_started", Callable.From<GodotObject>(OnCardDragStarted));
         _roomContainer.Connect("card_drag_ended",   Callable.From(OnCardDragEnded));
@@ -324,7 +313,7 @@ public partial class ScoundrelGame : Node
         }
 
         if (anyMoved)
-            PlaySfx(_sfxCardDealt, "card_dealt");
+            AudioManager.PlayCardDealt();
 
         if (_engine.PotionUsedThisRoom)
             TintRemainingPotions();
@@ -383,7 +372,7 @@ public partial class ScoundrelGame : Node
         {
             case Suit.Clubs:
             case Suit.Spades:
-                PlaySfx(_sfxPunch, "punch");
+                AudioManager.PlayPunch();
                 DecrementSuit(cardModel);
                 if (willUseWeapon)
                     AddSlainBadge(_godotCards[oldWeapon!.Name], cardModel);
@@ -392,9 +381,9 @@ public partial class ScoundrelGame : Node
 
             case Suit.Hearts:
                 if (activateCard && !potionUsedBefore)
-                    PlaySfx(_sfxBubbles, "bubbles");
+                    AudioManager.PlayBubbles();
                 else if (!activateCard)
-                    PlaySfx(_sfxPotionDiscard, "potion_discarded");
+                    AudioManager.PlayPotionDiscard();
                 if (activateCard && !potionWastedBefore && _engine.PotionWastedThisRoom)
                     ShowBriefMessage("Potion wasted! (one per room)");
                 DecrementSuit(cardModel);
@@ -404,7 +393,7 @@ public partial class ScoundrelGame : Node
             case Suit.Diamonds:
                 if (activateCard)
                 {
-                    PlaySfx(_sfxSwordDrawn, "sword_drawn");
+                    AudioManager.PlaySwordDrawn();
                     if (oldWeapon != null)
                     {
                         DecrementSuit(oldWeapon);
@@ -417,7 +406,7 @@ public partial class ScoundrelGame : Node
                 }
                 else
                 {
-                    PlaySfx(_sfxWeaponDiscard, "weapon_discarded");
+                    AudioManager.PlayWeaponDiscard();
                     DecrementSuit(cardModel);
                     MoveToDiscard(card);
                 }
@@ -665,12 +654,7 @@ public partial class ScoundrelGame : Node
             timer.Timeout += () => {
                 if (!GodotObject.IsInstanceValid(ghost)) return;
                 ghost.Visible = true;
-                var sfx = new AudioStreamPlayer();
-                sfx.Stream     = _sfxCardDealt.Stream;
-                sfx.PitchScale = BouncePitchMin + (float)new System.Random().NextDouble() * BouncePitchRange;
-                AddChild(sfx);
-                sfx.Connect("finished", Callable.From(sfx.QueueFree));
-                sfx.Play();
+                AudioManager.EndOfGame(BouncePitchMin, BouncePitchRange);
                 var tween = CreateTween();
                 tween.TweenProperty(ghost, "position", targetPos, deckPos.DistanceTo(targetPos) / BounceDealSpeed);
                 tween.TweenCallback(Callable.From(() => {
@@ -851,29 +835,17 @@ public partial class ScoundrelGame : Node
     }
 
     // ── Utilities ─────────────────────────────────────────────────────────
-    private AudioStreamPlayer CreateSfxPlayer(string path)
-    {
-        var player = new AudioStreamPlayer();
-        player.Stream = GD.Load<AudioStream>(path);
-        AddChild(player);
-        return player;
-    }
-
-    private void PlaySfx(AudioStreamPlayer player, string name)
-    {
-        LastSfxPlayed = name;
-        player.Play();
-    }
-
     private static Label AddZoneLabel(Node parent, float anchorLeft, float anchorRight)
     {
-        var label = new Label();
-        label.AnchorLeft          = anchorLeft;
-        label.AnchorRight         = anchorRight;
-        label.AnchorBottom        = 1.0f;
-        label.GrowVertical        = Control.GrowDirection.Both;
-        label.HorizontalAlignment = HorizontalAlignment.Center;
-        label.VerticalAlignment   = VerticalAlignment.Center;
+        var label = new Label
+        {
+            AnchorLeft = anchorLeft,
+            AnchorRight = anchorRight,
+            AnchorBottom = 1.0f,
+            GrowVertical = Control.GrowDirection.Both,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center
+        };
         label.AddThemeFontSizeOverride("font_size", ZoneLabelFontSize);
         label.AddThemeColorOverride("font_color", new Color(1f, 1f, 1f, 0.9f));
         label.MouseFilter         = Control.MouseFilterEnum.Ignore;
