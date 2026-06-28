@@ -201,8 +201,10 @@ public partial class ScoundrelGame : Node
         _leftLabel      = AddZoneLabel(overlayLayer, 0f,    1f/3f);
         _rightLabel     = AddZoneLabel(overlayLayer, 2f/3f, 1f);
 
-        _audioManager = new AudioManager();
-        _audioManager.Name = "AudioManager";
+        _audioManager = new AudioManager
+        {
+            Name = "AudioManager"
+        };
         AddChild(_audioManager);
 
         _sfxBubbles       = CreateSfxPlayer("res://samples/bubbles.wav");
