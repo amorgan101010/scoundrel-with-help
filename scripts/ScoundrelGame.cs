@@ -53,15 +53,6 @@ public partial class ScoundrelGame : Node
     // ── Cached factory reference ──────────────────────────────────────────
     private GodotObject _cardFactory = null!;
 
-    // ── Bounce animation (game over / win) ───────────────────────────────────
-    private CanvasLayer? _bounceLayer;
-    private readonly SysCollections.List<(TextureRect ghost, Vector2 velocity)> _bounceState = new();
-    private bool _bounceActive;
-
-    public bool BounceActive    => _bounceActive;
-    public int  BounceCardCount => _bounceTotal;
-    private int _bounceTotal;
-
     // ── Sound effects ─────────────────────────────────────────────────────
     required public AudioManager AudioManager {get; set;}
 
@@ -100,14 +91,6 @@ public partial class ScoundrelGame : Node
 
     // Zone label font size
     private const int ZoneLabelFontSize = 28;
-
-    // Bounce animation tuning
-    private const float BounceMinSpeed   = 120f;
-    private const float BounceMaxSpeed   = 340f;
-    private const float BounceDealStep   = 0.45f;  // seconds between cards being dealt
-    private const float BounceDealSpeed  = 1200f;  // px/s for the deal slide
-    private const float BouncePitchMin   = 0.84f;
-    private const float BouncePitchRange = 0.32f;
 
     // ── Card name tables ──────────────────────────────────────────────────
     private static readonly string[] Ranks =
@@ -533,92 +516,6 @@ public partial class ScoundrelGame : Node
         _flavorLabel.AddThemeColorOverride("font_color", new Color(0.85f, 0.75f, 0.3f));
         _flavorLabel.Visible = true;
         StartBounceAnimation(isGameOver: false);
-    }
-
-    // ── Bounce animation ──────────────────────────────────────────────────
-    private void StartBounceAnimation(bool isGameOver)
-    {
-        _bounceLayer = new CanvasLayer();
-        _bounceLayer.Layer = LayerBounce;
-        AddChild(_bounceLayer);
-
-        var rng = new System.Random();
-
-        var vpSize  = GetViewport().GetVisibleRect().Size;
-        var deckPos = (Vector2)_deckPile.Get("global_position");
-
-        var candidates = _godotCards.Values.Where(c => {
-            var suit = c.Get("card_info").AsGodotDictionary()["suit"].AsString();
-            return isGameOver
-                ? (suit == "clubs" || suit == "spades")
-                : (suit == "hearts" || suit == "diamonds");
-        }).ToList();
-
-        for (int i = 0; i < candidates.Count; i++)
-        {
-            var godotCard = candidates[i];
-            godotCard.Set("visible", false);
-
-            var info    = godotCard.Get("card_info").AsGodotDictionary();
-            var texture = GD.Load<Texture2D>($"res://card_assets/{info["front_image"].AsString()}");
-            if (texture == null) continue;
-
-            var ghost = new TextureRect();
-            ghost.Texture           = texture;
-            ghost.CustomMinimumSize = new Vector2(CardW, CardH);
-            ghost.ExpandMode        = TextureRect.ExpandModeEnum.IgnoreSize;
-            ghost.StretchMode       = TextureRect.StretchModeEnum.Scale;
-            ghost.MouseFilter       = Control.MouseFilterEnum.Ignore;
-            ghost.Size              = new Vector2(CardW, CardH);
-            ghost.Position          = deckPos;
-            ghost.Visible           = false;
-            _bounceLayer.AddChild(ghost);
-            _bounceTotal++;
-
-            var targetPos = new Vector2(
-                (float)(rng.NextDouble() * (vpSize.X - CardW)),
-                (float)(rng.NextDouble() * (vpSize.Y - CardH)));
-            float angle = (float)(rng.NextDouble() * System.Math.PI * 2);
-            float speed = BounceMinSpeed + (float)(rng.NextDouble() * (BounceMaxSpeed - BounceMinSpeed));
-            var vel = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * speed;
-
-            // Staggered deal: show ghost after delay, slide to random spot, then bounce.
-            var timer = GetTree().CreateTimer(BounceDealStep * i);
-            timer.Timeout += () => {
-                if (!GodotObject.IsInstanceValid(ghost)) return;
-                ghost.Visible = true;
-                AudioManager.EndOfGame(BouncePitchMin, BouncePitchRange);
-                var tween = CreateTween();
-                tween.TweenProperty(ghost, "position", targetPos, deckPos.DistanceTo(targetPos) / BounceDealSpeed);
-                tween.TweenCallback(Callable.From(() => {
-                    if (!GodotObject.IsInstanceValid(ghost)) return;
-                    _bounceState.Add((ghost, vel));
-                }));
-            };
-        }
-
-        _bounceActive = true;
-    }
-
-    public override void _Process(double delta)
-    {
-        if (!_bounceActive) return;
-
-        var vpSize = GetViewport().GetVisibleRect().Size;
-
-        for (int i = 0; i < _bounceState.Count; i++)
-        {
-            var (ghost, vel) = _bounceState[i];
-            var pos = ghost.Position + vel * (float)delta;
-
-            if (pos.X < 0)                      { vel.X =  Mathf.Abs(vel.X); pos.X = 0; }
-            if (pos.X + CardW > vpSize.X)   { vel.X = -Mathf.Abs(vel.X); pos.X = vpSize.X - CardW; }
-            if (pos.Y < 0)                      { vel.Y =  Mathf.Abs(vel.Y); pos.Y = 0; }
-            if (pos.Y + CardH > vpSize.Y)  { vel.Y = -Mathf.Abs(vel.Y); pos.Y = vpSize.Y - CardH; }
-
-            ghost.Position  = pos;
-            _bounceState[i] = (ghost, vel);
-        }
     }
 
     // ── Visual helpers ────────────────────────────────────────────────────
