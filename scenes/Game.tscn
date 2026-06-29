@@ -7,7 +7,7 @@
 [ext_resource type="Script" uid="uid://nge5xs0pqlvl" path="res://scenes/RoomContainer.gd" id="5_room"]
 [ext_resource type="Script" uid="uid://cov28geqoa6bq" path="res://scenes/DropZoneContainer.gd" id="6_dzc"]
 [ext_resource type="Script" uid="uid://buokfsbn6sbtb" path="res://scripts/HealthDie.cs" id="7_hd"]
-[ext_resource type="Script" uid="uid://vbppk7yogkae" path="res://scenes/AnalyzeButton.cs" id="8_400sg"]
+[ext_resource type="Script" uid="uid://bt5sckb7yxf4i" path="res://scenes/AnalyzeButton.cs" id="8_400sg"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_red_n"]
 bg_color = Color(0.75, 0.18, 0.18, 1)

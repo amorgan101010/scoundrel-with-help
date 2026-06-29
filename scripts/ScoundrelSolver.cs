@@ -5,7 +5,7 @@ using System.Linq;
 public class ScoundrelSolver
 {
     private HashSet<string> _visitedStates = new();
-    private int _statesChecked = 0;
+    public int StatesChecked { get; private set; } = 0;
     private readonly int _maxStates;
 
     public ScoundrelSolver(int maxStates = 100000)
@@ -15,8 +15,8 @@ public class ScoundrelSolver
 
     public bool IsSolvable(GameEngine engine)
     {
-        _statesChecked++;
-        if (_statesChecked > _maxStates) 
+        StatesChecked++;
+        if (StatesChecked > _maxStates) 
         {
             // Throwing an exception lets us distinguish between "Proven Unsolvable" and "Gave Up"
             throw new Exception("Timeout: State limit reached"); 

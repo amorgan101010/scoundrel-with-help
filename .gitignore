@@ -30,3 +30,7 @@ builds/
 .wolf/designqc-captures/
 .wolf/token-ledger.json
 .wolf/hooks/_session.json
+scoundrel_analysis.csv
+scoundrel_analysis.Result.translation
+scoundrel_analysis.StatesChecked.translation
+scoundrel_analysis.TimeTakenMs.translation
