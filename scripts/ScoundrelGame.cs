@@ -53,15 +53,6 @@ public partial class ScoundrelGame : Node
     // ── Cached factory reference ──────────────────────────────────────────
     private GodotObject _cardFactory = null!;
 
-    // ── Bounce animation (game over / win) ───────────────────────────────────
-    private CanvasLayer? _bounceLayer;
-    private readonly SysCollections.List<(TextureRect ghost, Vector2 velocity)> _bounceState = new();
-    private bool _bounceActive;
-
-    public bool BounceActive    => _bounceActive;
-    public int  BounceCardCount => _bounceTotal;
-    private int _bounceTotal;
-
     // ── Sound effects ─────────────────────────────────────────────────────
     required public AudioManager AudioManager {get; set;}
 
@@ -100,14 +91,6 @@ public partial class ScoundrelGame : Node
 
     // Zone label font size
     private const int ZoneLabelFontSize = 28;
-
-    // Bounce animation tuning
-    private const float BounceMinSpeed   = 120f;
-    private const float BounceMaxSpeed   = 340f;
-    private const float BounceDealStep   = 0.45f;  // seconds between cards being dealt
-    private const float BounceDealSpeed  = 1200f;  // px/s for the deal slide
-    private const float BouncePitchMin   = 0.84f;
-    private const float BouncePitchRange = 0.32f;
 
     // ── Card name tables ──────────────────────────────────────────────────
     private static readonly string[] Ranks =
@@ -152,6 +135,10 @@ public partial class ScoundrelGame : Node
         _resizeTimer.Connect("timeout", Callable.From(OnResizeDebounceTimeout));
 
         _healthDie = GetNode<HealthDie>("UI/LeftPanel/HealthDie");
+
+        // Get references to deck and discard groups for responsive positioning at sub-1080p
+        _deckGroup = GetNode<Control>("UI/RightPanel/DeckGroup");
+        _discardGroup = GetNode<Control>("UI/RightPanel/DiscardGroup");
 
         // Lift retry + help buttons and status text above the bounce layer (201).
         // HudLayer: status/flavor text (display only, game-over and in-game messages)
@@ -516,74 +503,7 @@ public partial class ScoundrelGame : Node
         _helpDialog.PopupCentered();
     }
 
-    private void OnViewportResized()
-    {
-        // Restart debounce timer; only when the timer finally times out do we
-        // recompute card sizes and update the help dialog.
-        if (_resizeTimer == null) return;
-        _resizeTimer.Stop();
-        _resizeTimer.Start();
-    }
 
-    private void OnResizeDebounceTimeout()
-    {
-        var vpSize = GetViewport().GetVisibleRect().Size;
-        UpdateCardSize(vpSize);
-        if (!_helpDialog.Visible) return;
-        ResizeHelpDialog();
-        _helpDialog.PopupCentered();
-    }
-
-    private void ResizeHelpDialog()
-    {
-        var viewportSize = GetViewport().GetVisibleRect().Size;
-        var width = Mathf.Min(760f, viewportSize.X * 0.85f);
-        var height = Mathf.Min(800f, viewportSize.Y * 0.85f);
-        _helpDialog.Size = new Vector2I((int)width, (int)height);
-    }
-
-    private void UpdateCardSize(Vector2 vpSize = default)
-    {
-        if (vpSize == default) vpSize = GetViewport().GetVisibleRect().Size;
-        // Reference was designed for a 1080p height viewport.
-        float scale = vpSize.Y / 1080f;
-        if (scale <= 0f) scale = 1f;
-        _cardSize = new Vector2(BaseCardWidth * scale, BaseCardHeight * scale);
-
-        // Apply to factory so newly created cards use the size
-        _cardFactory.Set("card_size", _cardSize);
-        // Also set the CardManager's card_size so containers using
-        // `card_manager.card_size` (RoomContainer, Hand, etc.) get the
-        // updated value for layout calculations.
-        _cardManager.Set("card_size", _cardSize);
-
-        // Also update any already-created cards so visuals stay in sync
-        foreach (var godotCard in _godotCards.Values)
-            godotCard.Set("card_size", _cardSize);
-
-        // Tell the room container to recompute card target positions to match
-        // the new card size so cards don't overlap when viewport shrinks.
-        _roomContainer.Call("_update_target_positions");
-        UpdateButtonGroupWidths();
-    }
-
-    private void UpdateButtonGroupWidths()
-    {
-        var roomWidth = _roomContainer.GetRect().Size.X;
-        if (roomWidth <= 0)
-        {
-            CallDeferred(nameof(UpdateButtonGroupWidths));
-            return;
-        }
-
-        // Match the top/bottom button groups to the current room width, keeping
-        // them centered above and below the room container.
-        var halfWidth = (int)(roomWidth / 2f);
-        _topButtonGroup.OffsetLeft    = -halfWidth;
-        _topButtonGroup.OffsetRight   = halfWidth;
-        _bottomButtonGroup.OffsetLeft = -halfWidth;
-        _bottomButtonGroup.OffsetRight= halfWidth;
-    }
 
     private void ShowGameOver()
     {
@@ -600,92 +520,6 @@ public partial class ScoundrelGame : Node
         _flavorLabel.AddThemeColorOverride("font_color", new Color(0.85f, 0.75f, 0.3f));
         _flavorLabel.Visible = true;
         StartBounceAnimation(isGameOver: false);
-    }
-
-    // ── Bounce animation ──────────────────────────────────────────────────
-    private void StartBounceAnimation(bool isGameOver)
-    {
-        _bounceLayer = new CanvasLayer();
-        _bounceLayer.Layer = LayerBounce;
-        AddChild(_bounceLayer);
-
-        var rng = new System.Random();
-
-        var vpSize  = GetViewport().GetVisibleRect().Size;
-        var deckPos = (Vector2)_deckPile.Get("global_position");
-
-        var candidates = _godotCards.Values.Where(c => {
-            var suit = c.Get("card_info").AsGodotDictionary()["suit"].AsString();
-            return isGameOver
-                ? (suit == "clubs" || suit == "spades")
-                : (suit == "hearts" || suit == "diamonds");
-        }).ToList();
-
-        for (int i = 0; i < candidates.Count; i++)
-        {
-            var godotCard = candidates[i];
-            godotCard.Set("visible", false);
-
-            var info    = godotCard.Get("card_info").AsGodotDictionary();
-            var texture = GD.Load<Texture2D>($"res://card_assets/{info["front_image"].AsString()}");
-            if (texture == null) continue;
-
-            var ghost = new TextureRect();
-            ghost.Texture           = texture;
-            ghost.CustomMinimumSize = new Vector2(CardW, CardH);
-            ghost.ExpandMode        = TextureRect.ExpandModeEnum.IgnoreSize;
-            ghost.StretchMode       = TextureRect.StretchModeEnum.Scale;
-            ghost.MouseFilter       = Control.MouseFilterEnum.Ignore;
-            ghost.Size              = new Vector2(CardW, CardH);
-            ghost.Position          = deckPos;
-            ghost.Visible           = false;
-            _bounceLayer.AddChild(ghost);
-            _bounceTotal++;
-
-            var targetPos = new Vector2(
-                (float)(rng.NextDouble() * (vpSize.X - CardW)),
-                (float)(rng.NextDouble() * (vpSize.Y - CardH)));
-            float angle = (float)(rng.NextDouble() * System.Math.PI * 2);
-            float speed = BounceMinSpeed + (float)(rng.NextDouble() * (BounceMaxSpeed - BounceMinSpeed));
-            var vel = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * speed;
-
-            // Staggered deal: show ghost after delay, slide to random spot, then bounce.
-            var timer = GetTree().CreateTimer(BounceDealStep * i);
-            timer.Timeout += () => {
-                if (!GodotObject.IsInstanceValid(ghost)) return;
-                ghost.Visible = true;
-                AudioManager.EndOfGame(BouncePitchMin, BouncePitchRange);
-                var tween = CreateTween();
-                tween.TweenProperty(ghost, "position", targetPos, deckPos.DistanceTo(targetPos) / BounceDealSpeed);
-                tween.TweenCallback(Callable.From(() => {
-                    if (!GodotObject.IsInstanceValid(ghost)) return;
-                    _bounceState.Add((ghost, vel));
-                }));
-            };
-        }
-
-        _bounceActive = true;
-    }
-
-    public override void _Process(double delta)
-    {
-        if (!_bounceActive) return;
-
-        var vpSize = GetViewport().GetVisibleRect().Size;
-
-        for (int i = 0; i < _bounceState.Count; i++)
-        {
-            var (ghost, vel) = _bounceState[i];
-            var pos = ghost.Position + vel * (float)delta;
-
-            if (pos.X < 0)                      { vel.X =  Mathf.Abs(vel.X); pos.X = 0; }
-            if (pos.X + CardW > vpSize.X)   { vel.X = -Mathf.Abs(vel.X); pos.X = vpSize.X - CardW; }
-            if (pos.Y < 0)                      { vel.Y =  Mathf.Abs(vel.Y); pos.Y = 0; }
-            if (pos.Y + CardH > vpSize.Y)  { vel.Y = -Mathf.Abs(vel.Y); pos.Y = vpSize.Y - CardH; }
-
-            ghost.Position  = pos;
-            _bounceState[i] = (ghost, vel);
-        }
     }
 
     // ── Visual helpers ────────────────────────────────────────────────────
