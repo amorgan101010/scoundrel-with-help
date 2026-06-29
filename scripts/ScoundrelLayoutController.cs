@@ -52,6 +52,7 @@ public sealed class ScoundrelLayoutController
     private readonly float _baseCardWidth;
     private readonly float _baseCardHeight;
     private readonly System.Action<Vector2> _setCardSize;
+    private readonly System.Action<Vector2>? _onCardSizeApplied;
     private readonly Timer _resizeTimer;
 
     public ScoundrelLayoutController(
@@ -77,7 +78,8 @@ public sealed class ScoundrelLayoutController
         Label diamondsLabel,
         float baseCardWidth,
         float baseCardHeight,
-        System.Action<Vector2> setCardSize)
+        System.Action<Vector2> setCardSize,
+        System.Action<Vector2>? onCardSizeApplied = null)
     {
         _owner = owner;
         _cardFactory = cardFactory;
@@ -103,6 +105,7 @@ public sealed class ScoundrelLayoutController
         _baseCardWidth = baseCardWidth;
         _baseCardHeight = baseCardHeight;
         _setCardSize = setCardSize;
+        _onCardSizeApplied = onCardSizeApplied;
 
         _resizeTimer = new Timer
         {
@@ -159,6 +162,7 @@ public sealed class ScoundrelLayoutController
 
         _roomContainer.Call("_update_target_positions");
         UpdateButtonGroupWidths();
+        _onCardSizeApplied?.Invoke(cardSize);
     }
 
     private void UpdateWeaponGroupLayout(Vector2 cardSize)
