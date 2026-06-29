@@ -400,7 +400,6 @@ public class ScoundrelSceneTests
             if (child.IsInGroup("slain_badge")) { badgeNode = child; break; }
         AssertThat(badgeNode).IsNotNull();
 
-
         await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);  // 200ms
 
         var weaponSize = weaponNode.Get("size").AsVector2();
@@ -409,6 +408,7 @@ public class ScoundrelSceneTests
 
         // Runtime layout/tween ordering can make exact float equality flaky in CI.
         // Assert the stable visible invariant: badge straddles the weapon card bottom edge.
+        GD.PrintErr($"[TEST DEBUG] Badge Y: {badgeControl.Position.Y} | Weapon Y: {weaponSize.Y} | Badge Height: {badgeSize.Y}");
         AssertThat(badgeControl.Position.Y < weaponSize.Y).IsTrue();
         AssertThat(badgeControl.Position.Y > weaponSize.Y - badgeSize.Y).IsTrue();
 
