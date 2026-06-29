@@ -756,6 +756,69 @@ public class ScoundrelSceneTests
         AssertThat(scene.GetNode<Button>("ButtonLayer/BottomButtonGroup/RunButton").Disabled).IsTrue();
     }
 
+    [TestCase(Description = "Game-over bounce must not hide cards currently in DeckPile (regression: deck stack appears uneven)")]
+    public async Task GameOverBounce_KeepsDeckCardsVisible()
+    {
+        // Keep many monsters in the undealt portion of the deck, so bounce candidate
+        // selection includes cards currently inside DeckPile.
+        var deathDeck = new List<CardModel>
+        {
+            // Undealt deck content (remains in DeckPile when game over is triggered)
+            new CardModel(Suit.Clubs, 2,  "2_clubs"),
+            new CardModel(Suit.Spades, 3, "3_spades"),
+            new CardModel(Suit.Clubs, 4,  "4_clubs"),
+            new CardModel(Suit.Spades, 5, "5_spades"),
+            new CardModel(Suit.Clubs, 6,  "6_clubs"),
+            new CardModel(Suit.Spades, 7, "7_spades"),
+            new CardModel(Suit.Clubs, 8,  "8_clubs"),
+            new CardModel(Suit.Spades, 9, "9_spades"),
+
+            // Room 1 (dealt first): two kings are enough to kill from full HP.
+            new CardModel(Suit.Clubs, 11, "jack_clubs"),
+            new CardModel(Suit.Clubs, 12, "queen_clubs"),
+            new CardModel(Suit.Spades, 13, "king_spades"),
+            new CardModel(Suit.Clubs, 13, "king_clubs"),
+        };
+
+        var game = (ScoundrelGame)_runner!.Scene();
+        game.StartGameWithDeck(deathDeck);
+        await _runner!.AwaitMillis(200);
+
+        var scene = _runner!.Scene();
+        var room = scene.GetNode("UI/RoomContainer");
+
+        GodotObject? kingClubs = null;
+        GodotObject? kingSpades = null;
+        foreach (var obj in (GArray)room.Call("get_all_cards"))
+        {
+            var card = obj.AsGodotObject();
+            var name = card.Get("card_info").AsGodotDictionary()["name"].AsString();
+            if (name == "king_clubs") kingClubs = card;
+            if (name == "king_spades") kingSpades = card;
+        }
+
+        AssertThat(kingClubs).IsNotNull();
+        AssertThat(kingSpades).IsNotNull();
+
+        ClickCard(scene, kingClubs!);
+        await _runner!.AwaitIdleFrame();
+        ClickCard(scene, kingSpades!);
+        await _runner!.AwaitIdleFrame();
+
+        AssertThat(scene.GetNode<Label>("HudLayer/StatusLabel").Text).IsEqual("YOU DIED");
+
+        var deckPile = scene.GetNode("UI/RightPanel/DeckGroup/DeckPile");
+        int deckCount = (int)deckPile.Call("get_card_count");
+        var deckCards = (GArray)deckPile.Call("get_top_cards", deckCount);
+
+        AssertThat(deckCards.Count).IsEqual(deckCount);
+        foreach (var obj in deckCards)
+        {
+            var card = obj.AsGodotObject();
+            AssertThat(card.Get("visible").AsBool()).IsTrue();
+        }
+    }
+
     [TestCase(Description = "Taking first potion tints remaining room potions; wasted potion keeps tint")]
     public async Task PotionVoidedVisualFeedback()
     {
