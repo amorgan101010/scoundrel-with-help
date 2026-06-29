@@ -80,13 +80,6 @@ public partial class ScoundrelGame : Node
     private const int LayerHud     = 202;
     private const int LayerButtons = 203;
 
-    // Slain-monster badge geometry: layout slot dimensions vs. visible control size.
-    private const float BadgeLayoutWidth  = 45f;
-    private const float BadgeLayoutHeight = 66f;
-    private const float BadgeVisualWidth  = 30f;
-    private const float BadgeVisualHeight = 44f;
-    private const float BadgeNaturalStep  = 52.5f;
-
     // Flavor label: 400px wide centered strip near the top of the screen.
     private const float FlavorLabelHalfWidth    = 200f;
     private const float FlavorLabelOffsetTop    = 103f;
@@ -160,7 +153,8 @@ public partial class ScoundrelGame : Node
             _diamondsLabel,
             BaseCardWidth,
             BaseCardHeight,
-            cardSize => _cardSize = cardSize);
+            cardSize => _cardSize = cardSize,
+            _ => RelayoutSlainBadges());
         _layoutController.ApplyNow();
 
         _healthDie = GetNode<HealthDie>("UI/LeftPanel/HealthDie");
@@ -576,25 +570,19 @@ public partial class ScoundrelGame : Node
     private void AddSlainBadge(GodotObject weaponCard, CardModel monster)
     {
         var weaponNode = (Node)weaponCard;
-        weaponNode.AddChild(CreateBadgeControl(monster.Rank));
-
-        var badges = SlainBadges(weaponNode);
-        int count = badges.Count;
-        float step = count <= 1 ? BadgeNaturalStep
-                    : Mathf.Min(BadgeNaturalStep, (CardW - BadgeLayoutWidth) / (count - 1));
-        float startX = (CardW - ((count - 1) * step + BadgeLayoutWidth)) / 2f;
-        float y = CardH - BadgeLayoutHeight / 3f;
-        for (int i = 0; i < count; i++)
-            badges[i].Position = new Vector2(startX + i * step, y);
+        weaponNode.AddChild(CreateBadgeControl(monster.Rank, CardH));
+        LayoutSlainBadges(weaponNode);
     }
 
-    private static Control CreateBadgeControl(int rank)
+    private static Control CreateBadgeControl(int rank, float cardHeight)
     {
         string text = rank switch { 1 => "A", 11 => "J", 12 => "Q", 13 => "K", _ => rank.ToString() };
 
         var badge = new Control();
         badge.Name = "slain_badge";
-        badge.Size = new Vector2(BadgeVisualWidth, BadgeVisualHeight);
+        badge.Size = new Vector2(
+            SlainBadgeLayout.BadgeWidth(cardHeight),
+            SlainBadgeLayout.BadgeHeight(cardHeight));
         badge.MouseFilter = Control.MouseFilterEnum.Ignore;
         badge.ZIndex = 1;
         badge.AddToGroup("slain_badge");
@@ -623,6 +611,27 @@ public partial class ScoundrelGame : Node
             badge.Visible = false;
             badge.QueueFree();
         }
+    }
+
+    private void RelayoutSlainBadges()
+    {
+        if (_engine == null) return;
+        if (_engine.EquippedWeapon == null) return;
+        if (!_godotCards.TryGetValue(_engine.EquippedWeapon.Name, out var weaponCard)) return;
+        LayoutSlainBadges((Node)weaponCard);
+    }
+
+    private void LayoutSlainBadges(Node weaponNode)
+    {
+        var badges = SlainBadges(weaponNode);
+        int count = badges.Count;
+        if (count == 0) return;
+
+        float step = SlainBadgeLayout.BadgeStep(CardW, CardH, count);
+        float startX = SlainBadgeLayout.BadgeStartX(CardW, CardH, count);
+        float y = SlainBadgeLayout.BadgeTopY(CardH);
+        for (int i = 0; i < count; i++)
+            badges[i].Position = new Vector2(startX + i * step, y);
     }
 
     private static SysCollections.List<Control> SlainBadges(Node weaponNode)
