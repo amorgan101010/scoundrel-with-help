@@ -400,6 +400,11 @@ public class ScoundrelSceneTests
             if (child.IsInGroup("slain_badge")) { badgeNode = child; break; }
         AssertThat(badgeNode).IsNotNull();
 
+        var weaponRect = new Rect2((Vector2)weaponNode.Get("global_position"), weaponNode.Get("size").AsVector2());
+        var badgeRect  = new Rect2((Vector2)badgeNode!.Get("global_position"), badgeNode.Get("size").AsVector2());
+        AssertThat(badgeRect.Position.Y < weaponRect.End.Y).IsTrue();
+        AssertThat(badgeRect.End.Y > weaponRect.End.Y).IsTrue();
+
         string badgeText = "";
         foreach (var grandchild in badgeNode!.GetChildren())
             if (grandchild is Label lbl) { badgeText = lbl.Text; break; }
