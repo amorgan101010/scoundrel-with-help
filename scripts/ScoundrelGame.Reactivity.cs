@@ -11,6 +11,9 @@ public partial class ScoundrelGame : Node
     // ── Viewport resize debouncing ────────────────────────────────────────
     // Timer-based debounce to delay expensive layout work (card size updates,
     // button repositioning) until the user has finished resizing the window.
+    private Control _deckGroup = null!;
+    private Control _discardGroup = null!;
+
     private void OnViewportResized()
     {
         // Restart debounce timer; only when the timer finally times out do we
@@ -25,9 +28,34 @@ public partial class ScoundrelGame : Node
     {
         var vpSize = GetViewport().GetVisibleRect().Size;
         UpdateCardSize(vpSize);
+        UpdateDeckDiscardLayout(vpSize);
         if (!_helpDialog.Visible) return;
         ResizeHelpDialog();
         _helpDialog.PopupCentered();
+    }
+
+    // ── Deck/Discard responsive layout ────────────────────────────────────
+    /// <summary>
+    /// Adjusts the deck and discard pile positions to keep them within the visible
+    /// viewport at sub-1080p resolutions. The piles are anchored to the right edge
+    /// with negative offsets; this method clamps them to stay visible.
+    /// </summary>
+    private void UpdateDeckDiscardLayout(Vector2 vpSize)
+    {
+        // Deck group: offset_left = -255, offset_right = -30 (hardcoded for 1920px)
+        // These piles must stay within the viewport bounds.
+        // RightPanel spans anchor_left=0.6666667 to anchor_right=1.0
+        var rightPanelLeft = vpSize.X * (2f / 3f);
+        var rightPanelWidth = vpSize.X - rightPanelLeft;
+
+        // Min safe offset so the pile doesn't slide off the left edge of the screen
+        var minOffsetLeft = -(rightPanelWidth - 30f);  // Leave 30px margin on the right
+
+        if (_deckGroup != null && _deckGroup.OffsetLeft < minOffsetLeft)
+            _deckGroup.OffsetLeft = (int)minOffsetLeft;
+
+        if (_discardGroup != null && _discardGroup.OffsetLeft < minOffsetLeft)
+            _discardGroup.OffsetLeft = (int)minOffsetLeft;
     }
 
     // ── Help dialog resizing ──────────────────────────────────────────────

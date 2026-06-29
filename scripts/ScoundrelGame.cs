@@ -136,6 +136,10 @@ public partial class ScoundrelGame : Node
 
         _healthDie = GetNode<HealthDie>("UI/LeftPanel/HealthDie");
 
+        // Get references to deck and discard groups for responsive positioning at sub-1080p
+        _deckGroup = GetNode<Control>("UI/RightPanel/DeckGroup");
+        _discardGroup = GetNode<Control>("UI/RightPanel/DiscardGroup");
+
         // Lift retry + help buttons and status text above the bounce layer (201).
         // HudLayer: status/flavor text (display only, game-over and in-game messages)
         var hudLayer = new CanvasLayer();
