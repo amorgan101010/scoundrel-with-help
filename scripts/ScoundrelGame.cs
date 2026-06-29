@@ -127,6 +127,11 @@ public partial class ScoundrelGame : Node
         _retryButton    = GetNode<Button>("UI/TopButtonGroup/RetryButton");
         _helpButton     = GetNode<Button>("UI/TopButtonGroup/HelpButton");
         _helpDialog     = GetNode<AcceptDialog>("UI/HelpDialog");
+        var leftPanel   = GetNode<Control>("UI/LeftPanel");
+        var weaponGroup = GetNode<Control>("UI/LeftPanel/WeaponGroup");
+        var weaponSlotControl = GetNode<Control>("UI/LeftPanel/WeaponGroup/WeaponSlot");
+        var inPlayGroup = GetNode<Control>("UI/LeftPanel/WeaponGroup/InPlayGroup");
+        var inPlayHeader = GetNode<Label>("UI/LeftPanel/WeaponGroup/InPlayGroup/InPlayHeader");
         var deckGroup   = GetNode<Control>("UI/RightPanel/DeckGroup");
         var discardGroup = GetNode<Control>("UI/RightPanel/DiscardGroup");
 
@@ -143,6 +148,16 @@ public partial class ScoundrelGame : Node
             _helpDialog,
             deckGroup,
             discardGroup,
+            leftPanel,
+            weaponGroup,
+            weaponSlotControl,
+            inPlayGroup,
+            _weaponLabel,
+            inPlayHeader,
+            _clubsLabel,
+            _spadesLabel,
+            _heartsLabel,
+            _diamondsLabel,
             BaseCardWidth,
             BaseCardHeight,
             cardSize => _cardSize = cardSize);

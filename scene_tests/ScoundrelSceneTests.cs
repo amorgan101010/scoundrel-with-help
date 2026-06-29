@@ -173,6 +173,36 @@ public class ScoundrelSceneTests
         AssertThat(roomCards.Count).IsEqual(ScoundrelRules.RoomSize);
     }
 
+    [TestCase(Description = "Weapon label stays legible and InPlayGroup never overlaps WeaponSlot after viewport shrink")]
+    public async Task WeaponGroup_ResponsiveLayoutOnViewportResize()
+    {
+        await _runner!.AwaitMillis(UITimings.AnimationSettleMs);
+
+        var scene = _runner!.Scene();
+        var weaponGroup = scene.GetNode<Control>("UI/LeftPanel/WeaponGroup");
+        var weaponSlot = scene.GetNode<Control>("UI/LeftPanel/WeaponGroup/WeaponSlot");
+        var inPlayGroup = scene.GetNode<Control>("UI/LeftPanel/WeaponGroup/InPlayGroup");
+        var weaponLabel = scene.GetNode<Label>("UI/LeftPanel/WeaponGroup/WeaponLabel");
+
+        int weaponFontSize = weaponLabel.GetThemeFontSize("font_size");
+        AssertThat(weaponFontSize).IsGreaterEqual(14);
+
+        var slotRect = new Rect2(weaponSlot.GlobalPosition, weaponSlot.Size);
+        var inPlayRect = new Rect2(inPlayGroup.GlobalPosition, inPlayGroup.Size);
+        AssertThat(inPlayRect.Intersects(slotRect)).IsFalse();
+
+        bool rightOfSlot = inPlayRect.Position.X >= slotRect.End.X + 1f;
+        bool belowSlot = inPlayRect.Position.Y >= slotRect.End.Y + 1f;
+        AssertThat(rightOfSlot || belowSlot).IsTrue();
+
+        const float viewportTolerance = 6f;
+        var viewportRect = scene.GetViewport().GetVisibleRect();
+        AssertThat(inPlayRect.Position.X).IsGreaterEqual(viewportRect.Position.X - viewportTolerance);
+        AssertThat(inPlayRect.Position.Y).IsGreaterEqual(viewportRect.Position.Y - viewportTolerance);
+        AssertThat(inPlayRect.End.X).IsLessEqual(viewportRect.End.X + viewportTolerance);
+        AssertThat(inPlayRect.End.Y).IsLessEqual(viewportRect.End.Y + viewportTolerance);
+    }
+
     [TestCase(Description = "Clicking a monster card with no weapon reduces HP by its combat value")]
     public async Task TakingMonsterReducesHP()
     {
