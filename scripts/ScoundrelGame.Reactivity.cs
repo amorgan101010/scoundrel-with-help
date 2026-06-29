@@ -8,6 +8,8 @@ using System;
 /// </summary>
 public partial class ScoundrelGame : Node
 {
+    private const float RoomSlotGap = 20f;
+
     // ── Viewport resize debouncing ────────────────────────────────────────
     // Timer-based debounce to delay expensive layout work (card size updates,
     // button repositioning) until the user has finished resizing the window.
@@ -107,10 +109,25 @@ public partial class ScoundrelGame : Node
         foreach (var godotCard in _godotCards.Values)
             godotCard.Set("card_size", _cardSize);
 
+        UpdateRoomLayout();
+
         // Tell the room container to recompute card target positions to match
         // the new card size so cards don't overlap when viewport shrinks.
         _roomContainer.Call("_update_target_positions");
         UpdateButtonGroupWidths();
+    }
+
+    private void UpdateRoomLayout()
+    {
+        var roomWidth = CardW * 2f + RoomSlotGap;
+        var roomHeight = CardH * 2f + RoomSlotGap;
+        var halfRoomWidth = roomWidth / 2f;
+        var halfRoomHeight = roomHeight / 2f;
+
+        _roomContainer.OffsetLeft = -halfRoomWidth;
+        _roomContainer.OffsetRight = halfRoomWidth;
+        _roomContainer.OffsetTop = -halfRoomHeight;
+        _roomContainer.OffsetBottom = halfRoomHeight;
     }
 
     // ── Button group width alignment ──────────────────────────────────────
