@@ -53,6 +53,13 @@ public partial class ScoundrelGame : Node
     // ── Cached factory reference ──────────────────────────────────────────
     private GodotObject _cardFactory = null!;
 
+    // ── Controllers ───────────────────────────────────────────────────────
+    private ScoundrelLayoutController _layoutController = null!;
+    private ScoundrelBounceController _bounceController = null!;
+
+    public bool BounceActive => _bounceController?.BounceActive ?? false;
+    public int BounceCardCount => _bounceController?.BounceCardCount ?? 0;
+
     // ── Sound effects ─────────────────────────────────────────────────────
     required public AudioManager AudioManager {get; set;}
 
@@ -66,9 +73,6 @@ public partial class ScoundrelGame : Node
     private Vector2 _cardSize = new Vector2(BaseCardWidth, BaseCardHeight);
     private float CardW => _cardSize.X;
     private float CardH => _cardSize.Y;
-    // Viewport resize debouncing (time-based)
-    private const float ResizeDebounceSeconds = 0.12f; // debounce interval
-    private Timer _resizeTimer = null!;
 
     // CanvasLayer Z-order. Bounce ghosts sit at LayerBounce; interactive UI must be ≥ LayerHud.
     private const int LayerOverlay = 128;
@@ -123,22 +127,28 @@ public partial class ScoundrelGame : Node
         _retryButton    = GetNode<Button>("UI/TopButtonGroup/RetryButton");
         _helpButton     = GetNode<Button>("UI/TopButtonGroup/HelpButton");
         _helpDialog     = GetNode<AcceptDialog>("UI/HelpDialog");
+        var deckGroup   = GetNode<Control>("UI/RightPanel/DeckGroup");
+        var discardGroup = GetNode<Control>("UI/RightPanel/DiscardGroup");
 
         _cardFactory = (GodotObject)_cardManager.Get("card_factory");
-        UpdateCardSize();
-        // Create resize debounce timer used to delay expensive layout work until
-        // the user has finished resizing. Start stopped; we'll start it on events.
-        _resizeTimer = new Timer();
-        _resizeTimer.OneShot = true;
-        _resizeTimer.WaitTime = ResizeDebounceSeconds;
-        AddChild(_resizeTimer);
-        _resizeTimer.Connect("timeout", Callable.From(OnResizeDebounceTimeout));
+
+        _layoutController = new ScoundrelLayoutController(
+            this,
+            _cardFactory,
+            _cardManager,
+            _godotCards,
+            _roomContainer,
+            _topButtonGroup,
+            _bottomButtonGroup,
+            _helpDialog,
+            deckGroup,
+            discardGroup,
+            BaseCardWidth,
+            BaseCardHeight,
+            cardSize => _cardSize = cardSize);
+        _layoutController.ApplyNow();
 
         _healthDie = GetNode<HealthDie>("UI/LeftPanel/HealthDie");
-
-        // Get references to deck and discard groups for responsive positioning at sub-1080p
-        _deckGroup = GetNode<Control>("UI/RightPanel/DeckGroup");
-        _discardGroup = GetNode<Control>("UI/RightPanel/DiscardGroup");
 
         // Lift retry + help buttons and status text above the bounce layer (201).
         // HudLayer: status/flavor text (display only, game-over and in-game messages)
@@ -186,6 +196,8 @@ public partial class ScoundrelGame : Node
         };
         AddChild(AudioManager);
 
+        _bounceController = new ScoundrelBounceController(this, LayerBounce, () => _cardSize);
+
         _roomContainer.Connect("card_drag_started", Callable.From<GodotObject>(OnCardDragStarted));
         _roomContainer.Connect("card_drag_ended",   Callable.From(OnCardDragEnded));
         _roomContainer.Connect("card_selected",     Callable.From<GodotObject>(OnCardSelected));
@@ -193,7 +205,7 @@ public partial class ScoundrelGame : Node
         _nextRoomButton.Connect("pressed", Callable.From(OnNextRoomPressed));
         _retryButton.Connect("pressed",   Callable.From(OnRetryPressed));
         _helpButton.Connect("pressed",    Callable.From(OnHelpPressed));
-        GetViewport().Connect("size_changed", Callable.From(OnViewportResized));
+        GetViewport().Connect("size_changed", Callable.From(_layoutController.OnViewportResized));
 
         StartGame();
     }
@@ -211,10 +223,7 @@ public partial class ScoundrelGame : Node
 
     private void InitGameWithDeck(SysCollections.List<CardModel> deck)
     {
-        if (_bounceLayer != null) { _bounceLayer.QueueFree(); _bounceLayer = null; }
-        _bounceActive = false;
-        _bounceState.Clear();
-        _bounceTotal  = 0;
+        _bounceController.Reset();
 
         _godotCards.Clear();
         _statusLabel.Text    = "";
@@ -499,8 +508,13 @@ public partial class ScoundrelGame : Node
 
     private void OnHelpPressed()
     {
-        ResizeHelpDialog();
-        _helpDialog.PopupCentered();
+        _layoutController.ResizeHelpDialogNow();
+    }
+
+
+    public override void _Process(double delta)
+    {
+        _bounceController.Process(delta);
     }
 
 
@@ -510,7 +524,7 @@ public partial class ScoundrelGame : Node
         _statusLabel.Text    = "YOU DIED";
         _flavorLabel.Text    = "The monsters overrun the dungeon.";
         _flavorLabel.Visible = true;
-        StartBounceAnimation(isGameOver: true);
+        _bounceController.StartBounceAnimation(isGameOver: true, _deckPile, _godotCards.Values, AudioManager);
     }
 
     private void ShowWin()
@@ -519,7 +533,7 @@ public partial class ScoundrelGame : Node
         _flavorLabel.Text = "The loot is yours!";
         _flavorLabel.AddThemeColorOverride("font_color", new Color(0.85f, 0.75f, 0.3f));
         _flavorLabel.Visible = true;
-        StartBounceAnimation(isGameOver: false);
+        _bounceController.StartBounceAnimation(isGameOver: false, _deckPile, _godotCards.Values, AudioManager);
     }
 
     // ── Visual helpers ────────────────────────────────────────────────────
