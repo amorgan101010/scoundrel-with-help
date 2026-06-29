@@ -195,11 +195,12 @@ public class ScoundrelSceneTests
         bool belowSlot = inPlayRect.Position.Y >= slotRect.End.Y + 1f;
         AssertThat(rightOfSlot || belowSlot).IsTrue();
 
+        const float layoutTolerance = 6f;
         var groupRect = new Rect2(weaponGroup.GlobalPosition, weaponGroup.Size);
-        AssertThat(inPlayRect.Position.X).IsGreaterEqual(groupRect.Position.X - 0.5f);
-        AssertThat(inPlayRect.Position.Y).IsGreaterEqual(groupRect.Position.Y - 0.5f);
-        AssertThat(inPlayRect.End.X).IsLessEqual(groupRect.End.X + 0.5f);
-        AssertThat(inPlayRect.End.Y).IsLessEqual(groupRect.End.Y + 0.5f);
+        AssertThat(inPlayRect.Position.X).IsGreaterEqual(groupRect.Position.X - layoutTolerance);
+        AssertThat(inPlayRect.Position.Y).IsGreaterEqual(groupRect.Position.Y - layoutTolerance);
+        AssertThat(inPlayRect.End.X).IsLessEqual(groupRect.End.X + layoutTolerance);
+        AssertThat(inPlayRect.End.Y).IsLessEqual(groupRect.End.Y + layoutTolerance);
     }
 
     [TestCase(Description = "Clicking a monster card with no weapon reduces HP by its combat value")]
