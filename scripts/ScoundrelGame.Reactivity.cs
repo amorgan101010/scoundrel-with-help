@@ -36,26 +36,34 @@ public partial class ScoundrelGame : Node
 
     // ── Deck/Discard responsive layout ────────────────────────────────────
     /// <summary>
-    /// Adjusts the deck and discard pile positions to keep them within the visible
-    /// viewport at sub-1080p resolutions. The piles are anchored to the right edge
-    /// with negative offsets; this method clamps them to stay visible.
+    /// Adjusts deck/discard group width and positioning to stay visible at all viewport sizes.
+    /// The groups scale with card size (which scales with viewport height) and are anchored
+    /// to the right edge. This ensures they grow/shrink with the cards and stay positioned correctly.
     /// </summary>
     private void UpdateDeckDiscardLayout(Vector2 vpSize)
     {
-        // Deck group: offset_left = -255, offset_right = -30 (hardcoded for 1920px)
-        // These piles must stay within the viewport bounds.
-        // RightPanel spans anchor_left=0.6666667 to anchor_right=1.0
-        var rightPanelLeft = vpSize.X * (2f / 3f);
-        var rightPanelWidth = vpSize.X - rightPanelLeft;
+        if (_deckGroup == null || _discardGroup == null) return;
 
-        // Min safe offset so the pile doesn't slide off the left edge of the screen
-        var minOffsetLeft = -(rightPanelWidth - 30f);  // Leave 30px margin on the right
+        // Card size is scaled based on viewport height (from UpdateCardSize)
+        float cardScale = vpSize.Y / 1080f;
+        if (cardScale <= 0f) cardScale = 1f;
 
-        if (_deckGroup != null && _deckGroup.OffsetLeft < minOffsetLeft)
-            _deckGroup.OffsetLeft = (int)minOffsetLeft;
+        // Scale the group width to match the scaled card width
+        const float DesignCardWidth = 225f;
+        const float DesignRightMargin = 30f;
 
-        if (_discardGroup != null && _discardGroup.OffsetLeft < minOffsetLeft)
-            _discardGroup.OffsetLeft = (int)minOffsetLeft;
+        float scaledCardWidth = DesignCardWidth * cardScale;
+        float scaledGroupWidth = scaledCardWidth + DesignRightMargin;
+
+        // Position from the right edge: offset_left is negative distance from right
+        float offsetLeft = -scaledGroupWidth;
+        float offsetRight = -DesignRightMargin;
+
+        _deckGroup.OffsetLeft = (int)offsetLeft;
+        _deckGroup.OffsetRight = (int)offsetRight;
+
+        _discardGroup.OffsetLeft = (int)offsetLeft;
+        _discardGroup.OffsetRight = (int)offsetRight;
     }
 
     // ── Help dialog resizing ──────────────────────────────────────────────
