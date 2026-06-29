@@ -5,6 +5,19 @@ public sealed class ScoundrelLayoutController
 {
     private const float RoomSlotGap = 20f;
     private const float ResizeDebounceSeconds = 0.12f;
+    private const int WeaponLabelMinFontSize = 14;
+    private const int WeaponLabelMaxFontSize = 22;
+    private const int InPlayHeaderMinFontSize = 12;
+    private const int InPlayHeaderMaxFontSize = 16;
+    private const int InPlaySuitMinFontSize = 13;
+    private const int InPlaySuitMaxFontSize = 18;
+    private const float WeaponGroupHorizontalPadding = 30f;
+    private const float WeaponSlotTop = 34f;
+    private const float WeaponLabelBottomPadding = 8f;
+    private const float WeaponAndInPlayGap = 12f;
+    private const float InPlayMinWidth = 130f;
+    private const float InPlayMinGapFromSlot = 4f;
+    private const float WeaponGroupMinBottom = 349f;
 
     private readonly Node _owner;
     private readonly GodotObject _cardFactory;
@@ -16,6 +29,16 @@ public sealed class ScoundrelLayoutController
     private readonly AcceptDialog _helpDialog;
     private readonly Control _deckGroup;
     private readonly Control _discardGroup;
+    private readonly Control _leftPanel;
+    private readonly Control _weaponGroup;
+    private readonly Control _weaponSlot;
+    private readonly Control _inPlayGroup;
+    private readonly Label _weaponLabel;
+    private readonly Label _inPlayHeader;
+    private readonly Label _clubsLabel;
+    private readonly Label _spadesLabel;
+    private readonly Label _heartsLabel;
+    private readonly Label _diamondsLabel;
     private readonly float _baseCardWidth;
     private readonly float _baseCardHeight;
     private readonly System.Action<Vector2> _setCardSize;
@@ -32,6 +55,16 @@ public sealed class ScoundrelLayoutController
         AcceptDialog helpDialog,
         Control deckGroup,
         Control discardGroup,
+        Control leftPanel,
+        Control weaponGroup,
+        Control weaponSlot,
+        Control inPlayGroup,
+        Label weaponLabel,
+        Label inPlayHeader,
+        Label clubsLabel,
+        Label spadesLabel,
+        Label heartsLabel,
+        Label diamondsLabel,
         float baseCardWidth,
         float baseCardHeight,
         System.Action<Vector2> setCardSize)
@@ -46,6 +79,16 @@ public sealed class ScoundrelLayoutController
         _helpDialog = helpDialog;
         _deckGroup = deckGroup;
         _discardGroup = discardGroup;
+        _leftPanel = leftPanel;
+        _weaponGroup = weaponGroup;
+        _weaponSlot = weaponSlot;
+        _inPlayGroup = inPlayGroup;
+        _weaponLabel = weaponLabel;
+        _inPlayHeader = inPlayHeader;
+        _clubsLabel = clubsLabel;
+        _spadesLabel = spadesLabel;
+        _heartsLabel = heartsLabel;
+        _diamondsLabel = diamondsLabel;
         _baseCardWidth = baseCardWidth;
         _baseCardHeight = baseCardHeight;
         _setCardSize = setCardSize;
@@ -101,9 +144,68 @@ public sealed class ScoundrelLayoutController
             godotCard.Set("card_size", cardSize);
 
         UpdateRoomLayout(cardSize);
+        UpdateWeaponGroupLayout(cardSize);
 
         _roomContainer.Call("_update_target_positions");
         UpdateButtonGroupWidths();
+    }
+
+    private void UpdateWeaponGroupLayout(Vector2 cardSize)
+    {
+        var leftPanelWidth = _leftPanel.Size.X;
+        if (leftPanelWidth <= 0f)
+            leftPanelWidth = 430f;
+
+        var weaponGroupWidth = Mathf.Max(0f, leftPanelWidth - (WeaponGroupHorizontalPadding * 2f));
+
+        _weaponGroup.OffsetLeft = WeaponGroupHorizontalPadding;
+        _weaponGroup.OffsetRight = WeaponGroupHorizontalPadding + weaponGroupWidth;
+
+        var weaponFontSize = (int)Mathf.Round(Mathf.Clamp(cardSize.Y * 0.06f, WeaponLabelMinFontSize, WeaponLabelMaxFontSize));
+        var inPlayHeaderFontSize = (int)Mathf.Round(Mathf.Clamp(cardSize.Y * 0.042f, InPlayHeaderMinFontSize, InPlayHeaderMaxFontSize));
+        var inPlaySuitFontSize = (int)Mathf.Round(Mathf.Clamp(cardSize.Y * 0.05f, InPlaySuitMinFontSize, InPlaySuitMaxFontSize));
+
+        _weaponLabel.AddThemeFontSizeOverride("font_size", weaponFontSize);
+        _inPlayHeader.AddThemeFontSizeOverride("font_size", inPlayHeaderFontSize);
+        _clubsLabel.AddThemeFontSizeOverride("font_size", inPlaySuitFontSize);
+        _spadesLabel.AddThemeFontSizeOverride("font_size", inPlaySuitFontSize);
+        _heartsLabel.AddThemeFontSizeOverride("font_size", inPlaySuitFontSize);
+        _diamondsLabel.AddThemeFontSizeOverride("font_size", inPlaySuitFontSize);
+
+        var weaponLabelHeight = weaponFontSize + WeaponLabelBottomPadding;
+        _weaponLabel.OffsetRight = weaponGroupWidth;
+        _weaponLabel.OffsetBottom = weaponLabelHeight;
+
+        _weaponSlot.OffsetTop = WeaponSlotTop;
+        _weaponSlot.OffsetRight = cardSize.X;
+        _weaponSlot.OffsetBottom = WeaponSlotTop + cardSize.Y;
+
+        var inPlayX = _weaponSlot.OffsetRight + WeaponAndInPlayGap;
+        var inPlayY = _weaponSlot.OffsetTop;
+        var inPlayHeight = _inPlayGroup.OffsetBottom - _inPlayGroup.OffsetTop;
+
+        if (inPlayHeight <= 0f)
+            inPlayHeight = 130f;
+
+        var availableRightWidth = weaponGroupWidth - inPlayX;
+        if (availableRightWidth >= InPlayMinWidth)
+        {
+            _inPlayGroup.OffsetLeft = inPlayX;
+            _inPlayGroup.OffsetTop = inPlayY;
+            _inPlayGroup.OffsetRight = weaponGroupWidth;
+            _inPlayGroup.OffsetBottom = inPlayY + inPlayHeight;
+            _weaponGroup.OffsetBottom = Mathf.Max(WeaponGroupMinBottom, Mathf.Max(_weaponSlot.OffsetBottom, _inPlayGroup.OffsetBottom));
+            return;
+        }
+
+        _inPlayGroup.OffsetLeft = 0f;
+        _inPlayGroup.OffsetTop = _weaponSlot.OffsetBottom + WeaponAndInPlayGap;
+        if (_inPlayGroup.OffsetTop < _weaponSlot.OffsetBottom + InPlayMinGapFromSlot)
+            _inPlayGroup.OffsetTop = _weaponSlot.OffsetBottom + InPlayMinGapFromSlot;
+
+        _inPlayGroup.OffsetRight = weaponGroupWidth;
+        _inPlayGroup.OffsetBottom = _inPlayGroup.OffsetTop + inPlayHeight;
+        _weaponGroup.OffsetBottom = Mathf.Max(WeaponGroupMinBottom, Mathf.Max(_inPlayGroup.OffsetBottom, _weaponSlot.OffsetBottom));
     }
 
     private void UpdateRoomLayout(Vector2 cardSize)
