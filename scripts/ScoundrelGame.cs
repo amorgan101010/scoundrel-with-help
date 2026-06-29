@@ -516,74 +516,7 @@ public partial class ScoundrelGame : Node
         _helpDialog.PopupCentered();
     }
 
-    private void OnViewportResized()
-    {
-        // Restart debounce timer; only when the timer finally times out do we
-        // recompute card sizes and update the help dialog.
-        if (_resizeTimer == null) return;
-        _resizeTimer.Stop();
-        _resizeTimer.Start();
-    }
 
-    private void OnResizeDebounceTimeout()
-    {
-        var vpSize = GetViewport().GetVisibleRect().Size;
-        UpdateCardSize(vpSize);
-        if (!_helpDialog.Visible) return;
-        ResizeHelpDialog();
-        _helpDialog.PopupCentered();
-    }
-
-    private void ResizeHelpDialog()
-    {
-        var viewportSize = GetViewport().GetVisibleRect().Size;
-        var width = Mathf.Min(760f, viewportSize.X * 0.85f);
-        var height = Mathf.Min(800f, viewportSize.Y * 0.85f);
-        _helpDialog.Size = new Vector2I((int)width, (int)height);
-    }
-
-    private void UpdateCardSize(Vector2 vpSize = default)
-    {
-        if (vpSize == default) vpSize = GetViewport().GetVisibleRect().Size;
-        // Reference was designed for a 1080p height viewport.
-        float scale = vpSize.Y / 1080f;
-        if (scale <= 0f) scale = 1f;
-        _cardSize = new Vector2(BaseCardWidth * scale, BaseCardHeight * scale);
-
-        // Apply to factory so newly created cards use the size
-        _cardFactory.Set("card_size", _cardSize);
-        // Also set the CardManager's card_size so containers using
-        // `card_manager.card_size` (RoomContainer, Hand, etc.) get the
-        // updated value for layout calculations.
-        _cardManager.Set("card_size", _cardSize);
-
-        // Also update any already-created cards so visuals stay in sync
-        foreach (var godotCard in _godotCards.Values)
-            godotCard.Set("card_size", _cardSize);
-
-        // Tell the room container to recompute card target positions to match
-        // the new card size so cards don't overlap when viewport shrinks.
-        _roomContainer.Call("_update_target_positions");
-        UpdateButtonGroupWidths();
-    }
-
-    private void UpdateButtonGroupWidths()
-    {
-        var roomWidth = _roomContainer.GetRect().Size.X;
-        if (roomWidth <= 0)
-        {
-            CallDeferred(nameof(UpdateButtonGroupWidths));
-            return;
-        }
-
-        // Match the top/bottom button groups to the current room width, keeping
-        // them centered above and below the room container.
-        var halfWidth = (int)(roomWidth / 2f);
-        _topButtonGroup.OffsetLeft    = -halfWidth;
-        _topButtonGroup.OffsetRight   = halfWidth;
-        _bottomButtonGroup.OffsetLeft = -halfWidth;
-        _bottomButtonGroup.OffsetRight= halfWidth;
-    }
 
     private void ShowGameOver()
     {
