@@ -11,6 +11,7 @@ public sealed class ScoundrelBounceController
 
     private CanvasLayer? _bounceLayer;
     private readonly SysCollections.List<(TextureRect ghost, Vector2 velocity)> _bounceState = new();
+    private readonly SysCollections.List<GodotObject> _hiddenCards = new();
     private bool _bounceActive;
     private int _bounceTotal;
 
@@ -33,6 +34,13 @@ public sealed class ScoundrelBounceController
 
     public void Reset()
     {
+        foreach (var card in _hiddenCards)
+        {
+            if (GodotObject.IsInstanceValid(card))
+                card.Set("visible", true);
+        }
+        _hiddenCards.Clear();
+
         if (_bounceLayer != null)
         {
             _bounceLayer.QueueFree();
@@ -46,6 +54,8 @@ public sealed class ScoundrelBounceController
 
     public void StartBounceAnimation(bool isGameOver, Node deckPile, SysCollections.IEnumerable<GodotObject> cards, AudioManager audioManager)
     {
+        Reset();
+
         _bounceLayer = new CanvasLayer
         {
             Layer = _layerBounce
@@ -55,6 +65,7 @@ public sealed class ScoundrelBounceController
         var rng = new System.Random();
         var vpSize = _owner.GetViewport().GetVisibleRect().Size;
         var deckPos = (Vector2)deckPile.Get("global_position");
+        var deckPileId = deckPile.GetInstanceId();
         var cardSize = _getCardSize();
         var cardW = cardSize.X;
         var cardH = cardSize.Y;
@@ -70,7 +81,16 @@ public sealed class ScoundrelBounceController
         for (int i = 0; i < candidates.Count; i++)
         {
             var godotCard = candidates[i];
-            godotCard.Set("visible", false);
+
+            // Hiding cards inside DeckPile creates uneven visible stack spacing
+            // (hidden cards still consume pile offsets). Keep deck cards visible.
+            var container = godotCard.Get("card_container").AsGodotObject();
+            bool isDeckCard = container != null && container.GetInstanceId() == deckPileId;
+            if (!isDeckCard)
+            {
+                godotCard.Set("visible", false);
+                _hiddenCards.Add(godotCard);
+            }
 
             var info = godotCard.Get("card_info").AsGodotDictionary();
             var texture = GD.Load<Texture2D>($"res://card_assets/{info["front_image"].AsString()}");
