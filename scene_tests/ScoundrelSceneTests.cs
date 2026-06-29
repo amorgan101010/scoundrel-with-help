@@ -400,6 +400,9 @@ public class ScoundrelSceneTests
             if (child.IsInGroup("slain_badge")) { badgeNode = child; break; }
         AssertThat(badgeNode).IsNotNull();
 
+
+        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);  // 200ms
+
         var weaponSize = weaponNode.Get("size").AsVector2();
         var badgeControl = (Control)badgeNode!;
         var badgeSize  = badgeControl.Get("size").AsVector2();
