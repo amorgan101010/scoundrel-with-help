@@ -45,6 +45,24 @@ public class GameEngine
     /// </summary>
     public CardModel? PocketedPotion { get; private set; }
 
+    /// <summary>
+    /// True once the Black Joker (Weapon Pocket companion) has been taken. The joker is a
+    /// permanent companion, not a card in play — it is never discarded.
+    /// </summary>
+    public bool HasWeaponJoker { get; private set; }
+
+    /// <summary>
+    /// The weapon currently held in the Weapon Pocket, or null if the pocket is empty.
+    /// </summary>
+    public CardModel? PocketedWeapon { get; private set; }
+
+    /// <summary>
+    /// Degradation floor for the pocketed weapon. Fully independent of the main
+    /// <see cref="WeaponFloor"/> — reset when a weapon is stored, tightened after each
+    /// successful pocket-weapon fight.
+    /// </summary>
+    public int PocketWeaponFloor { get; private set; } = int.MaxValue;
+
     public IReadOnlyList<CardModel> Deck    => _deck;
     public IReadOnlyList<CardModel> Discard => _discard;
     public IReadOnlyList<CardModel> Room    => _room;
@@ -66,6 +84,27 @@ public class GameEngine
     /// side action (not a room pick), so it is available any time regardless of room state.
     /// </summary>
     public bool CanRetrievePotion => HasPotionJoker && PocketedPotion != null && !IsOver;
+
+    /// <summary>
+    /// True iff a weapon can be stored in the Weapon Pocket right now: the joker has been
+    /// taken, the pocket is empty, the given card is a weapon currently in the room, and
+    /// the game isn't over.
+    /// </summary>
+    public bool CanStoreWeapon(CardModel card)
+        => HasWeaponJoker && PocketedWeapon == null && card.IsWeapon && _room.Contains(card) && !IsOver;
+
+    /// <summary>
+    /// True iff the pocketed weapon can be used against the given monster right now: the
+    /// joker has been taken, the pocket holds a weapon, the monster is in the room, the game
+    /// isn't over, the pocket weapon's own floor allows it, AND — the stricter constraint
+    /// that distinguishes the pocket weapon from the main one — using it would deal exactly
+    /// zero damage.
+    /// </summary>
+    public bool CanFightWithPocketWeapon(CardModel monsterCard)
+        => HasWeaponJoker && PocketedWeapon != null && monsterCard.IsMonster
+           && _room.Contains(monsterCard) && !IsOver
+           && ScoundrelRules.CanUseWeapon(monsterCard.MonsterValue, PocketWeaponFloor)
+           && ScoundrelRules.CalcDamage(monsterCard.MonsterValue, PocketedWeapon!.WeaponValue) == 0;
 
     public GameEngine(IEnumerable<CardModel> deck, bool extendedRules = false)
     {
@@ -111,10 +150,16 @@ public class GameEngine
                 // play. It is never discarded — see StorePotion/RetrievePotion below.
                 HasPotionJoker = true;
             }
+            else if (card.IsWeaponJoker)
+            {
+                // Black Joker (Weapon Pocket): becomes a permanent companion, not a card in
+                // play. It is never discarded — see StoreWeapon/FightWithPocketWeapon below.
+                HasWeaponJoker = true;
+            }
             else
             {
-                // Blacksmith, Merchant, and the Black Joker: placeholder discard-only
-                // behavior pending their own chunks.
+                // Blacksmith and Merchant: placeholder discard-only behavior pending their
+                // own chunks.
                 _discard.Add(card);
             }
         }
@@ -154,6 +199,39 @@ public class GameEngine
         _discard.Add(potion);
 
         CheckGameOver();
+    }
+
+    /// <summary>
+    /// Store a weapon from the room into the Weapon Pocket. Fully independent of the main
+    /// weapon system — does not touch EquippedWeapon/WeaponFloor/SlainMonsterCount. Counts
+    /// as one of the room's taken cards.
+    /// </summary>
+    public void StoreWeapon(CardModel card)
+    {
+        if (!CanStoreWeapon(card))
+            throw new InvalidOperationException("Cannot store this weapon right now.");
+
+        _room.Remove(card);
+        PocketedWeapon = card;
+        PocketWeaponFloor = int.MaxValue;
+        FinishRoomAction();
+    }
+
+    /// <summary>
+    /// Fight a monster using the pocketed weapon. Only ever available when it would deal
+    /// exactly zero damage (see CanFightWithPocketWeapon) — health is therefore never
+    /// touched. Degrades PocketWeaponFloor independently of the main WeaponFloor. Counts as
+    /// one of the room's taken cards.
+    /// </summary>
+    public void FightWithPocketWeapon(CardModel monsterCard)
+    {
+        if (!CanFightWithPocketWeapon(monsterCard))
+            throw new InvalidOperationException("Cannot fight with the pocketed weapon right now.");
+
+        _room.Remove(monsterCard);
+        _discard.Add(monsterCard);
+        PocketWeaponFloor = ScoundrelRules.NextWeaponFloor(monsterCard.MonsterValue);
+        FinishRoomAction();
     }
 
     /// <summary>

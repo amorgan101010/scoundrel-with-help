@@ -112,6 +112,7 @@ file static class Cards
     public static CardModel Weapon(int rank)  => new(Suit.Diamonds, rank);
     public static CardModel Potion(int rank)  => new(Suit.Hearts,   rank);
     public static CardModel RedJoker()        => new(Suit.RedJoker, 0, "joker_red");
+    public static CardModel BlackJoker()      => new(Suit.BlackJoker, 0, "joker_black");
 
     // Pad a short card list to 4 so DealRoom fills the room immediately.
     // Extra padding cards are weak monsters that sit at the bottom of the deck.
@@ -1109,8 +1110,12 @@ public class ExtendedRulesPlaceholderTests
         Assert.That(engine.CardsTakenThisRoom, Is.EqualTo(1));
     }
 
+    // NOTE: Superseded by WeaponPocketTests below (chunk 3 implements the real Black Joker
+    // mechanic). Updated in place rather than left contradicting the new behavior: the
+    // chunk-1 placeholder discarded the joker; the real mechanic keeps it as a permanent
+    // companion that is never discarded.
     [Test]
-    public void TakingBlackJoker_DiscardsWithoutChangingHealthOrWeapon()
+    public void TakingBlackJoker_SetsHasWeaponJoker_DoesNotDiscard_CountsTowardRoom()
     {
         var joker = new CardModel(Suit.BlackJoker, 0, "joker_black");
         var deck = new[] { Cards.Potion(2), Cards.Potion(3), Cards.Potion(4), joker };
@@ -1119,7 +1124,8 @@ public class ExtendedRulesPlaceholderTests
 
         Assert.DoesNotThrow(() => engine.TakeCard(joker));
 
-        Assert.That(engine.Discard, Contains.Item(joker));
+        Assert.That(engine.HasWeaponJoker, Is.True);
+        Assert.That(engine.Discard, Does.Not.Contain(joker));
         Assert.That(engine.Health, Is.EqualTo(healthBefore));
         Assert.That(engine.EquippedWeapon, Is.Null);
         Assert.That(engine.CardsTakenThisRoom, Is.EqualTo(1));
@@ -1376,5 +1382,265 @@ public class PotionPocketTests
         Assert.That(engine.CanRetrievePotion, Is.False);
         Assert.Throws<InvalidOperationException>(() => engine.RetrievePotion());
         Assert.That(engine.PocketedPotion, Is.EqualTo(potionToStore), "Pocket contents untouched by the failed retrieval");
+    }
+}
+
+// ── Black Joker — Weapon Pocket (PRD §6, item 2) ───────────────────────────────
+
+[TestFixture]
+public class WeaponPocketTests
+{
+    [Test]
+    public void CanStoreWeapon_FalseBeforeJokerTaken()
+    {
+        var weapon = Cards.Weapon(5);
+        var engine = Cards.RoomOf(weapon, Cards.Potion(3), Cards.Potion(2), Cards.Potion(4));
+
+        Assert.That(engine.CanStoreWeapon(weapon), Is.False);
+    }
+
+    [Test]
+    public void StoreWeapon_Throws_WhenJokerNeverTaken()
+    {
+        var weapon = Cards.Weapon(5);
+        var engine = Cards.RoomOf(weapon, Cards.Potion(3), Cards.Potion(2), Cards.Potion(4));
+
+        Assert.Throws<InvalidOperationException>(() => engine.StoreWeapon(weapon));
+    }
+
+    [Test]
+    public void CanStoreWeapon_FalseIfPocketAlreadyOccupied()
+    {
+        var joker = Cards.BlackJoker();
+        var w1 = Cards.Weapon(5);
+        var w2 = Cards.Weapon(6);
+        var engine = Cards.RoomOf(joker, w1, Cards.Potion(3), w2);
+
+        engine.TakeCard(joker);
+        engine.StoreWeapon(w1);
+
+        Assert.That(engine.CanStoreWeapon(w2), Is.False);
+        Assert.Throws<InvalidOperationException>(() => engine.StoreWeapon(w2));
+    }
+
+    [Test]
+    public void CanStoreWeapon_FalseForNonWeaponCard()
+    {
+        var joker = Cards.BlackJoker();
+        var potion = Cards.Potion(5);
+        var engine = Cards.RoomOf(joker, potion, Cards.Weapon(3), Cards.Potion(4));
+        engine.TakeCard(joker);
+
+        Assert.That(engine.CanStoreWeapon(potion), Is.False);
+        Assert.Throws<InvalidOperationException>(() => engine.StoreWeapon(potion));
+    }
+
+    [Test]
+    public void CanStoreWeapon_FalseForCardNotInRoom()
+    {
+        var joker = Cards.BlackJoker();
+        var engine = Cards.RoomOf(joker, Cards.Weapon(3), Cards.Potion(4), Cards.Potion(5));
+        engine.TakeCard(joker);
+
+        var phantom = Cards.Weapon(9); // never dealt into any room
+        Assert.That(engine.CanStoreWeapon(phantom), Is.False);
+        Assert.Throws<InvalidOperationException>(() => engine.StoreWeapon(phantom));
+    }
+
+    [Test]
+    public void StoreWeapon_HappyPath_MovesFromRoomToPocket_ResetsFloor_CountsTowardCardsTaken()
+    {
+        var joker  = Cards.BlackJoker();
+        var weapon = Cards.Weapon(7);
+        var engine = Cards.RoomOf(joker, weapon, Cards.Potion(2), Cards.Potion(3));
+        engine.TakeCard(joker);
+        int takenBefore = engine.CardsTakenThisRoom;
+
+        engine.StoreWeapon(weapon);
+
+        Assert.That(engine.PocketedWeapon, Is.EqualTo(weapon));
+        Assert.That(engine.PocketWeaponFloor, Is.EqualTo(int.MaxValue));
+        Assert.That(engine.Room, Does.Not.Contain(weapon));
+        Assert.That(engine.Discard, Does.Not.Contain(weapon));
+        Assert.That(engine.CardsTakenThisRoom, Is.EqualTo(takenBefore + 1));
+        Assert.That(engine.EquippedWeapon, Is.Null, "Pocket storage must not touch the main weapon slot");
+    }
+
+    [Test]
+    public void CanFightWithPocketWeapon_FalseWhenPocketEmpty()
+    {
+        var joker = Cards.BlackJoker();
+        var monster = Cards.Monster(5);
+        var engine = Cards.RoomOf(joker, monster, Cards.Weapon(3), Cards.Potion(2));
+        engine.TakeCard(joker);
+
+        Assert.That(engine.CanFightWithPocketWeapon(monster), Is.False);
+        Assert.Throws<InvalidOperationException>(() => engine.FightWithPocketWeapon(monster));
+    }
+
+    [Test]
+    public void CanFightWithPocketWeapon_FalseWhenDamageWouldBeNonzero()
+    {
+        // Weapon value 5 vs monster value 7: CanUseWeapon alone would allow this (7 <
+        // int.MaxValue), but the pocket weapon may only be used when it deals zero damage.
+        var joker   = Cards.BlackJoker();
+        var weapon  = Cards.Weapon(5);
+        var monster = Cards.Monster(7);
+        var engine  = Cards.RoomOf(joker, weapon, monster, Cards.Potion(2));
+        engine.TakeCard(joker);
+        engine.StoreWeapon(weapon);
+
+        Assert.That(ScoundrelRules.CanUseWeapon(monster.MonsterValue, engine.PocketWeaponFloor), Is.True,
+            "sanity check: the floor alone does not block this fight");
+        Assert.That(ScoundrelRules.CalcDamage(monster.MonsterValue, weapon.WeaponValue), Is.EqualTo(2),
+            "sanity check: this fight would deal nonzero damage");
+        Assert.That(engine.CanFightWithPocketWeapon(monster), Is.False);
+        Assert.Throws<InvalidOperationException>(() => engine.FightWithPocketWeapon(monster));
+    }
+
+    [Test]
+    public void FightWithPocketWeapon_TrueAndDealsZeroDamage_WhenWeaponValueGreaterOrEqualMonster()
+    {
+        var joker   = Cards.BlackJoker();
+        var weapon  = Cards.Weapon(8);
+        var monster = Cards.Monster(8);
+        var engine  = Cards.RoomOf(joker, weapon, monster, Cards.Potion(2));
+        engine.TakeCard(joker);
+        engine.StoreWeapon(weapon);
+        int healthBefore = engine.Health;
+
+        Assert.That(engine.CanFightWithPocketWeapon(monster), Is.True);
+        engine.FightWithPocketWeapon(monster);
+
+        Assert.That(engine.Health, Is.EqualTo(healthBefore), "Pocket-weapon fights always deal zero damage by construction");
+        Assert.That(engine.Room, Does.Not.Contain(monster));
+        Assert.That(engine.Discard, Contains.Item(monster));
+        Assert.That(engine.PocketWeaponFloor, Is.EqualTo(ScoundrelRules.NextWeaponFloor(monster.MonsterValue)));
+    }
+
+    [Test]
+    public void FightWithPocketWeapon_DegradesFloor_RejectsEqualOrStrongerMonsterAfterward()
+    {
+        // Pocket weapon value 10 vs a value-5 monster: 0 damage by raw value either way, but
+        // after the floor tightens to 5, a second value-5 monster must be rejected even
+        // though it would still be a 0-damage fight by raw value alone (strictly weaker is
+        // required, exactly like the main weapon's floor rule).
+        var joker    = Cards.BlackJoker();
+        var weapon   = Cards.Weapon(10);
+        var monster1 = Cards.Monster(5);
+        var monster2 = Cards.Spade(5); // distinct record from monster1 (different suit)
+        var fillerA  = Cards.Potion(2);
+        var fillerB  = Cards.Potion(3);
+        var fillerC  = Cards.Potion(4);
+        var fillerD  = Cards.Potion(5);
+
+        // Deck bottom -> top. Room 1 = {fillerA, monster1, weapon, joker}; room 2 refill
+        // (dealt once room 1 empties) = {monster2, fillerB, fillerC, fillerD}.
+        var deck = new[] { fillerD, fillerC, fillerB, monster2, fillerA, monster1, weapon, joker };
+        var engine = new GameEngine(deck, extendedRules: true);
+
+        engine.TakeCard(joker);
+        engine.StoreWeapon(weapon);
+        Assert.That(engine.CanFightWithPocketWeapon(monster1), Is.True);
+        engine.FightWithPocketWeapon(monster1);
+        Assert.That(engine.PocketWeaponFloor, Is.EqualTo(5));
+
+        engine.TakeCard(fillerA); // empties room 1 -> deals room 2
+
+        // Raw value would still be zero damage (10 vs 5), but the floor now requires
+        // strictly weaker than 5, so an equal-value monster must be rejected.
+        Assert.That(ScoundrelRules.CalcDamage(monster2.MonsterValue, weapon.WeaponValue), Is.EqualTo(0),
+            "sanity check: this would be a 0-damage fight by raw value alone");
+        Assert.That(engine.CanFightWithPocketWeapon(monster2), Is.False);
+        Assert.Throws<InvalidOperationException>(() => engine.FightWithPocketWeapon(monster2));
+    }
+
+    [Test]
+    public void PocketWeapon_And_MainWeapon_AreFullyIndependent()
+    {
+        var joker            = Cards.BlackJoker();
+        var mainWeapon       = Cards.Weapon(9);
+        var pocketWeapon     = Cards.Weapon(10);
+        var monsterForMain   = Cards.Monster(6);
+        var monsterForPocket = Cards.Spade(7);
+        var filler1          = Cards.Potion(2);
+        var filler2          = Cards.Potion(3);
+        var filler3          = Cards.Potion(4);
+
+        // Deck bottom -> top. Room 1 = {filler1, monsterForMain, mainWeapon, joker}; room 2
+        // refill = {pocketWeapon, monsterForPocket, filler2, filler3}.
+        var deck = new[]
+        {
+            filler3, filler2, monsterForPocket, pocketWeapon,
+            filler1, monsterForMain, mainWeapon, joker
+        };
+        var engine = new GameEngine(deck, extendedRules: true);
+
+        engine.TakeCard(joker);
+        engine.TakeCard(mainWeapon);       // equips main weapon
+        engine.TakeCard(monsterForMain);   // blocked (6 < 9) -> SlainMonsterCount 1, floor 6
+        engine.TakeCard(filler1);          // empties room 1 -> deals room 2
+
+        Assert.That(engine.EquippedWeapon, Is.EqualTo(mainWeapon));
+        Assert.That(engine.WeaponFloor, Is.EqualTo(6));
+        Assert.That(engine.SlainMonsterCount, Is.EqualTo(1));
+        Assert.That(engine.PocketedWeapon, Is.Null, "Main weapon usage must not touch the pocket");
+        Assert.That(engine.PocketWeaponFloor, Is.EqualTo(int.MaxValue));
+
+        engine.StoreWeapon(pocketWeapon);
+        engine.FightWithPocketWeapon(monsterForPocket); // 0 damage (7 <= 10) -> pocket floor 7
+
+        Assert.That(engine.PocketedWeapon, Is.EqualTo(pocketWeapon));
+        Assert.That(engine.PocketWeaponFloor, Is.EqualTo(7));
+        Assert.That(engine.EquippedWeapon, Is.EqualTo(mainWeapon), "Pocket weapon usage must not touch the main weapon");
+        Assert.That(engine.WeaponFloor, Is.EqualTo(6));
+        Assert.That(engine.SlainMonsterCount, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void StoreWeapon_AfterWon_Throws()
+    {
+        var joker  = Cards.BlackJoker();
+        var weapon = Cards.Weapon(5);
+        // 4-card deck: taking the joker + storing the weapon + taking the last 2 cards
+        // empties both room and deck -> Won.
+        var deck = new[] { Cards.Potion(2), Cards.Potion(3), weapon, joker };
+        var engine = new GameEngine(deck, extendedRules: true);
+
+        engine.TakeCard(joker);
+        engine.StoreWeapon(weapon);
+        engine.TakeCard(engine.Room[0]);
+        engine.TakeCard(engine.Room[0]);
+        Assert.That(engine.Won, Is.True);
+
+        Assert.That(engine.CanStoreWeapon(weapon), Is.False);
+        Assert.Throws<InvalidOperationException>(() => engine.StoreWeapon(weapon));
+    }
+
+    [Test]
+    public void FightWithPocketWeapon_AfterGameOver_Throws()
+    {
+        var joker          = Cards.BlackJoker();
+        var weaponToStore  = Cards.Weapon(5);
+        var m9a = Cards.Monster(9);
+        var m9b = Cards.Monster(9);
+        var m9c = Cards.Monster(9);
+        var monsterX = Cards.Monster(3);
+        var fillerP  = Cards.Potion(2);
+        var fillerQ  = Cards.Potion(3);
+        // Deck bottom -> top. Room 1 = {joker, weaponToStore, m9a, m9b}; room 2 refill
+        // (dealt once room 1 empties) = {m9c, monsterX, fillerP, fillerQ}.
+        var deck = new[] { fillerQ, fillerP, monsterX, m9c, m9b, m9a, weaponToStore, joker };
+        var engine = new GameEngine(deck, extendedRules: true);
+
+        engine.TakeCard(joker);
+        engine.StoreWeapon(weaponToStore);
+        engine.TakeCard(m9a); // 20 -> 11
+        engine.TakeCard(m9b); // 11 -> 2; room empties -> deals room 2
+        engine.TakeCard(m9c); // 2 -> 0 -> GameOver; monsterX left untouched in room 2
+
+        Assert.That(engine.GameOver, Is.True);
+        Assert.That(engine.CanFightWithPocketWeapon(monsterX), Is.False);
+        Assert.Throws<InvalidOperationException>(() => engine.FightWithPocketWeapon(monsterX));
     }
 }
