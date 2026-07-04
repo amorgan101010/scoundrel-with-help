@@ -2326,6 +2326,150 @@ public class ScoundrelSceneTests
         AssertThat((int)discardPile.Call("get_card_count")).IsEqual(1);
     }
 
+    // ── Give equipped weapon to Weapon Joker (PRD §6 follow-up, chunk 13) ──────
+    // The reverse direction of RetrievingPocketedWeapon_ViaTopZone_Equips above:
+    // instead of pulling a pocketed weapon out to equip, the player drags the
+    // already-equipped weapon (WeaponSlot.gd) onto the Weapon Joker's pocket zone.
+
+    [TestCase(Description = "Dragging the equipped weapon onto the Weapon Joker zone stores it in the pocket as a shrunk badge and clears the weapon UI")]
+    public async Task GivingEquippedWeaponToWeaponJoker_ViaDrag_MovesToPocketAsBadge_ClearsWeaponSlot()
+    {
+        var deck = new List<CardModel>
+        {
+            // Room 2 padding
+            new CardModel(Suit.Hearts, 2, "2_hearts"),
+            new CardModel(Suit.Hearts, 3, "3_hearts"),
+            new CardModel(Suit.Hearts, 4, "4_hearts"),
+            new CardModel(Suit.Clubs, 2, "2_clubs"),
+            // Room 1 (dealt first)
+            new CardModel(Suit.Diamonds, 7, "7_diamonds"),
+            new CardModel(Suit.Clubs, 3, "3_clubs"),
+            new CardModel(Suit.Hearts, 5, "5_hearts"),
+            new CardModel(Suit.BlackJoker, 0, "joker_black"),
+        };
+        var game = (ScoundrelGame)_runner!.Scene();
+        game.ExtendedRules = true;
+        game.StartGameWithDeck(deck);
+        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+
+        var scene = _runner!.Scene();
+        var weaponJokerSlot = scene.GetNode("UI/LeftPanel/JokerGroup/WeaponJokerSlot");
+        var weaponSlot = scene.GetNode("UI/LeftPanel/WeaponGroup/WeaponSlot");
+        var weaponLabel = scene.GetNode<Label>("UI/LeftPanel/WeaponGroup/WeaponLabel");
+
+        var joker = FindRoomCard(scene, s => s == "black_joker");
+        AssertThat(joker).IsNotNull();
+        ClickCard(scene, joker!);
+        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+
+        var weaponRoomCard = FindRoomCardByName(scene, "7_diamonds");
+        AssertThat(weaponRoomCard).IsNotNull();
+        ClickCard(scene, weaponRoomCard!); // equips into WeaponSlot
+        await _runner!.AwaitMillis(UITimings.DragAnimationMs); // let the equip tween settle
+
+        AssertThat((int)weaponSlot.Call("get_card_count")).IsEqual(1);
+        var equippedWeapon = ((GArray)weaponSlot.Call("get_top_cards", 1))[0].AsGodotObject();
+
+        // Fight a weak monster with the equipped weapon first, so it carries a
+        // slain-monster badge into the Give — proving the give path actually clears
+        // it (ClearSlainBadges), not just that a badge-free weapon looks clean.
+        var monster = FindRoomCardByName(scene, "3_clubs");
+        AssertThat(monster).IsNotNull();
+        ClickCard(scene, monster!); // weapon (value 7) fully blocks value-3 monster
+        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+
+        int BadgeCount() => ((Node)equippedWeapon!).GetChildren().Count(n => n.IsInGroup("slain_badge"));
+        AssertThat(BadgeCount()).IsEqual(1);
+
+        // Capture the joker's own card position before anything is stored on top of it.
+        var jokerCard = ((GArray)weaponJokerSlot.Call("get_top_cards", 1))[0].AsGodotObject();
+        float jokerGlobalY = ((Vector2)jokerCard.Get("global_position")).Y;
+
+        await MouseDragCard(equippedWeapon, WeaponJokerZoneCenter());
+        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+
+        // Slot count 2: the joker's own card plus the newly-pocketed weapon.
+        AssertThat((int)weaponJokerSlot.Call("get_card_count")).IsEqual(2);
+        AssertThat((int)weaponSlot.Call("get_card_count")).IsEqual(0);
+        AssertThat(weaponLabel.Text).IsEqual("Weapon: none");
+
+        // Slain-monster badge cleared, mirroring the Merchant-sale/RetrieveWeapon
+        // equip-replace path (this is the same weapon card node, now pocketed).
+        AssertThat(BadgeCount()).IsEqual(0);
+
+        var stored = ((GArray)weaponJokerSlot.Call("get_top_cards", 1))[0].AsGodotObject();
+
+        // Shrunk to a badge fraction of full size (ScoundrelLayoutController.
+        // PocketedItemScale = 0.42), not left at full scale (1.0) — same treatment
+        // chunk 12 built for storing a room weapon.
+        var scale = (Vector2)stored.Get("scale");
+        AssertThat(scale.X).IsLessEqual(0.6f);
+        AssertThat(scale.X).IsGreaterEqual(0.1f);
+
+        // Positioned below the joker's own card, not overlapping/above it.
+        float storedGlobalY = ((Vector2)stored.Get("global_position")).Y;
+        AssertThat(storedGlobalY).IsGreaterEqual(jokerGlobalY + 1f);
+    }
+
+    [TestCase(Description = "Dragging the equipped weapon anywhere other than the Weapon Joker zone bounces it back without changing engine state")]
+    public async Task DraggingEquippedWeaponElsewhere_BouncesBackToWeaponSlot()
+    {
+        var deck = new List<CardModel>
+        {
+            // Room 2 padding
+            new CardModel(Suit.Hearts, 2, "2_hearts"),
+            new CardModel(Suit.Hearts, 3, "3_hearts"),
+            new CardModel(Suit.Hearts, 4, "4_hearts"),
+            new CardModel(Suit.Clubs, 2, "2_clubs"),
+            // Room 1 (dealt first)
+            new CardModel(Suit.Diamonds, 7, "7_diamonds"),
+            new CardModel(Suit.Clubs, 3, "3_clubs"),
+            new CardModel(Suit.Hearts, 5, "5_hearts"),
+            new CardModel(Suit.BlackJoker, 0, "joker_black"),
+        };
+        var game = (ScoundrelGame)_runner!.Scene();
+        game.ExtendedRules = true;
+        game.StartGameWithDeck(deck);
+        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+
+        var scene = _runner!.Scene();
+        var weaponJokerSlot = scene.GetNode("UI/LeftPanel/JokerGroup/WeaponJokerSlot");
+        var weaponSlot = scene.GetNode("UI/LeftPanel/WeaponGroup/WeaponSlot");
+        var weaponLabel = scene.GetNode<Label>("UI/LeftPanel/WeaponGroup/WeaponLabel");
+        var discardPile = scene.GetNode("UI/RightPanel/DiscardGroup/DiscardPile");
+
+        var joker = FindRoomCard(scene, s => s == "black_joker");
+        AssertThat(joker).IsNotNull();
+        ClickCard(scene, joker!);
+        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+
+        var weaponRoomCard = FindRoomCardByName(scene, "7_diamonds");
+        AssertThat(weaponRoomCard).IsNotNull();
+        ClickCard(scene, weaponRoomCard!); // equips into WeaponSlot
+        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+
+        AssertThat((int)weaponSlot.Call("get_card_count")).IsEqual(1);
+        string labelBefore = weaponLabel.Text;
+        int discardCountBefore = (int)discardPile.Call("get_card_count");
+
+        var equippedWeapon = ((GArray)weaponSlot.Call("get_top_cards", 1))[0].AsGodotObject();
+        await MouseDragCard(equippedWeapon, RightZoneCenter());
+
+        // Bounced back: weapon stays equipped, Weapon Joker's pocket stays empty
+        // (only the joker's own card), and nothing was discarded.
+        AssertThat((int)weaponSlot.Call("get_card_count")).IsEqual(1);
+        AssertThat((int)weaponJokerSlot.Call("get_card_count")).IsEqual(1);
+        AssertThat(weaponLabel.Text).IsEqual(labelBefore);
+        AssertThat((int)discardPile.Call("get_card_count")).IsEqual(discardCountBefore);
+
+        var stillEquipped = ((GArray)weaponSlot.Call("get_top_cards", 1))[0].AsGodotObject();
+        string equippedName = stillEquipped.Get("card_info").AsGodotDictionary()["name"].AsString();
+        AssertThat(equippedName).IsEqual("7_diamonds");
+        // Bounced card must not be left shrunk — it stays the real, full-size weapon.
+        var scale = (Vector2)stillEquipped.Get("scale");
+        AssertThat(scale.X).IsEqual(1f);
+    }
+
     // ── Extended Rules: pocketed item badge visuals (playtest bug fix) ─────────
     //
     // Designer report: storing a potion/weapon in a joker pocket covered the
