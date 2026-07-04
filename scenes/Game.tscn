@@ -7,6 +7,7 @@
 [ext_resource type="Script" uid="uid://nge5xs0pqlvl" path="res://scenes/RoomContainer.gd" id="5_room"]
 [ext_resource type="Script" uid="uid://cov28geqoa6bq" path="res://scenes/DropZoneContainer.gd" id="6_dzc"]
 [ext_resource type="Script" uid="uid://buokfsbn6sbtb" path="res://scripts/HealthDie.cs" id="7_hd"]
+[ext_resource type="Script" path="res://scenes/JokerPocketSlot.gd" id="8_jps"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_red_n"]
 bg_color = Color(0.75, 0.18, 0.18, 1)
@@ -277,8 +278,8 @@ offset_top = 24.0
 offset_right = 225.0
 offset_bottom = 339.0
 mouse_filter = 1
-script = ExtResource("4_pile")
-allow_card_movement = false
+script = ExtResource("8_jps")
+allow_card_movement = true
 restrict_to_top_card = false
 enable_drop_zone = false
 
@@ -298,8 +299,8 @@ offset_top = 24.0
 offset_right = 470.0
 offset_bottom = 339.0
 mouse_filter = 1
-script = ExtResource("4_pile")
-allow_card_movement = false
+script = ExtResource("8_jps")
+allow_card_movement = true
 restrict_to_top_card = false
 enable_drop_zone = false
 
