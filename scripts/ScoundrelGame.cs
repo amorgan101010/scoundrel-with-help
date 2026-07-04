@@ -498,7 +498,7 @@ public partial class ScoundrelGame : Node
                 else
                     _engine.StoreWeapon(cardModel);
 
-                ResetCardScale(card);
+                ShrinkCardForPocket(card);
                 card.Set("tooltip_text", "");
                 var pocketSlot = matchesPotionZone ? _potionJokerSlot : _weaponJokerSlot;
                 pocketSlot.Call("move_cards", new Array { card }, -1, false);
@@ -1103,6 +1103,24 @@ public partial class ScoundrelGame : Node
 
     private static void ResetCardScale(GodotObject card)
         => card.Set("scale", new Vector2(1f, 1f));
+
+    // Shrinks a room potion/weapon down to a small badge as it's stored in a
+    // joker pocket (PotionJokerSlot/WeaponJokerSlot), instead of the full-size
+    // card covering the joker's own card art and its HP label above the slot
+    // (playtest bug). Only `scale` changes here — the card stays the real,
+    // draggable Godot node (see HandlePocketRetrieve), so drag/hover/discard all
+    // keep working exactly as chunk 10 built them; DraggableObject's own hover
+    // machinery re-captures `original_scale` from whatever `scale` currently is
+    // (draggable_object.gd _start_hover_animation), so hovering/dragging a
+    // pocketed item scales relative to this badge size, never snapping back to
+    // full size mid-interaction. Position is left entirely to the pocket slot's
+    // own Pile layout — see ScoundrelLayoutController.UpdateJokerGroupLayout,
+    // which sizes `stack_display_gap` off this same PocketedItemScale constant so
+    // the shrunk card lands flush with the slot's bottom edge. Retrieval/discard
+    // already reset scale back to 1 via the existing ResetCardScale/MoveToDiscard
+    // calls in HandlePocketRetrieve and OnCardSelected's weapon-equip branch.
+    private static void ShrinkCardForPocket(GodotObject card)
+        => card.Set("scale", new Vector2(ScoundrelLayoutController.PocketedItemScale, ScoundrelLayoutController.PocketedItemScale));
 
     private void DecrementSuit(CardModel card)
     {

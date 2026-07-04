@@ -186,6 +186,25 @@ public class ScoundrelSceneTests
         await _runner!.AwaitMillis(UITimings.PostInputSettleMs);
     }
 
+    // Computes a card's actual on-screen bounding rect, accounting for `scale`.
+    // A Control scales around `pivot_offset` (Card.gd always sets this to
+    // unscaled card_size / 2), so `global_position`/`size` alone don't reflect a
+    // shrunk card's real footprint — the pivot point is fixed under scaling, so
+    // the visual top-left shifts toward it by pivot * (1 - scale). Used to assert
+    // a pocketed (shrunk) potion/weapon never overlaps the HP label above its
+    // slot — see ShrinkCardForPocket in ScoundrelGame.cs.
+    private static Rect2 VisualRect(GodotObject card)
+    {
+        var position = (Vector2)card.Get("global_position");
+        var pivot    = (Vector2)card.Get("pivot_offset");
+        var scale    = (Vector2)card.Get("scale");
+        var size     = (Vector2)card.Get("size");
+
+        var visualTopLeft = position + pivot * (Vector2.One - scale);
+        var visualSize    = size * scale;
+        return new Rect2(visualTopLeft, visualSize);
+    }
+
     // ── Tests ─────────────────────────────────────────────────────────────────
 
     [TestCase(Description = "Game starts with full HP, 40-card deck, no weapon, 4 room cards")]
@@ -2305,5 +2324,133 @@ public class ScoundrelSceneTests
         AssertThat((int)weaponSlot.Call("get_card_count")).IsEqual(0);
         AssertThat(scene.GetNode<Label>("UI/LeftPanel/WeaponGroup/WeaponLabel").Text).IsEqual("Weapon: none");
         AssertThat((int)discardPile.Call("get_card_count")).IsEqual(1);
+    }
+
+    // ── Extended Rules: pocketed item badge visuals (playtest bug fix) ─────────
+    //
+    // Designer report: storing a potion/weapon in a joker pocket covered the
+    // joker's own card and its HP label, since the stored card previously
+    // stayed full-size (see ShrinkCardForPocket + ScoundrelLayoutController.
+    // UpdateJokerGroupLayout for the fix — the stored card is shrunk via `scale`
+    // and repositioned via the pocket slot's own Pile `layout`/`stack_display_gap`
+    // so it lands as a badge flush with the slot's bottom edge instead).
+
+    [TestCase(Description = "Storing a potion shrinks it into a badge below the joker's own card, never overlapping the HP label above the slot")]
+    public async Task StoringPotion_ShrinksIntoBadge_BelowJokerAndClearOfHpLabel()
+    {
+        var deck = new List<CardModel>
+        {
+            // Room 2 padding
+            new CardModel(Suit.Hearts, 2, "2_hearts"),
+            new CardModel(Suit.Hearts, 3, "3_hearts"),
+            new CardModel(Suit.Hearts, 4, "4_hearts"),
+            new CardModel(Suit.Clubs, 2, "2_clubs"),
+            // Room 1 (dealt first)
+            new CardModel(Suit.Diamonds, 6, "6_diamonds"),
+            new CardModel(Suit.Clubs, 3, "3_clubs"),
+            new CardModel(Suit.Hearts, 5, "5_hearts"),
+            new CardModel(Suit.RedJoker, 0, "joker_red"),
+        };
+        var game = (ScoundrelGame)_runner!.Scene();
+        game.ExtendedRules = true;
+        game.StartGameWithDeck(deck);
+        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+
+        var scene = _runner!.Scene();
+        var potionJokerSlot = scene.GetNode("UI/LeftPanel/JokerGroup/PotionJokerSlot");
+        var hpLabel = scene.GetNode<Label>("UI/LeftPanel/JokerGroup/PotionJokerHpLabel");
+
+        var joker = FindRoomCard(scene, s => s == "red_joker");
+        AssertThat(joker).IsNotNull();
+        ClickCard(scene, joker!);
+        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+
+        // Capture the joker's own card (the pocket's only occupant so far, index 0)
+        // before storing anything on top of it.
+        var jokerCard = ((GArray)potionJokerSlot.Call("get_top_cards", 1))[0].AsGodotObject();
+        float jokerGlobalY = ((Vector2)jokerCard.Get("global_position")).Y;
+
+        var potion = FindRoomCardByName(scene, "5_hearts");
+        AssertThat(potion).IsNotNull();
+        await MouseDragCard(potion!, PotionJokerZoneCenter());
+        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+
+        AssertThat((int)potionJokerSlot.Call("get_card_count")).IsEqual(2);
+        var stored = ((GArray)potionJokerSlot.Call("get_top_cards", 1))[0].AsGodotObject();
+
+        // Shrunk to a badge fraction of full size (ScoundrelLayoutController.
+        // PocketedItemScale = 0.42), not left at full scale (1.0).
+        var scale = (Vector2)stored.Get("scale");
+        AssertThat(scale.X).IsLessEqual(0.6f);
+        AssertThat(scale.X).IsGreaterEqual(0.1f);
+
+        // Positioned BELOW the joker's own card, not above it. This is the
+        // discriminating check: the pre-fix default (Pile layout=UP, ~8px gap)
+        // would have placed the stored card's Y at or above the joker's Y; only
+        // a working layout=DOWN configuration pushes it strictly lower.
+        float storedGlobalY = ((Vector2)stored.Get("global_position")).Y;
+        AssertThat(storedGlobalY).IsGreaterEqual(jokerGlobalY + 1f);
+
+        // Never overlaps the HP label above the slot — the exact reported bug
+        // ("covers up the joker's HP").
+        var storedRect = VisualRect(stored);
+        var labelRect = new Rect2(hpLabel.GlobalPosition, hpLabel.Size);
+        AssertThat(storedRect.Intersects(labelRect)).IsFalse();
+    }
+
+    [TestCase(Description = "Store-then-retrieve round trip still works exactly as chunk 10 built it after the badge-shrink visual change: top zone activates (heals) and resets scale back to full size")]
+    public async Task StoringThenRetrievingPotion_ViaTopZone_StillHealsAndResetsToFullScale()
+    {
+        var deck = new List<CardModel>
+        {
+            // Room 2 padding
+            new CardModel(Suit.Hearts, 2, "2_hearts"),
+            new CardModel(Suit.Hearts, 3, "3_hearts"),
+            new CardModel(Suit.Hearts, 4, "4_hearts"),
+            new CardModel(Suit.Clubs, 2, "2_clubs"),
+            // Room 1 (dealt first)
+            new CardModel(Suit.Clubs, 8, "8_clubs"),
+            new CardModel(Suit.Clubs, 3, "3_clubs"),
+            new CardModel(Suit.Hearts, 5, "5_hearts"),
+            new CardModel(Suit.RedJoker, 0, "joker_red"),
+        };
+        var game = (ScoundrelGame)_runner!.Scene();
+        game.ExtendedRules = true;
+        game.StartGameWithDeck(deck);
+        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+
+        var scene = _runner!.Scene();
+        var potionJokerSlot = scene.GetNode("UI/LeftPanel/JokerGroup/PotionJokerSlot");
+
+        var joker = FindRoomCard(scene, s => s == "red_joker");
+        AssertThat(joker).IsNotNull();
+        ClickCard(scene, joker!);
+        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+
+        // Take monster damage first so the heal is observable.
+        var monster = FindRoomCardByName(scene, "8_clubs");
+        AssertThat(monster).IsNotNull();
+        ClickCard(scene, monster!);
+        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        int hpAfterDamage = ParseHP(scene);
+
+        var potion = FindRoomCardByName(scene, "5_hearts");
+        AssertThat(potion).IsNotNull();
+        await MouseDragCard(potion!, PotionJokerZoneCenter());
+        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+
+        var pocketed = ((GArray)potionJokerSlot.Call("get_top_cards", 1))[0].AsGodotObject();
+        // Confirm it's actually shrunk before retrieving, so the post-retrieve
+        // reset assertion below is meaningful.
+        AssertThat(((Vector2)pocketed.Get("scale")).X).IsLessEqual(0.6f);
+
+        int expectedHP = Math.Min(ScoundrelRules.MaxHealth, hpAfterDamage + 5);
+        await MouseDragCard(pocketed, new Vector2(192f, 345f)); // top zone
+
+        AssertThat(ParseHP(scene)).IsEqual(expectedHP);
+        AssertThat((int)potionJokerSlot.Call("get_card_count")).IsEqual(1);
+        // Retrieval must reset the badge shrink back to full size — a retrieved/
+        // discarded card should never stay visually tiny once it's left the pocket.
+        AssertThat(((Vector2)pocketed.Get("scale")).X).IsEqual(1f);
     }
 }
