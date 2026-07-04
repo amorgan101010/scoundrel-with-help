@@ -49,6 +49,7 @@ public partial class ScoundrelGame : Node
     private Button _helpButton = null!;
     private AcceptDialog _helpDialog = null!;
     private Label _flavorLabel = null!;
+    private CheckBox _extendedRulesToggle = null!;
 
     // ── Game engine + Godot card bridge ───────────────────────────────────
     private GameEngine _engine = null!;
@@ -74,9 +75,10 @@ public partial class ScoundrelGame : Node
     required public AudioManager AudioManager {get; set;}
 
     // ── Ruleset toggle ────────────────────────────────────────────────────
-    // Lightweight stand-in for the future main-menu ruleset toggle (PRD §5.5,
-    // out of scope here). When true, BuildDeck() adds the Extended Rules cards
-    // (Blacksmith, Merchant, Jokers) and the engine is constructed accordingly.
+    // When true, BuildDeck() adds the Extended Rules cards (Blacksmith,
+    // Merchant, Jokers) and the engine is constructed accordingly. Controlled
+    // on-screen via _extendedRulesToggle; this Export default is just the
+    // fallback for scene tests and the first frame before _Ready() runs.
     [Export] public bool ExtendedRules = false;
 
     // ── Layout constants ──────────────────────────────────────────────────
@@ -147,6 +149,7 @@ public partial class ScoundrelGame : Node
         _retryButton    = GetNode<Button>("UI/TopButtonGroup/RetryButton");
         _helpButton     = GetNode<Button>("UI/TopButtonGroup/HelpButton");
         _helpDialog     = GetNode<AcceptDialog>("UI/HelpDialog");
+        _extendedRulesToggle = GetNode<CheckBox>("UI/ExtendedRulesToggle");
         var leftPanel   = GetNode<Control>("UI/LeftPanel");
         var weaponGroup = GetNode<Control>("UI/LeftPanel/WeaponGroup");
         var weaponSlotControl = GetNode<Control>("UI/LeftPanel/WeaponGroup/WeaponSlot");
@@ -267,6 +270,8 @@ public partial class ScoundrelGame : Node
         _nextRoomButton.Connect("pressed", Callable.From(OnNextRoomPressed));
         _retryButton.Connect("pressed",   Callable.From(OnRetryPressed));
         _helpButton.Connect("pressed",    Callable.From(OnHelpPressed));
+        _extendedRulesToggle.ButtonPressed = ExtendedRules;
+        _extendedRulesToggle.Connect("toggled", Callable.From<bool>(OnExtendedRulesToggled));
         GetViewport().Connect("size_changed", Callable.From(_layoutController.OnViewportResized));
 
         StartGame();
@@ -286,6 +291,9 @@ public partial class ScoundrelGame : Node
     private void InitGameWithDeck(SysCollections.List<CardModel> deck)
     {
         _bounceController.Reset();
+
+        _extendedRulesToggle.Disabled = false;
+        _extendedRulesToggle.ButtonPressed = ExtendedRules;
 
         _godotCards.Clear();
         _statusLabel.Text    = "";
@@ -400,6 +408,7 @@ public partial class ScoundrelGame : Node
     private void OnCardSelected(GodotObject card)
     {
         if (_engine.IsOver) return;
+        LockRulesetToggle();
 
         var name = card.Get("card_info").AsGodotDictionary()["name"].AsString();
 
@@ -816,6 +825,7 @@ public partial class ScoundrelGame : Node
     private void OnRunPressed()
     {
         if (!_engine.CanRun) return;
+        LockRulesetToggle();
 
         // Capture room Godot cards before engine clears them.
         var roomGodotCards = _engine.Room.Select(c => _godotCards[c.Name]).ToList();
@@ -837,6 +847,7 @@ public partial class ScoundrelGame : Node
     private void OnNextRoomPressed()
     {
         if (!_engine.CanNextRoom) return;
+        LockRulesetToggle();
         _engine.NextRoom();
         SyncRoomToGodot();
         UpdateUI();
@@ -845,6 +856,19 @@ public partial class ScoundrelGame : Node
     private void OnRetryPressed()
     {
         StartGame();
+    }
+
+    private void OnExtendedRulesToggled(bool pressed)
+    {
+        ExtendedRules = pressed;
+    }
+
+    // Disables the ruleset checkbox once the player has taken any action this
+    // game, so toggling it can't desync from the deck already dealt — the new
+    // value only takes effect on the next StartGame()/Retry.
+    private void LockRulesetToggle()
+    {
+        _extendedRulesToggle.Disabled = true;
     }
 
     private void OnHelpPressed()
