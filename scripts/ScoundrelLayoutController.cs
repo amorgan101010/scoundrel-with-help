@@ -27,6 +27,13 @@ public sealed class ScoundrelLayoutController
     private const float HelpDialogMaxWidth = 760f;
     private const float HelpDialogMaxHeight = 800f;
     private const float HelpDialogViewportScale = 0.85f;
+    private const float JokerGroupHorizontalPadding = 30f;
+    private const float JokerGroupTopGap = 20f;
+    private const float JokerSlotGap = 20f;
+    private const float JokerLabelBottomPadding = 4f;
+    private const float JokerLabelScale = 0.045f;
+    private const int JokerLabelMinFontSize = 12;
+    private const int JokerLabelMaxFontSize = 16;
 
     private readonly Node _owner;
     private readonly GodotObject _cardFactory;
@@ -48,6 +55,11 @@ public sealed class ScoundrelLayoutController
     private readonly Label _spadesLabel;
     private readonly Label _heartsLabel;
     private readonly Label _diamondsLabel;
+    private readonly Control _jokerGroup;
+    private readonly Control _potionJokerSlot;
+    private readonly Control _weaponJokerSlot;
+    private readonly Label _potionJokerHpLabel;
+    private readonly Label _weaponJokerHpLabel;
     private readonly float _baseInPlayHeight;
     private readonly float _baseCardWidth;
     private readonly float _baseCardHeight;
@@ -75,6 +87,11 @@ public sealed class ScoundrelLayoutController
         Label spadesLabel,
         Label heartsLabel,
         Label diamondsLabel,
+        Control jokerGroup,
+        Control potionJokerSlot,
+        Control weaponJokerSlot,
+        Label potionJokerHpLabel,
+        Label weaponJokerHpLabel,
         float baseCardWidth,
         float baseCardHeight,
         System.Action<Vector2> setCardSize)
@@ -99,6 +116,11 @@ public sealed class ScoundrelLayoutController
         _spadesLabel = spadesLabel;
         _heartsLabel = heartsLabel;
         _diamondsLabel = diamondsLabel;
+        _jokerGroup = jokerGroup;
+        _potionJokerSlot = potionJokerSlot;
+        _weaponJokerSlot = weaponJokerSlot;
+        _potionJokerHpLabel = potionJokerHpLabel;
+        _weaponJokerHpLabel = weaponJokerHpLabel;
         _baseInPlayHeight = _inPlayGroup.OffsetBottom - _inPlayGroup.OffsetTop;
         _baseCardWidth = baseCardWidth;
         _baseCardHeight = baseCardHeight;
@@ -156,6 +178,7 @@ public sealed class ScoundrelLayoutController
 
         UpdateRoomLayout(cardSize);
         UpdateWeaponGroupLayout(cardSize);
+        UpdateJokerGroupLayout(cardSize);
 
         _roomContainer.Call("_update_target_positions");
         UpdateButtonGroupWidths();
@@ -217,6 +240,55 @@ public sealed class ScoundrelLayoutController
         _inPlayGroup.OffsetRight = weaponGroupWidth;
         _inPlayGroup.OffsetBottom = _inPlayGroup.OffsetTop + inPlayHeight;
         _weaponGroup.OffsetBottom = Mathf.Max(WeaponGroupMinBottom, Mathf.Max(_inPlayGroup.OffsetBottom, _weaponSlot.OffsetBottom));
+    }
+
+    /// <summary>
+    /// Positions JokerGroup in the bottom third of LeftPanel, directly below the
+    /// (dynamically-sized) WeaponGroup, with the Potion Joker slot on the left
+    /// and the Weapon Joker slot on the right. Follows the same offset/scale
+    /// conventions as UpdateWeaponGroupLayout: joker slots render at the full
+    /// card_size (cards can't be individually scaled smaller within a Pile),
+    /// with a scaled HP label above each.
+    /// </summary>
+    private void UpdateJokerGroupLayout(Vector2 cardSize)
+    {
+        var leftPanelWidth = _leftPanel.Size.X;
+        if (leftPanelWidth <= 0f)
+            leftPanelWidth = _jokerGroup.Size.X + (JokerGroupHorizontalPadding * 2f);
+
+        var jokerGroupWidth = Mathf.Max(0f, leftPanelWidth - (JokerGroupHorizontalPadding * 2f));
+
+        _jokerGroup.OffsetLeft = JokerGroupHorizontalPadding;
+        _jokerGroup.OffsetRight = JokerGroupHorizontalPadding + jokerGroupWidth;
+        _jokerGroup.OffsetTop = _weaponGroup.OffsetBottom + JokerGroupTopGap;
+
+        var labelFontSize = (int)Mathf.Round(Mathf.Clamp(cardSize.Y * JokerLabelScale, JokerLabelMinFontSize, JokerLabelMaxFontSize));
+        _potionJokerHpLabel.AddThemeFontSizeOverride("font_size", labelFontSize);
+        _weaponJokerHpLabel.AddThemeFontSizeOverride("font_size", labelFontSize);
+        var labelHeight = labelFontSize + JokerLabelBottomPadding;
+
+        _potionJokerHpLabel.OffsetLeft = 0f;
+        _potionJokerHpLabel.OffsetRight = cardSize.X;
+        _potionJokerHpLabel.OffsetTop = 0f;
+        _potionJokerHpLabel.OffsetBottom = labelHeight;
+
+        _potionJokerSlot.OffsetLeft = 0f;
+        _potionJokerSlot.OffsetTop = labelHeight;
+        _potionJokerSlot.OffsetRight = cardSize.X;
+        _potionJokerSlot.OffsetBottom = labelHeight + cardSize.Y;
+
+        var weaponJokerX = cardSize.X + JokerSlotGap;
+        _weaponJokerHpLabel.OffsetLeft = weaponJokerX;
+        _weaponJokerHpLabel.OffsetRight = weaponJokerX + cardSize.X;
+        _weaponJokerHpLabel.OffsetTop = 0f;
+        _weaponJokerHpLabel.OffsetBottom = labelHeight;
+
+        _weaponJokerSlot.OffsetLeft = weaponJokerX;
+        _weaponJokerSlot.OffsetTop = labelHeight;
+        _weaponJokerSlot.OffsetRight = weaponJokerX + cardSize.X;
+        _weaponJokerSlot.OffsetBottom = labelHeight + cardSize.Y;
+
+        _jokerGroup.OffsetBottom = _jokerGroup.OffsetTop + labelHeight + cardSize.Y;
     }
 
     private void UpdateRoomLayout(Vector2 cardSize)
