@@ -336,6 +336,38 @@ public class GameEngine
     }
 
     /// <summary>
+    /// True iff the currently-equipped weapon can be moved into the Weapon Pocket right
+    /// now — the reverse direction of <see cref="RetrieveWeapon"/>: the joker has been
+    /// taken, the pocket is empty, a weapon is actually equipped, and the game isn't over.
+    /// </summary>
+    public bool CanGiveEquippedWeaponToJoker
+        => HasWeaponJoker && PocketedWeapon == null && EquippedWeapon != null && !IsOver;
+
+    /// <summary>
+    /// Move the currently-equipped weapon into the Weapon Pocket instead of retrieving a
+    /// pocketed weapon out of it (the reverse of <see cref="RetrieveWeapon"/>). Resets the
+    /// main weapon system to its no-weapon defaults exactly like a fresh
+    /// <see cref="EquipWeapon"/> call or a Merchant sale (<see cref="ApplyMerchantEffect"/>)
+    /// does: WeaponFloor, SlainMonsterCount, WeaponAttackBonus, and SingleUseWeaponBonus all
+    /// clear. A side action like <see cref="RetrievePotion"/>/<see cref="RetrieveWeapon"/>:
+    /// it does not touch CardsTakenThisRoom and does not run the room-refill/win-check tail
+    /// — the weapon isn't in _room or _discard, it just moves from one already-possessed
+    /// slot (EquippedWeapon) to another (PocketedWeapon).
+    /// </summary>
+    public void GiveEquippedWeaponToJoker()
+    {
+        if (!CanGiveEquippedWeaponToJoker)
+            throw new InvalidOperationException("Cannot give the equipped weapon to the Weapon Joker right now.");
+
+        PocketedWeapon = EquippedWeapon;
+        EquippedWeapon = null;
+        WeaponFloor = int.MaxValue;
+        SlainMonsterCount = 0;
+        WeaponAttackBonus = 0;
+        SingleUseWeaponBonus = 0;
+    }
+
+    /// <summary>
     /// Handle a monster with the Red Joker instead of fighting it: the joker absorbs the
     /// monster's full value into its own HP pool (<see cref="PotionJokerHealth"/>), never
     /// reduced by a weapon and never touching the player's <see cref="Health"/>. The monster

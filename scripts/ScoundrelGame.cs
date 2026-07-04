@@ -271,6 +271,11 @@ public partial class ScoundrelGame : Node
         _weaponJokerSlot.Connect("card_drag_started", Callable.From<GodotObject>(OnCardDragStarted));
         _weaponJokerSlot.Connect("card_drag_ended",   Callable.From(OnCardDragEnded));
         _weaponJokerSlot.Connect("card_selected",     Callable.From<GodotObject>(OnCardSelected));
+        // The equipped weapon (WeaponSlot.gd) is draggable too, so it can be given to the
+        // Black Joker's Weapon Pocket — same handler wiring as the room/pocket slots above.
+        _weaponSlot.Connect("card_drag_started", Callable.From<GodotObject>(OnCardDragStarted));
+        _weaponSlot.Connect("card_drag_ended",   Callable.From(OnCardDragEnded));
+        _weaponSlot.Connect("card_selected",     Callable.From<GodotObject>(OnCardSelected));
         _runButton.Connect("pressed",     Callable.From(OnRunPressed));
         _nextRoomButton.Connect("pressed", Callable.From(OnNextRoomPressed));
         _retryButton.Connect("pressed",   Callable.From(OnRetryPressed));
@@ -416,6 +421,15 @@ public partial class ScoundrelGame : Node
         LockRulesetToggle();
 
         var name = card.Get("card_info").AsGodotDictionary()["name"].AsString();
+
+        // The currently-equipped weapon (dragged out of WeaponSlot) is a give-to-joker
+        // action, not a room take — dispatch it separately before the room lookup below,
+        // since the equipped weapon is never in _engine.Room.
+        if (_engine.EquippedWeapon?.Name == name)
+        {
+            HandleGiveWeaponToJoker(card);
+            return;
+        }
 
         // A pocketed item (dragged out of PotionJokerSlot/WeaponJokerSlot) is a retrieve/
         // discard action, not a room take — dispatch it separately before the room lookup
@@ -795,6 +809,47 @@ public partial class ScoundrelGame : Node
         UpdateUI();
     }
 
+    /// <summary>
+    /// Dispatches a drag-release for the currently-equipped weapon (dragged out of
+    /// WeaponSlot) — the reverse direction of HandlePocketRetrieve's weapon-retrieve
+    /// branch. The only destination this interaction supports is the Black Joker's Weapon
+    /// Pocket zone (WeaponJokerDropZone): dropping there moves the equipped weapon into
+    /// the pocket via GameEngine.GiveEquippedWeaponToJoker, using the same
+    /// ShrinkCardForPocket badge treatment chunk 12 built for storing a room weapon.
+    /// Dropped anywhere else (top zone, right zone, either joker fight sub-zone), or if
+    /// GiveEquippedWeaponToJoker is blocked (pocket already occupied, no Weapon Joker
+    /// owned, game over), the card bounces back to the weapon slot untouched — this
+    /// interaction has no other semantics (no fighting, no discarding the equipped weapon
+    /// this way). A side action: room state is untouched, so this never calls
+    /// SyncRoomToGodot.
+    /// </summary>
+    private void HandleGiveWeaponToJoker(GodotObject card)
+    {
+        ulong containerId = card.Get("card_container").AsGodotObject().GetInstanceId();
+        bool droppedWeaponJokerZone = containerId == _weaponJokerDropZone.GetInstanceId();
+
+        if (!droppedWeaponJokerZone || !_engine.CanGiveEquippedWeaponToJoker)
+        {
+            _weaponSlot.Call("move_cards", new Array { card }, -1, false);
+            ShowBriefMessage("Can't give weapon to Joker!");
+            return;
+        }
+
+        _engine.GiveEquippedWeaponToJoker();
+
+        // Mirrors Merchant's sale / RetrieveWeapon's equip-replace path: the main weapon
+        // slot is now empty, so any slain-monster badges on the old weapon card must be
+        // cleared to match. WeaponLabel itself needs no explicit reset here — UpdateUI()
+        // below already derives "Weapon: none" from EquippedWeapon being null, exactly
+        // like the Merchant-sale/RetrieveWeapon paths rely on it.
+        ClearSlainBadges(card);
+        ShrinkCardForPocket(card);
+        card.Set("tooltip_text", "");
+        _weaponJokerSlot.Call("move_cards", new Array { card }, -1, false);
+
+        UpdateUI();
+    }
+
     // ── Drag zone highlights + labels ────────────────────────────────────
     //
     // Dispatches on the card's classification properties (IsMonster/IsPotion/
@@ -810,7 +865,24 @@ public partial class ScoundrelGame : Node
     {
         var cardModel = CardData.FromGodotCard(card);
 
-        if (cardModel.IsMonster)
+        if (_engine.EquippedWeapon?.Name == cardModel.Name)
+        {
+            // Dragging the equipped weapon out of WeaponSlot (see HandleGiveWeaponToJoker):
+            // the only real destination is the Weapon Joker's pocket zone, so every other
+            // highlight/label stays hidden — falling through to the IsWeapon branch below
+            // would show a stale "Equip"/"Discard" pair meant for a room card, not this one.
+            bool canGive = _engine.CanGiveEquippedWeaponToJoker;
+            _leftHighlight.Visible  = false;
+            _leftLabel.Visible      = false;
+            _rightHighlight.Visible = false;
+            _rightLabel.Visible     = false;
+            _potionJokerHighlight.Visible = false;
+            _potionJokerZoneLabel.Visible = false;
+            _weaponJokerHighlight.Visible = canGive;
+            _weaponJokerZoneLabel.Text    = "Give to Weapon Joker";
+            _weaponJokerZoneLabel.Visible = canGive;
+        }
+        else if (cardModel.IsMonster)
         {
             int monsterValue = cardModel.MonsterValue;
             bool canUseWeapon = _engine.EquippedWeapon != null
