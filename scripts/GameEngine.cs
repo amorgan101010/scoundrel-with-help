@@ -145,13 +145,20 @@ public class GameEngine
     /// <param name="activateCard">
     /// When false, the card is discarded without its type-specific effect
     /// (no equip for weapons, no heal for potions). Useful for player-chosen discards.
+    /// For a Blacksmith card, "declined" means recycled into the deck rather than
+    /// discarded — see <see cref="ApplyBlacksmithEffect"/> — so it is handled before the
+    /// general activateCard/discard branch below, not inside it.
     /// </param>
     public void TakeCard(CardModel card, bool useWeapon = true, bool activateCard = true)
     {
         if (IsOver) throw new InvalidOperationException("Game is over.");
         if (!_room.Remove(card)) throw new ArgumentException("Card is not in the room.");
 
-        if (!activateCard)
+        if (card.IsBlacksmith)
+        {
+            ApplyBlacksmithEffect(card, activateCard);
+        }
+        else if (!activateCard)
         {
             _discard.Add(card);
         }
@@ -185,8 +192,7 @@ public class GameEngine
             }
             else
             {
-                // Blacksmith and Merchant: placeholder discard-only behavior pending their
-                // own chunks.
+                // Merchant: placeholder discard-only behavior pending its own chunk.
                 _discard.Add(card);
             }
         }
@@ -278,36 +284,7 @@ public class GameEngine
             throw new InvalidOperationException("Cannot use this Blacksmith card right now.");
 
         _room.Remove(card);
-
-        if (!activate || EquippedWeapon == null)
-        {
-            RecycleIntoDeck(card);
-        }
-        else if (SlainMonsterCount == 0)
-        {
-            switch (card.Rank)
-            {
-                case 11: WeaponAttackBonus += 1; break;                     // Jack
-                case 12: WeaponAttackBonus += 2; break;                     // Queen
-                case 13: WeaponAttackBonus += 3; break;                     // King
-                case ScoundrelRules.AceRank: SingleUseWeaponBonus += 4; break; // Ace — Excalibur
-            }
-            _discard.Add(card);
-        }
-        else
-        {
-            int removal = card.Rank switch
-            {
-                11 => 1,                              // Jack
-                12 => 2,                              // Queen
-                13 => 3,                              // King
-                ScoundrelRules.AceRank => SlainMonsterCount, // Ace — remove all
-                _ => 0,
-            };
-            SlainMonsterCount = Math.Max(0, SlainMonsterCount - removal);
-            _discard.Add(card);
-        }
-
+        ApplyBlacksmithEffect(card, activate);
         FinishRoomAction();
     }
 
@@ -438,5 +415,48 @@ public class GameEngine
     {
         int index = _rng.Next(0, _deck.Count + 1);
         _deck.Insert(index, card);
+    }
+
+    /// <summary>
+    /// Core Blacksmith effect (PRD §6, item 3), shared by <see cref="UseBlacksmith"/> and
+    /// <see cref="TakeCard"/>'s Blacksmith branch. Assumes the card has already been
+    /// removed from the room; does not touch room/CardsTakenThisRoom bookkeeping — callers
+    /// are responsible for that (via FinishRoomAction).
+    /// </summary>
+    private void ApplyBlacksmithEffect(CardModel card, bool activate)
+    {
+        if (!activate || EquippedWeapon == null)
+        {
+            RecycleIntoDeck(card);
+            return;
+        }
+
+        if (SlainMonsterCount == 0)
+        {
+            // Nothing to remove — grant a rank-based bonus instead. J/Q/K bonuses are
+            // permanent; the Ace's is single-use ("Excalibur"), consumed after the next
+            // weapon-blocked fight (see ApplyMonsterDamage).
+            switch (card.Rank)
+            {
+                case 11: WeaponAttackBonus += 1; break;                        // Jack
+                case 12: WeaponAttackBonus += 2; break;                        // Queen
+                case 13: WeaponAttackBonus += 3; break;                        // King
+                case ScoundrelRules.AceRank: SingleUseWeaponBonus += 4; break; // Ace
+            }
+        }
+        else
+        {
+            int removal = card.Rank switch
+            {
+                11 => 1,                                     // Jack
+                12 => 2,                                     // Queen
+                13 => 3,                                     // King
+                ScoundrelRules.AceRank => SlainMonsterCount,  // Ace — remove all
+                _ => 0,
+            };
+            SlainMonsterCount = Math.Max(0, SlainMonsterCount - removal);
+        }
+
+        _discard.Add(card);
     }
 }

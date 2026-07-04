@@ -1068,8 +1068,13 @@ public class ExtendedRulesPlaceholderTests
         Assert.That(engine.ExtendedRules, Is.True);
     }
 
+    // NOTE: Superseded by BlacksmithTests below (chunk 4 implements the real Blacksmith
+    // mechanic). Updated in place rather than left contradicting the new behavior: the
+    // chunk-1 placeholder discarded the Blacksmith card unconditionally; the real mechanic
+    // recycles it into the deck (rather than discarding) whenever there's no equipped
+    // weapon to blacksmith.
     [Test]
-    public void TakingBlacksmithCard_DiscardsWithoutChangingHealthOrWeapon()
+    public void TakingBlacksmithCard_WithNoWeaponEquipped_RecyclesIntoDeck_NotDiscard()
     {
         var blacksmith = new CardModel(Suit.Diamonds, 11, "jack_diamonds");
         var deck = new[] { Cards.Potion(2), Cards.Potion(3), Cards.Potion(4), blacksmith };
@@ -1078,7 +1083,8 @@ public class ExtendedRulesPlaceholderTests
 
         Assert.DoesNotThrow(() => engine.TakeCard(blacksmith));
 
-        Assert.That(engine.Discard, Contains.Item(blacksmith));
+        Assert.That(engine.Deck, Contains.Item(blacksmith));
+        Assert.That(engine.Discard, Does.Not.Contain(blacksmith));
         Assert.That(engine.Health, Is.EqualTo(healthBefore));
         Assert.That(engine.EquippedWeapon, Is.Null);
         Assert.That(engine.CardsTakenThisRoom, Is.EqualTo(1));
@@ -2079,6 +2085,44 @@ public class BlacksmithTests
         Assert.That(engine.WeaponAttackBonus, Is.EqualTo(1));
         Assert.That(engine.PocketedWeapon, Is.EqualTo(pocketWeapon), "Blacksmith must not touch the pocket weapon");
         Assert.That(engine.PocketWeaponFloor, Is.EqualTo(int.MaxValue), "Pocket weapon floor is untouched");
+    }
+
+    // ── TakeCard integration (routes to the same ApplyBlacksmithEffect as UseBlacksmith) ─
+
+    [Test]
+    public void TakingBlacksmithCard_ThroughTakeCard_WithWeaponEquipped_AppliesEffect()
+    {
+        var weapon  = Cards.Weapon(10);
+        var monster = Cards.Monster(9);
+        var jack    = Cards.Blacksmith(11);
+        var filler  = Cards.Potion(2);
+        var engine  = Cards.RoomOf(weapon, monster, jack, filler);
+
+        engine.TakeCard(weapon);
+        engine.TakeCard(monster); // blocked -> slain 1
+        Assert.That(engine.SlainMonsterCount, Is.EqualTo(1));
+
+        engine.TakeCard(jack); // routed through TakeCard's IsBlacksmith branch, not UseBlacksmith directly
+
+        Assert.That(engine.SlainMonsterCount, Is.EqualTo(0));
+        Assert.That(engine.Discard, Contains.Item(jack));
+    }
+
+    [Test]
+    public void TakingBlacksmithCard_ThroughTakeCard_ActivateFalse_RecyclesEvenWithWeaponEquipped()
+    {
+        var weapon  = Cards.Weapon(10);
+        var jack    = Cards.Blacksmith(11);
+        var filler1 = Cards.Potion(2);
+        var filler2 = Cards.Potion(3);
+        var engine  = Cards.RoomOf(weapon, jack, filler1, filler2);
+
+        engine.TakeCard(weapon);
+        engine.TakeCard(jack, activateCard: false); // declined -> recycle, not TakeCard's plain discard
+
+        Assert.That(engine.Deck, Contains.Item(jack));
+        Assert.That(engine.Discard, Does.Not.Contain(jack));
+        Assert.That(engine.WeaponAttackBonus, Is.EqualTo(0));
     }
 
     // ── Game-over / won guards ───────────────────────────────────────────────────
