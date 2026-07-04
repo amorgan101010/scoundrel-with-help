@@ -71,6 +71,11 @@ public partial class ScoundrelGame : Node
     public bool BounceActive => _bounceController?.BounceActive ?? false;
     public int BounceCardCount => _bounceController?.BounceCardCount ?? 0;
 
+    // Test-support accessors: the drop-zone labels are created at runtime with no
+    // node name/path, so scene tests can't GetNode<Label> them directly.
+    public string LeftZoneLabelText  => _leftLabel?.Text ?? "";
+    public string RightZoneLabelText => _rightLabel?.Text ?? "";
+
     // ── Sound effects ─────────────────────────────────────────────────────
     required public AudioManager AudioManager {get; set;}
 
@@ -544,15 +549,25 @@ public partial class ScoundrelGame : Node
             return;
         }
 
-        // Monster right = bare-handed; potion/weapon right = discard without activating.
+        // Monster right = bare-handed; potion/weapon/Blacksmith/Merchant right =
+        // discard/decline without activating. Blacksmith/Merchant must be included
+        // here (they weren't originally) — otherwise the right zone could never
+        // decline them and GameEngine.TakeCard's recycle-on-decline path
+        // (ApplyBlacksmithEffect/ApplyMerchantEffect with activate:false) was
+        // unreachable from the UI even though the engine already supports it.
         bool useWeapon   = !(cardModel.IsMonster && droppedRight);
-        bool activateCard = !((cardModel.IsPotion || cardModel.IsWeapon) && droppedRight);
+        bool activateCard = !((cardModel.IsPotion || cardModel.IsWeapon
+            || cardModel.IsBlacksmith || cardModel.IsMerchant) && droppedRight);
 
         var oldWeapon             = _engine.EquippedWeapon;
         bool potionUsedBefore     = _engine.PotionUsedThisRoom;
         bool potionWastedBefore   = _engine.PotionWastedThisRoom;
         bool hadPotionJokerBefore = _engine.HasPotionJoker;
         bool hadWeaponJokerBefore = _engine.HasWeaponJoker;
+        int slainBefore           = _engine.SlainMonsterCount;
+        int atkBonusBefore        = _engine.WeaponAttackBonus;
+        int singleUseBonusBefore  = _engine.SingleUseWeaponBonus;
+        int healthBefore          = _engine.Health;
         bool willUseWeapon      = useWeapon
             && cardModel.IsMonster
             && _engine.EquippedWeapon != null
@@ -613,10 +628,28 @@ public partial class ScoundrelGame : Node
         {
             // Blacksmith only adjusts the equipped weapon's wear/bonus counters
             // (SlainMonsterCount/WeaponAttackBonus/SingleUseWeaponBonus) — it
-            // never changes EquippedWeapon itself, so the weapon slot, its
-            // badges, and its card node must be left completely untouched.
+            // never changes EquippedWeapon itself, so the weapon slot and its
+            // card node are left completely untouched. Its counters have no
+            // visual home of their own though (no badge, no label), so without
+            // the brief-message + badge-removal below the card visibly "does
+            // nothing" even though the engine-side effect is applied correctly.
             if (activateCard && oldWeapon != null)
             {
+                int removed = slainBefore - _engine.SlainMonsterCount;
+                if (removed > 0)
+                {
+                    RemoveSlainBadges(_godotCards[oldWeapon.Name], removed);
+                    ShowBriefMessage($"Blacksmith removed {removed} slain monster{(removed == 1 ? "" : "s")} from your weapon!");
+                }
+                else if (_engine.SingleUseWeaponBonus > singleUseBonusBefore)
+                {
+                    ShowBriefMessage($"Blacksmith granted a one-time +{_engine.SingleUseWeaponBonus - singleUseBonusBefore} attack bonus!");
+                }
+                else if (_engine.WeaponAttackBonus > atkBonusBefore)
+                {
+                    ShowBriefMessage($"Blacksmith granted +{_engine.WeaponAttackBonus - atkBonusBefore} weapon attack!");
+                }
+
                 DecrementSuit(cardModel);
                 MoveToDiscard(card);
             }
@@ -625,6 +658,9 @@ public partial class ScoundrelGame : Node
                 // Declined, or no weapon to blacksmith: the engine recycled the
                 // card into the deck instead of discarding it.
                 RecycleCardToDeck(card);
+                ShowBriefMessage(oldWeapon == null
+                    ? "No weapon equipped — Blacksmith card recycled."
+                    : "Blacksmith declined — recycled into the deck.");
             }
         }
         else if (cardModel.IsMerchant)
@@ -641,12 +677,17 @@ public partial class ScoundrelGame : Node
 
                 DecrementSuit(cardModel);
                 MoveToDiscard(card);
+
+                ShowBriefMessage($"Sold weapon for {_engine.Health - healthBefore} HP!");
             }
             else
             {
                 // Declined, or no weapon to sell: the engine recycled the card
                 // into the deck instead of discarding it.
                 RecycleCardToDeck(card);
+                ShowBriefMessage(oldWeapon == null
+                    ? "No weapon equipped — Merchant card recycled."
+                    : "Merchant declined — recycled into the deck.");
             }
         }
         else if (cardModel.IsPotionJoker)
@@ -755,57 +796,91 @@ public partial class ScoundrelGame : Node
     }
 
     // ── Drag zone highlights + labels ────────────────────────────────────
+    //
+    // Dispatches on the card's classification properties (IsMonster/IsPotion/
+    // IsWeapon/IsBlacksmith/IsMerchant/IsPotionJoker/IsWeaponJoker) via
+    // CardData.FromGodotCard rather than the raw "suit" string from card_info:
+    // Blacksmith cards share the "diamonds" suit string with real weapons and
+    // Merchant cards share "hearts" with real potions (only rank distinguishes
+    // them — see CardModel.cs), so a raw-suit switch showed "Equip"/"Drink"
+    // zone labels for Blacksmith/Merchant cards instead of accurate text. Jokers
+    // ("red_joker"/"black_joker") previously matched no case at all, leaving
+    // whatever labels were visible from the last drag on screen.
     private void OnCardDragStarted(GodotObject card)
     {
-        var info = card.Get("card_info").AsGodotDictionary();
-        var suit = info["suit"].AsString();
+        var cardModel = CardData.FromGodotCard(card);
 
-        switch (suit)
+        if (cardModel.IsMonster)
         {
-            case "clubs":
-            case "spades":
-            {
-                int rank         = info["rank"].AsInt32();
-                int monsterValue = rank == 1 ? 14 : rank;
-                bool canUseWeapon = _engine.EquippedWeapon != null
-                    && ScoundrelRules.CanUseWeapon(monsterValue, _engine.WeaponFloor);
-                bool canUsePotionJoker = _engine.HasPotionJoker && _engine.PotionJokerHealth > 0;
-                bool canUseWeaponJoker = _engine.HasWeaponJoker && _engine.WeaponJokerHealth > 0;
+            int monsterValue = cardModel.MonsterValue;
+            bool canUseWeapon = _engine.EquippedWeapon != null
+                && ScoundrelRules.CanUseWeapon(monsterValue, _engine.WeaponFloor);
+            bool canUsePotionJoker = _engine.HasPotionJoker && _engine.PotionJokerHealth > 0;
+            bool canUseWeaponJoker = _engine.HasWeaponJoker && _engine.WeaponJokerHealth > 0;
 
-                _leftHighlight.Visible  = canUseWeapon;
-                _leftLabel.Text         = "Fight (Weapon)";
-                _leftLabel.Visible      = canUseWeapon;
-                _rightHighlight.Visible = true;
-                _rightLabel.Text        = "Fight (Fists)";
-                _rightLabel.Visible     = true;
+            _leftHighlight.Visible  = canUseWeapon;
+            _leftLabel.Text         = "Fight (Weapon)";
+            _leftLabel.Visible      = canUseWeapon;
+            _rightHighlight.Visible = true;
+            _rightLabel.Text        = "Fight (Fists)";
+            _rightLabel.Visible     = true;
 
-                _potionJokerHighlight.Visible = canUsePotionJoker;
-                _potionJokerZoneLabel.Text    = "Fight (Potion Joker)";
-                _potionJokerZoneLabel.Visible = canUsePotionJoker;
-                _weaponJokerHighlight.Visible = canUseWeaponJoker;
-                _weaponJokerZoneLabel.Text    = "Fight (Weapon Joker)";
-                _weaponJokerZoneLabel.Visible = canUseWeaponJoker;
-                break;
-            }
-            case "hearts":
-            {
-                bool canDrink = !_engine.PotionUsedThisRoom;
-                _leftHighlight.Visible  = canDrink;
-                _leftLabel.Text         = "Drink";
-                _leftLabel.Visible      = canDrink;
-                _rightHighlight.Visible = true;
-                _rightLabel.Text        = "Discard";
-                _rightLabel.Visible     = true;
-                break;
-            }
-            case "diamonds":
-                _leftHighlight.Visible  = true;
-                _leftLabel.Text         = "Equip";
-                _leftLabel.Visible      = true;
-                _rightHighlight.Visible = true;
-                _rightLabel.Text        = "Discard";
-                _rightLabel.Visible     = true;
-                break;
+            _potionJokerHighlight.Visible = canUsePotionJoker;
+            _potionJokerZoneLabel.Text    = "Fight (Potion Joker)";
+            _potionJokerZoneLabel.Visible = canUsePotionJoker;
+            _weaponJokerHighlight.Visible = canUseWeaponJoker;
+            _weaponJokerZoneLabel.Text    = "Fight (Weapon Joker)";
+            _weaponJokerZoneLabel.Visible = canUseWeaponJoker;
+        }
+        else if (cardModel.IsPotion)
+        {
+            bool canDrink = !_engine.PotionUsedThisRoom;
+            _leftHighlight.Visible  = canDrink;
+            _leftLabel.Text         = "Drink";
+            _leftLabel.Visible      = canDrink;
+            _rightHighlight.Visible = true;
+            _rightLabel.Text        = "Discard";
+            _rightLabel.Visible     = true;
+        }
+        else if (cardModel.IsWeapon)
+        {
+            _leftHighlight.Visible  = true;
+            _leftLabel.Text         = "Equip";
+            _leftLabel.Visible      = true;
+            _rightHighlight.Visible = true;
+            _rightLabel.Text        = "Discard";
+            _rightLabel.Visible     = true;
+        }
+        else if (cardModel.IsBlacksmith)
+        {
+            bool hasWeapon = _engine.EquippedWeapon != null;
+            _leftHighlight.Visible  = true;
+            _leftLabel.Text         = hasWeapon ? "Blacksmith (repair weapon)" : "Recycle (no weapon)";
+            _leftLabel.Visible      = true;
+            _rightHighlight.Visible = true;
+            _rightLabel.Text        = "Decline (recycle)";
+            _rightLabel.Visible     = true;
+        }
+        else if (cardModel.IsMerchant)
+        {
+            bool hasWeapon = _engine.EquippedWeapon != null;
+            _leftHighlight.Visible  = true;
+            _leftLabel.Text         = hasWeapon ? "Merchant (sell weapon)" : "Recycle (no weapon)";
+            _leftLabel.Visible      = true;
+            _rightHighlight.Visible = true;
+            _rightLabel.Text        = "Decline (recycle)";
+            _rightLabel.Visible     = true;
+        }
+        else if (cardModel.IsPotionJoker || cardModel.IsWeaponJoker)
+        {
+            // Taking a Joker always makes it a companion regardless of which
+            // zone it lands in (see OnCardSelected) — both labels read "Take".
+            _leftHighlight.Visible  = true;
+            _leftLabel.Text         = "Take";
+            _leftLabel.Visible      = true;
+            _rightHighlight.Visible = true;
+            _rightLabel.Text        = "Take";
+            _rightLabel.Visible     = true;
         }
     }
 
@@ -948,9 +1023,33 @@ public partial class ScoundrelGame : Node
     {
         var weaponNode = (Node)weaponCard;
         weaponNode.AddChild(CreateBadgeControl(monster.Rank));
+        RelayoutBadges(weaponNode);
+    }
 
+    // Removes `count` slain-monster badges from a weapon card — used when a
+    // Blacksmith card removes some (not all) of SlainMonsterCount, so the
+    // visible badge row stays in sync with the engine's count. Removed
+    // immediately from the "slain_badge" group (not just QueueFree'd) so the
+    // relayout below doesn't still count a badge freed later this frame.
+    private void RemoveSlainBadges(GodotObject weaponCard, int count)
+    {
+        var weaponNode = (Node)weaponCard;
+        var badges = SlainBadges(weaponNode);
+        int toRemove = System.Math.Min(count, badges.Count);
+        for (int i = 0; i < toRemove; i++)
+        {
+            badges[i].Visible = false;
+            badges[i].RemoveFromGroup("slain_badge");
+            badges[i].QueueFree();
+        }
+        RelayoutBadges(weaponNode);
+    }
+
+    private void RelayoutBadges(Node weaponNode)
+    {
         var badges = SlainBadges(weaponNode);
         int count = badges.Count;
+        if (count == 0) return;
         float step = count <= 1 ? BadgeNaturalStep
                     : Mathf.Min(BadgeNaturalStep, (CardW - BadgeLayoutWidth) / (count - 1));
         float startX = (CardW - ((count - 1) * step + BadgeLayoutWidth)) / 2f;
@@ -1033,7 +1132,9 @@ public partial class ScoundrelGame : Node
                 _engine.EquippedWeapon,
                 _engine.WeaponFloor,
                 _engine.PotionUsedThisRoom,
-                _engine.Health));
+                _engine.Health,
+                _engine.WeaponAttackBonus,
+                _engine.SingleUseWeaponBonus));
         }
     }
 
@@ -1045,7 +1146,14 @@ public partial class ScoundrelGame : Node
         if (_engine.EquippedWeapon != null)
         {
             string floor = _engine.WeaponFloor == int.MaxValue ? "any" : $"< {_engine.WeaponFloor}";
-            _weaponLabel.Text = $"Weapon: {_engine.EquippedWeapon.Name}  (next: {floor})";
+            // A Blacksmith bonus has no visual home of its own (it never touches
+            // EquippedWeapon or the slain-badge row), so without surfacing it here
+            // the effect is real but completely invisible to the player — see
+            // OnCardSelected's IsBlacksmith branch and the "Blacksmiths currently
+            // don't seem to do anything" bug report.
+            int bonus = _engine.WeaponAttackBonus + _engine.SingleUseWeaponBonus;
+            string bonusText = bonus > 0 ? $"  [+{bonus} atk]" : "";
+            _weaponLabel.Text = $"Weapon: {_engine.EquippedWeapon.Name}{bonusText}  (next: {floor})";
         }
         else
         {

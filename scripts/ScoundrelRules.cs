@@ -47,47 +47,91 @@ public static class ScoundrelRules
     /// <summary>
     /// Tooltip text for a room card given the current game state.
     /// All inputs are plain values (Godot-free and unit-testable).
+    ///
+    /// Dispatches on the card's classification properties (IsMonster/IsPotion/
+    /// IsWeapon/IsBlacksmith/IsMerchant/IsPotionJoker/IsWeaponJoker) rather than
+    /// raw <see cref="CardModel.Suit"/> — Blacksmith cards share Suit.Diamonds with
+    /// real weapons and Merchant cards share Suit.Hearts with real potions (only
+    /// Rank distinguishes them, see CardModel.cs), so a raw-Suit switch would give
+    /// a Blacksmith card the weapon tooltip and a Merchant card the potion tooltip.
     /// </summary>
     public static string TooltipFor(
         CardModel card,
         CardModel? equippedWeapon,
         int weaponFloor,
         bool potionUsedThisRoom,
-        int health)
+        int health,
+        int weaponAttackBonus = 0,
+        int singleUseWeaponBonus = 0)
     {
-        switch (card.Suit)
+        if (card.IsMonster)
         {
-            case Suit.Clubs:
-            case Suit.Spades:
+            int mv = card.MonsterValue;
+            if (equippedWeapon != null && CanUseWeapon(mv, weaponFloor))
             {
-                int mv = card.MonsterValue;
-                if (equippedWeapon != null && CanUseWeapon(mv, weaponFloor))
-                {
-                    int dmg = CalcDamage(mv, equippedWeapon.WeaponValue);
-                    return $"Monster — {mv} damage\nWith weapon: {dmg} damage";
-                }
-                if (equippedWeapon != null)
-                    return $"Monster — {mv} damage\nWeapon can't block";
-                return $"Monster — {mv} damage";
+                int effectiveWeaponValue = equippedWeapon.WeaponValue + weaponAttackBonus + singleUseWeaponBonus;
+                int dmg = CalcDamage(mv, effectiveWeaponValue);
+                return $"Monster — {mv} damage\nWith weapon: {dmg} damage";
             }
-            case Suit.Hearts:
-            {
-                if (potionUsedThisRoom)
-                    return "Potion — VOID (one per room)";
-                int healed = Heal(health, card.PotionValue) - health;
-                return healed < card.PotionValue
-                    ? $"Potion — heals {healed} HP (capped at {MaxHealth})"
-                    : $"Potion — heals {healed} HP";
-            }
-            case Suit.Diamonds:
-            {
-                string text = $"Weapon — value {card.WeaponValue}";
-                if (equippedWeapon != null)
-                    text += $"\nReplaces equipped ({equippedWeapon.WeaponValue})";
-                return text;
-            }
-            default:
-                return "";
+            if (equippedWeapon != null)
+                return $"Monster — {mv} damage\nWeapon can't block";
+            return $"Monster — {mv} damage";
         }
+
+        if (card.IsPotion)
+        {
+            if (potionUsedThisRoom)
+                return "Potion — VOID (one per room)";
+            int healed = Heal(health, card.PotionValue) - health;
+            return healed < card.PotionValue
+                ? $"Potion — heals {healed} HP (capped at {MaxHealth})"
+                : $"Potion — heals {healed} HP";
+        }
+
+        if (card.IsWeapon)
+        {
+            string text = $"Weapon — value {card.WeaponValue}";
+            if (equippedWeapon != null)
+                text += $"\nReplaces equipped ({equippedWeapon.WeaponValue})";
+            return text;
+        }
+
+        if (card.IsBlacksmith)
+        {
+            string effect = card.Rank switch
+            {
+                11      => "Removes 1 slain monster from your weapon. If it has none attached, grants +1 attack instead.",
+                12      => "Removes 2 slain monsters from your weapon. If it has none attached, grants +2 attack instead.",
+                13      => "Removes 3 slain monsters from your weapon. If it has none attached, grants +3 attack instead.",
+                AceRank => "Removes all slain monsters from your weapon. If it has none attached, grants a one-time +4 attack bonus instead.",
+                _       => "",
+            };
+            return equippedWeapon == null
+                ? $"Blacksmith — {effect}\nNo weapon equipped — this card will recycle back into the deck."
+                : $"Blacksmith — {effect}";
+        }
+
+        if (card.IsMerchant)
+        {
+            string effect = card.Rank switch
+            {
+                11      => "Sells your weapon for HP equal to its value minus attached monsters (minimum 1).",
+                12      => "Sells your weapon for HP equal to its value minus attached monsters (minimum 1), plus 1.",
+                13      => "Sells your weapon for HP equal to its value minus attached monsters (minimum 1), plus 3.",
+                AceRank => "Sells your weapon for its full value plus 5 HP, ignoring attached monsters.",
+                _       => "",
+            };
+            return equippedWeapon == null
+                ? $"Merchant — {effect}\nNo weapon equipped — this card will recycle back into the deck."
+                : $"Merchant — {effect}";
+        }
+
+        if (card.IsPotionJoker)
+            return "Potion Joker — Can store a potion for later use by the player. Can fight monsters bare-handed. When HP drops to 0, the joker and its carried item are permanently lost.";
+
+        if (card.IsWeaponJoker)
+            return "Weapon Joker — Can store a weapon for later use by the player. Can fight monsters bare-handed. When HP drops to 0, the joker and its carried item are permanently lost.";
+
+        return "";
     }
 }
