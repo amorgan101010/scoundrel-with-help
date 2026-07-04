@@ -34,6 +34,17 @@ public class GameEngine
     /// </summary>
     public bool ExtendedRules { get; }
 
+    /// <summary>
+    /// True once the Red Joker (Potion Pocket companion) has been taken. The joker is a
+    /// permanent companion, not a card in play — it is never discarded.
+    /// </summary>
+    public bool HasPotionJoker { get; private set; }
+
+    /// <summary>
+    /// The potion currently held in the Potion Pocket, or null if the pocket is empty.
+    /// </summary>
+    public CardModel? PocketedPotion { get; private set; }
+
     public IReadOnlyList<CardModel> Deck    => _deck;
     public IReadOnlyList<CardModel> Discard => _discard;
     public IReadOnlyList<CardModel> Room    => _room;
@@ -41,6 +52,20 @@ public class GameEngine
     public bool IsOver     => GameOver || Won;
     public bool CanRun     => !IsOver && !RanLastRoom;
     public bool CanNextRoom => !IsOver && CardsTakenThisRoom >= ScoundrelRules.MinCardsTaken && _room.Count > 0;
+
+    /// <summary>
+    /// True iff a potion can be stored in the Potion Pocket right now: the joker has been
+    /// taken, the pocket is empty, the given card is a potion currently in the room, and
+    /// the game isn't over. Storing does NOT consume the room's one-potion-per-room limit.
+    /// </summary>
+    public bool CanStorePotion(CardModel card)
+        => HasPotionJoker && PocketedPotion == null && card.IsPotion && _room.Contains(card) && !IsOver;
+
+    /// <summary>
+    /// True iff there is a pocketed potion that can be retrieved right now. Retrieval is a
+    /// side action (not a room pick), so it is available any time regardless of room state.
+    /// </summary>
+    public bool CanRetrievePotion => HasPotionJoker && PocketedPotion != null && !IsOver;
 
     public GameEngine(IEnumerable<CardModel> deck, bool extendedRules = false)
     {
@@ -77,39 +102,58 @@ public class GameEngine
             }
             else if (card.IsPotion)
             {
-                if (!PotionUsedThisRoom)
-                {
-                    Health = ScoundrelRules.Heal(Health, card.PotionValue);
-                    PotionUsedThisRoom = true;
-                }
-                else
-                {
-                    PotionWastedThisRoom = true;
-                }
+                ApplyPotionHealOrWaste(card);
                 _discard.Add(card);
+            }
+            else if (card.IsPotionJoker)
+            {
+                // Red Joker (Potion Pocket): becomes a permanent companion, not a card in
+                // play. It is never discarded — see StorePotion/RetrievePotion below.
+                HasPotionJoker = true;
             }
             else
             {
-                // Blacksmith, Merchant, and both Jokers: placeholder discard-only behavior.
+                // Blacksmith, Merchant, and the Black Joker: placeholder discard-only
+                // behavior pending their own chunks.
                 _discard.Add(card);
             }
         }
 
-        CardsTakenThisRoom++;
+        FinishRoomAction();
+    }
 
-        if (Health <= 0)
-        {
-            GameOver = true;
-            return;
-        }
+    /// <summary>
+    /// Store a potion from the room into the Potion Pocket instead of drinking it.
+    /// Independent of the room's one-potion-per-room limit — storing doesn't heal, so it
+    /// doesn't consume the allowance. Counts as one of the room's taken cards.
+    /// </summary>
+    public void StorePotion(CardModel card)
+    {
+        if (!CanStorePotion(card))
+            throw new InvalidOperationException("Cannot store this potion right now.");
 
-        if (_room.Count == 0)
-        {
-            if (_deck.Count == 0)
-                Won = true;
-            else
-                DealRoom();
-        }
+        _room.Remove(card);
+        PocketedPotion = card;
+        FinishRoomAction();
+    }
+
+    /// <summary>
+    /// Retrieve the pocketed potion. Counts as the room's one potion — if a potion was
+    /// already drunk this room, the retrieved potion is wasted instead of healing. This is
+    /// a side action: it does not affect CardsTakenThisRoom and does not deal a new room or
+    /// trigger a win check (room state doesn't change).
+    /// </summary>
+    public void RetrievePotion()
+    {
+        if (!CanRetrievePotion)
+            throw new InvalidOperationException("Cannot retrieve a potion right now.");
+
+        var potion = PocketedPotion!;
+        PocketedPotion = null;
+        ApplyPotionHealOrWaste(potion);
+        _discard.Add(potion);
+
+        CheckGameOver();
     }
 
     /// <summary>
@@ -145,6 +189,51 @@ public class GameEngine
     }
 
     // ── Internal ──────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Heal from a potion, or mark it wasted if one was already drunk this room.
+    /// Shared by TakeCard's Hearts branch and RetrievePotion.
+    /// </summary>
+    private void ApplyPotionHealOrWaste(CardModel potion)
+    {
+        if (!PotionUsedThisRoom)
+        {
+            Health = ScoundrelRules.Heal(Health, potion.PotionValue);
+            PotionUsedThisRoom = true;
+        }
+        else
+        {
+            PotionWastedThisRoom = true;
+        }
+    }
+
+    private void CheckGameOver()
+    {
+        if (Health <= 0)
+            GameOver = true;
+    }
+
+    /// <summary>
+    /// Common tail for actions that consume one of the room's card slots (TakeCard,
+    /// StorePotion): counts toward CardsTakenThisRoom, checks for game over, and
+    /// refills/wins the room when empty. Not used by RetrievePotion, which is a side
+    /// action that doesn't touch room state.
+    /// </summary>
+    private void FinishRoomAction()
+    {
+        CardsTakenThisRoom++;
+
+        CheckGameOver();
+        if (GameOver) return;
+
+        if (_room.Count == 0)
+        {
+            if (_deck.Count == 0)
+                Won = true;
+            else
+                DealRoom();
+        }
+    }
 
     private void DealRoom()
     {
