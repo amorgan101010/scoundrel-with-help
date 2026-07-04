@@ -13,6 +13,9 @@ public class GameEngine
     private readonly List<CardModel> _room    = new();
     private readonly Random _rng;
 
+    /// <summary>Flat starting HP for either joker's own pool — no randomness.</summary>
+    private const int JokerStartingHealth = 8;
+
     public int Health { get; private set; } = ScoundrelRules.StartHealth;
     public CardModel? EquippedWeapon { get; private set; }
     public int WeaponFloor { get; private set; } = int.MaxValue;
@@ -63,22 +66,35 @@ public class GameEngine
     public CardModel? PocketedPotion { get; private set; }
 
     /// <summary>
+    /// The Red Joker's own HP pool. Set to a flat 8 (no randomness) the moment the joker is
+    /// taken. Absorbs a monster's full value when the player chooses to handle the monster
+    /// with the joker instead of fighting it — see <see cref="FightWithPotionJoker"/>.
+    /// Floored at 0; hitting 0 loses the joker entirely (<see cref="HasPotionJoker"/> becomes
+    /// false and any pocketed potion is lost, not discarded).
+    /// </summary>
+    public int PotionJokerHealth { get; private set; }
+
+    /// <summary>
     /// True once the Black Joker (Weapon Pocket companion) has been taken. The joker is a
     /// permanent companion, not a card in play — it is never discarded.
     /// </summary>
     public bool HasWeaponJoker { get; private set; }
 
     /// <summary>
-    /// The weapon currently held in the Weapon Pocket, or null if the pocket is empty.
+    /// The weapon currently held in the Weapon Pocket, or null if the pocket is empty. Has no
+    /// combat role of its own — see <see cref="RetrieveWeapon"/> to equip it as the player's
+    /// actual weapon.
     /// </summary>
     public CardModel? PocketedWeapon { get; private set; }
 
     /// <summary>
-    /// Degradation floor for the pocketed weapon. Fully independent of the main
-    /// <see cref="WeaponFloor"/> — reset when a weapon is stored, tightened after each
-    /// successful pocket-weapon fight.
+    /// The Black Joker's own HP pool. Set to a flat 8 (no randomness) the moment the joker is
+    /// taken. Absorbs a monster's full value when the player chooses to handle the monster
+    /// with the joker instead of fighting it — see <see cref="FightWithWeaponJoker"/>.
+    /// Floored at 0; hitting 0 loses the joker entirely (<see cref="HasWeaponJoker"/> becomes
+    /// false and any pocketed weapon is lost, not discarded).
     /// </summary>
-    public int PocketWeaponFloor { get; private set; } = int.MaxValue;
+    public int WeaponJokerHealth { get; private set; }
 
     public IReadOnlyList<CardModel> Deck    => _deck;
     public IReadOnlyList<CardModel> Discard => _discard;
@@ -111,17 +127,29 @@ public class GameEngine
         => HasWeaponJoker && PocketedWeapon == null && card.IsWeapon && _room.Contains(card) && !IsOver;
 
     /// <summary>
-    /// True iff the pocketed weapon can be used against the given monster right now: the
-    /// joker has been taken, the pocket holds a weapon, the monster is in the room, the game
-    /// isn't over, the pocket weapon's own floor allows it, AND — the stricter constraint
-    /// that distinguishes the pocket weapon from the main one — using it would deal exactly
-    /// zero damage.
+    /// True iff a weapon can be retrieved from the Weapon Pocket right now: the joker has
+    /// been taken, the pocket holds a weapon, and the game isn't over. A side action (not a
+    /// room pick), so it doesn't depend on room state.
     /// </summary>
-    public bool CanFightWithPocketWeapon(CardModel monsterCard)
-        => HasWeaponJoker && PocketedWeapon != null && monsterCard.IsMonster
-           && _room.Contains(monsterCard) && !IsOver
-           && ScoundrelRules.CanUseWeapon(monsterCard.MonsterValue, PocketWeaponFloor)
-           && ScoundrelRules.CalcDamage(monsterCard.MonsterValue, PocketedWeapon!.WeaponValue) == 0;
+    public bool CanRetrieveWeapon => HasWeaponJoker && PocketedWeapon != null && !IsOver;
+
+    /// <summary>
+    /// True iff a monster in the room can be handled by the Red Joker right now: the joker
+    /// has been taken, its HP pool is above 0, the given card is a monster currently in the
+    /// room, and the game isn't over.
+    /// </summary>
+    public bool CanFightWithPotionJoker(CardModel monster)
+        => HasPotionJoker && PotionJokerHealth > 0 && monster.IsMonster
+           && _room.Contains(monster) && !IsOver;
+
+    /// <summary>
+    /// True iff a monster in the room can be handled by the Black Joker right now: the joker
+    /// has been taken, its HP pool is above 0, the given card is a monster currently in the
+    /// room, and the game isn't over.
+    /// </summary>
+    public bool CanFightWithWeaponJoker(CardModel monster)
+        => HasWeaponJoker && WeaponJokerHealth > 0 && monster.IsMonster
+           && _room.Contains(monster) && !IsOver;
 
     /// <summary>
     /// True iff the given Blacksmith card can be used right now: it's a Blacksmith card
@@ -195,14 +223,18 @@ public class GameEngine
             else if (card.IsPotionJoker)
             {
                 // Red Joker (Potion Pocket): becomes a permanent companion, not a card in
-                // play. It is never discarded — see StorePotion/RetrievePotion below.
+                // play. It is never discarded — see StorePotion/RetrievePotion/
+                // FightWithPotionJoker below. Its own HP pool starts at a flat 8.
                 HasPotionJoker = true;
+                PotionJokerHealth = JokerStartingHealth;
             }
             else if (card.IsWeaponJoker)
             {
                 // Black Joker (Weapon Pocket): becomes a permanent companion, not a card in
-                // play. It is never discarded — see StoreWeapon/FightWithPocketWeapon below.
+                // play. It is never discarded — see StoreWeapon/RetrieveWeapon/
+                // FightWithWeaponJoker below. Its own HP pool starts at a flat 8.
                 HasWeaponJoker = true;
+                WeaponJokerHealth = JokerStartingHealth;
             }
             else
             {
@@ -262,24 +294,77 @@ public class GameEngine
 
         _room.Remove(card);
         PocketedWeapon = card;
-        PocketWeaponFloor = int.MaxValue;
         FinishRoomAction();
     }
 
     /// <summary>
-    /// Fight a monster using the pocketed weapon. Only ever available when it would deal
-    /// exactly zero damage (see CanFightWithPocketWeapon) — health is therefore never
-    /// touched. Degrades PocketWeaponFloor independently of the main WeaponFloor. Counts as
-    /// one of the room's taken cards.
+    /// Retrieve the pocketed weapon and equip it as the player's actual weapon, via the same
+    /// <see cref="EquipWeapon"/> path a room weapon uses (discarding the previously-equipped
+    /// weapon, if any, and resetting WeaponFloor/SlainMonsterCount/WeaponAttackBonus/
+    /// SingleUseWeaponBonus). A side action: it does not affect CardsTakenThisRoom and does
+    /// not deal a new room or trigger a win check (room state doesn't change).
     /// </summary>
-    public void FightWithPocketWeapon(CardModel monsterCard)
+    public void RetrieveWeapon()
     {
-        if (!CanFightWithPocketWeapon(monsterCard))
-            throw new InvalidOperationException("Cannot fight with the pocketed weapon right now.");
+        if (!CanRetrieveWeapon)
+            throw new InvalidOperationException("Cannot retrieve a weapon right now.");
 
-        _room.Remove(monsterCard);
-        _discard.Add(monsterCard);
-        PocketWeaponFloor = ScoundrelRules.NextWeaponFloor(monsterCard.MonsterValue);
+        var weapon = PocketedWeapon!;
+        EquipWeapon(weapon);
+        PocketedWeapon = null;
+    }
+
+    /// <summary>
+    /// Handle a monster with the Red Joker instead of fighting it: the joker absorbs the
+    /// monster's full value into its own HP pool (<see cref="PotionJokerHealth"/>), never
+    /// reduced by a weapon and never touching the player's <see cref="Health"/>. The monster
+    /// still leaves the room to the discard pile and counts toward CardsTakenThisRoom. If the
+    /// joker's HP hits 0, the joker is lost entirely — <see cref="HasPotionJoker"/> becomes
+    /// false and any pocketed potion is lost (not discarded), matching the "companion, not a
+    /// card" framing used elsewhere for the jokers.
+    /// </summary>
+    public void FightWithPotionJoker(CardModel monster)
+    {
+        if (!CanFightWithPotionJoker(monster))
+            throw new InvalidOperationException("Cannot handle this monster with the Potion Joker right now.");
+
+        _room.Remove(monster);
+        _discard.Add(monster);
+        PotionJokerHealth = Math.Max(0, PotionJokerHealth - monster.MonsterValue);
+
+        if (PotionJokerHealth == 0)
+        {
+            HasPotionJoker = false;
+            PocketedPotion = null;
+        }
+
+        FinishRoomAction();
+    }
+
+    /// <summary>
+    /// Handle a monster with the Black Joker instead of fighting it: the joker absorbs the
+    /// monster's full value into its own HP pool (<see cref="WeaponJokerHealth"/>), never
+    /// reduced by a weapon and never touching the player's <see cref="Health"/>. The monster
+    /// still leaves the room to the discard pile and counts toward CardsTakenThisRoom. If the
+    /// joker's HP hits 0, the joker is lost entirely — <see cref="HasWeaponJoker"/> becomes
+    /// false and any pocketed weapon is lost (not discarded), matching the "companion, not a
+    /// card" framing used elsewhere for the jokers.
+    /// </summary>
+    public void FightWithWeaponJoker(CardModel monster)
+    {
+        if (!CanFightWithWeaponJoker(monster))
+            throw new InvalidOperationException("Cannot handle this monster with the Weapon Joker right now.");
+
+        _room.Remove(monster);
+        _discard.Add(monster);
+        WeaponJokerHealth = Math.Max(0, WeaponJokerHealth - monster.MonsterValue);
+
+        if (WeaponJokerHealth == 0)
+        {
+            HasWeaponJoker = false;
+            PocketedWeapon = null;
+        }
+
         FinishRoomAction();
     }
 
