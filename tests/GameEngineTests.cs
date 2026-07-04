@@ -1370,6 +1370,81 @@ public class PotionPocketTests
         Assert.That(engine.PotionWastedThisRoom, Is.False, "Storing is independent of the room's potion limit");
     }
 
+    // ── RetrievePotion(activate) — chunk 10 store/retrieve UI wiring ───────────────
+
+    [Test]
+    public void RetrievePotion_ActivateFalse_DiscardsWithoutHealOrWaste_EmptiesPocket()
+    {
+        var joker   = Cards.RedJoker();
+        var potion  = Cards.Potion(6);
+        var monster = Cards.Monster(8);
+        var engine  = Cards.RoomOf(joker, potion, monster, Cards.Weapon(3));
+        engine.TakeCard(joker);
+        engine.StorePotion(potion);
+        engine.TakeCard(monster); // take damage so a missed heal would be observable
+        int healthBeforeRetrieve = engine.Health;
+        int takenBefore = engine.CardsTakenThisRoom;
+
+        engine.RetrievePotion(activate: false);
+
+        Assert.That(engine.Health, Is.EqualTo(healthBeforeRetrieve), "activate:false must not heal");
+        Assert.That(engine.PotionUsedThisRoom, Is.False, "activate:false must not touch PotionUsedThisRoom");
+        Assert.That(engine.PotionWastedThisRoom, Is.False, "activate:false must not touch PotionWastedThisRoom");
+        Assert.That(engine.PocketedPotion, Is.Null);
+        Assert.That(engine.Discard, Contains.Item(potion));
+        Assert.That(engine.CardsTakenThisRoom, Is.EqualTo(takenBefore), "Retrieval is not a room pick");
+    }
+
+    [Test]
+    public void RetrievePotion_ActivateFalse_WhenPotionAlreadyDrunk_StaysFalse_NotWasted()
+    {
+        var joker         = Cards.RedJoker();
+        var potionToStore = Cards.Potion(6);
+        var potionToDrink = Cards.Potion(4);
+        var engine = Cards.RoomOf(joker, potionToStore, potionToDrink, Cards.Weapon(3));
+        engine.TakeCard(joker);
+        engine.StorePotion(potionToStore);
+        engine.TakeCard(potionToDrink); // uses the room's one potion; PotionUsedThisRoom = true
+
+        engine.RetrievePotion(activate: false);
+
+        Assert.That(engine.PotionWastedThisRoom, Is.False,
+            "Declining a retrieve must not mark it wasted, even if a potion was already drunk this room");
+        Assert.That(engine.PocketedPotion, Is.Null);
+        Assert.That(engine.Discard, Contains.Item(potionToStore));
+    }
+
+    [Test]
+    public void RetrievePotion_ActivateFalse_StillThrowsWhenGatingFails()
+    {
+        var engine = Cards.RoomOf(Cards.Potion(2), Cards.Potion(3), Cards.Potion(4), Cards.Weapon(5));
+
+        Assert.That(engine.CanRetrievePotion, Is.False);
+        Assert.Throws<InvalidOperationException>(() => engine.RetrievePotion(activate: false));
+    }
+
+    [Test]
+    public void RetrievePotion_ActivateTrueExplicit_MatchesDefaultBehavior()
+    {
+        var joker   = Cards.RedJoker();
+        var potion  = Cards.Potion(6);
+        var monster = Cards.Monster(8);
+        var engine  = Cards.RoomOf(joker, potion, monster, Cards.Weapon(3));
+        engine.TakeCard(joker);
+        engine.StorePotion(potion);
+        engine.TakeCard(monster);
+        int healthBeforeRetrieve = engine.Health;
+
+        engine.RetrievePotion(activate: true);
+
+        int expectedHealth = ScoundrelRules.Heal(healthBeforeRetrieve, potion.PotionValue);
+        Assert.That(engine.Health, Is.EqualTo(expectedHealth));
+        Assert.That(engine.PocketedPotion, Is.Null);
+        Assert.That(engine.Discard, Contains.Item(potion));
+        Assert.That(engine.PotionUsedThisRoom, Is.True);
+        Assert.That(engine.PotionWastedThisRoom, Is.False);
+    }
+
     [Test]
     public void RetrievePotion_AfterWon_Throws()
     {
@@ -1621,6 +1696,80 @@ public class RetrieveWeaponTests
         Assert.That(engine.WeaponAttackBonus, Is.EqualTo(0));
         Assert.That(engine.SingleUseWeaponBonus, Is.EqualTo(0));
         Assert.That(engine.PocketedWeapon, Is.Null);
+    }
+
+    // ── RetrieveWeapon(activate) — chunk 10 store/retrieve UI wiring ───────────────
+
+    [Test]
+    public void RetrieveWeapon_ActivateFalse_NoPreviousWeapon_DiscardsWithoutEquipping()
+    {
+        var joker  = Cards.BlackJoker();
+        var weapon = Cards.Weapon(6);
+        var engine = Cards.RoomOf(joker, weapon, Cards.Potion(2), Cards.Potion(3));
+        engine.TakeCard(joker);
+        engine.StoreWeapon(weapon);
+        int takenBefore = engine.CardsTakenThisRoom;
+
+        engine.RetrieveWeapon(activate: false);
+
+        Assert.That(engine.EquippedWeapon, Is.Null, "activate:false must not equip");
+        Assert.That(engine.PocketedWeapon, Is.Null);
+        Assert.That(engine.Discard, Contains.Item(weapon));
+        Assert.That(engine.CardsTakenThisRoom, Is.EqualTo(takenBefore), "Retrieval is not a room pick");
+    }
+
+    [Test]
+    public void RetrieveWeapon_ActivateFalse_WithEquippedWeapon_LeavesEquippedWeaponUntouched()
+    {
+        var joker      = Cards.BlackJoker();
+        var oldWeapon  = Cards.Weapon(4);
+        var newWeapon  = Cards.Weapon(9);
+        var monster    = Cards.Monster(3);
+        var filler1 = Cards.Potion(2);
+        var filler2 = Cards.Potion(3);
+        var filler3 = Cards.Potion(4);
+        var filler4 = Cards.Potion(5);
+        var deck = new[] { filler4, filler3, filler2, filler1, monster, newWeapon, oldWeapon, joker };
+        var engine = new GameEngine(deck, extendedRules: true);
+        engine.TakeCard(joker);
+        engine.TakeCard(oldWeapon);       // equips oldWeapon
+        engine.StoreWeapon(newWeapon);
+        engine.TakeCard(monster);         // wears oldWeapon: SlainMonsterCount 1, floor 3
+
+        engine.RetrieveWeapon(activate: false);
+
+        Assert.That(engine.EquippedWeapon, Is.EqualTo(oldWeapon), "Declining a retrieve must not disturb the equipped weapon");
+        Assert.That(engine.SlainMonsterCount, Is.EqualTo(1), "Equipped weapon's wear must be untouched");
+        Assert.That(engine.Discard, Does.Not.Contain(oldWeapon), "The equipped weapon is not discarded when declining");
+        Assert.That(engine.Discard, Contains.Item(newWeapon), "The declined pocketed weapon is discarded instead");
+        Assert.That(engine.PocketedWeapon, Is.Null);
+    }
+
+    [Test]
+    public void RetrieveWeapon_ActivateFalse_StillThrowsWhenGatingFails()
+    {
+        var engine = Cards.RoomOf(Cards.Weapon(5), Cards.Potion(2), Cards.Potion(3), Cards.Potion(4));
+
+        Assert.That(engine.CanRetrieveWeapon, Is.False);
+        Assert.Throws<InvalidOperationException>(() => engine.RetrieveWeapon(activate: false));
+    }
+
+    [Test]
+    public void RetrieveWeapon_ActivateTrueExplicit_MatchesDefaultBehavior()
+    {
+        var joker  = Cards.BlackJoker();
+        var weapon = Cards.Weapon(6);
+        var engine = Cards.RoomOf(joker, weapon, Cards.Potion(2), Cards.Potion(3));
+        engine.TakeCard(joker);
+        engine.StoreWeapon(weapon);
+
+        engine.RetrieveWeapon(activate: true);
+
+        Assert.That(engine.EquippedWeapon, Is.EqualTo(weapon));
+        Assert.That(engine.WeaponFloor, Is.EqualTo(int.MaxValue));
+        Assert.That(engine.SlainMonsterCount, Is.EqualTo(0));
+        Assert.That(engine.PocketedWeapon, Is.Null);
+        Assert.That(engine.Discard, Does.Not.Contain(weapon));
     }
 
     [Test]

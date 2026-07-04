@@ -269,14 +269,24 @@ public class GameEngine
     /// a side action: it does not affect CardsTakenThisRoom and does not deal a new room or
     /// trigger a win check (room state doesn't change).
     /// </summary>
-    public void RetrievePotion()
+    /// <param name="activate">
+    /// When true (default), retrieving heals (or wastes, per the room's one-potion limit)
+    /// exactly like the original behavior. When false, the potion is simply discarded from
+    /// the pocket with no heal/waste side effect — <see cref="PotionUsedThisRoom"/> and
+    /// <see cref="PotionWastedThisRoom"/> are left untouched. Either way the pocket is
+    /// emptied and the existing <see cref="CanRetrievePotion"/> gating still applies.
+    /// </param>
+    public void RetrievePotion(bool activate = true)
     {
         if (!CanRetrievePotion)
             throw new InvalidOperationException("Cannot retrieve a potion right now.");
 
         var potion = PocketedPotion!;
         PocketedPotion = null;
-        ApplyPotionHealOrWaste(potion);
+
+        if (activate)
+            ApplyPotionHealOrWaste(potion);
+
         _discard.Add(potion);
 
         CheckGameOver();
@@ -304,14 +314,25 @@ public class GameEngine
     /// SingleUseWeaponBonus). A side action: it does not affect CardsTakenThisRoom and does
     /// not deal a new room or trigger a win check (room state doesn't change).
     /// </summary>
-    public void RetrieveWeapon()
+    /// <param name="activate">
+    /// When true (default), retrieving equips the weapon via <see cref="EquipWeapon"/>
+    /// exactly like the original behavior. When false, the pocketed weapon is simply
+    /// discarded without equipping — the currently-equipped weapon (if any) is left
+    /// completely untouched. Either way the pocket is emptied and the existing
+    /// <see cref="CanRetrieveWeapon"/> gating still applies.
+    /// </param>
+    public void RetrieveWeapon(bool activate = true)
     {
         if (!CanRetrieveWeapon)
             throw new InvalidOperationException("Cannot retrieve a weapon right now.");
 
         var weapon = PocketedWeapon!;
-        EquipWeapon(weapon);
         PocketedWeapon = null;
+
+        if (activate)
+            EquipWeapon(weapon);
+        else
+            _discard.Add(weapon);
     }
 
     /// <summary>

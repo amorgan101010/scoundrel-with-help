@@ -254,6 +254,15 @@ public partial class ScoundrelGame : Node
         _roomContainer.Connect("card_drag_started", Callable.From<GodotObject>(OnCardDragStarted));
         _roomContainer.Connect("card_drag_ended",   Callable.From(OnCardDragEnded));
         _roomContainer.Connect("card_selected",     Callable.From<GodotObject>(OnCardSelected));
+        // Pocketed items (JokerPocketSlot.gd) are draggable back out once stored — wire
+        // them to the exact same handlers as the room so retrieving/discarding a pocketed
+        // potion or weapon reuses the top/right zone highlight and dispatch logic.
+        _potionJokerSlot.Connect("card_drag_started", Callable.From<GodotObject>(OnCardDragStarted));
+        _potionJokerSlot.Connect("card_drag_ended",   Callable.From(OnCardDragEnded));
+        _potionJokerSlot.Connect("card_selected",     Callable.From<GodotObject>(OnCardSelected));
+        _weaponJokerSlot.Connect("card_drag_started", Callable.From<GodotObject>(OnCardDragStarted));
+        _weaponJokerSlot.Connect("card_drag_ended",   Callable.From(OnCardDragEnded));
+        _weaponJokerSlot.Connect("card_selected",     Callable.From<GodotObject>(OnCardSelected));
         _runButton.Connect("pressed",     Callable.From(OnRunPressed));
         _nextRoomButton.Connect("pressed", Callable.From(OnNextRoomPressed));
         _retryButton.Connect("pressed",   Callable.From(OnRetryPressed));
@@ -393,6 +402,16 @@ public partial class ScoundrelGame : Node
         if (_engine.IsOver) return;
 
         var name = card.Get("card_info").AsGodotDictionary()["name"].AsString();
+
+        // A pocketed item (dragged out of PotionJokerSlot/WeaponJokerSlot) is a retrieve/
+        // discard action, not a room take — dispatch it separately before the room lookup
+        // below, since the pocketed card is never in _engine.Room.
+        if (_engine.PocketedPotion?.Name == name || _engine.PocketedWeapon?.Name == name)
+        {
+            HandlePocketRetrieve(card, name);
+            return;
+        }
+
         var cardModel = _engine.Room.FirstOrDefault(c => c.Name == name);
         if (cardModel is null) return;
 
@@ -441,11 +460,60 @@ public partial class ScoundrelGame : Node
             return;
         }
 
-        // Non-monster card dropped on a joker fight sub-zone: no dedicated
-        // semantics for that yet — fall back to the same behavior as the
-        // top/left zone (the safest default).
+        // Storing: a room potion/weapon dropped on its matching joker pocket zone.
         if (droppedPotionJokerZone || droppedWeaponJokerZone)
+        {
+            bool matchesPotionZone = cardModel.IsPotion && droppedPotionJokerZone;
+            bool matchesWeaponZone = cardModel.IsWeapon && droppedWeaponJokerZone;
+
+            if (matchesPotionZone || matchesWeaponZone)
+            {
+                bool canStore = matchesPotionZone
+                    ? _engine.CanStorePotion(cardModel)
+                    : _engine.CanStoreWeapon(cardModel);
+
+                if (!canStore)
+                {
+                    _roomContainer.Call("move_cards", new Array { card }, -1, false);
+                    ShowBriefMessage(matchesPotionZone ? "Can't pocket that potion!" : "Can't pocket that weapon!");
+                    return;
+                }
+
+                if (matchesPotionZone)
+                    _engine.StorePotion(cardModel);
+                else
+                    _engine.StoreWeapon(cardModel);
+
+                ResetCardScale(card);
+                card.Set("tooltip_text", "");
+                var pocketSlot = matchesPotionZone ? _potionJokerSlot : _weaponJokerSlot;
+                pocketSlot.Call("move_cards", new Array { card }, -1, false);
+
+                if (_engine.GameOver) { ShowGameOver(); UpdateUI(); return; }
+                if (_engine.Won)      { ShowWin();      UpdateUI(); return; }
+
+                SyncRoomToGodot();
+                UpdateUI();
+                return;
+            }
+
+            // A weapon dropped on the potion pocket zone, a potion dropped on the weapon
+            // pocket zone, or any card mismatched with the zone it landed in: bounce back
+            // rather than falling through to the fight-with-joker/top-zone path.
+            bool mismatchedStore = (cardModel.IsPotion && droppedWeaponJokerZone)
+                || (cardModel.IsWeapon && droppedPotionJokerZone);
+            if (mismatchedStore)
+            {
+                _roomContainer.Call("move_cards", new Array { card }, -1, false);
+                ShowBriefMessage("Wrong pocket!");
+                return;
+            }
+
+            // Any other card type (Blacksmith/Merchant/a second Joker) dropped on a joker
+            // fight sub-zone: no dedicated semantics for that — fall back to the same
+            // behavior as the top/left zone (the safest default, matches chunk 8).
             droppedLeft = true;
+        }
 
         // Monster + left zone: validate weapon usability before accepting.
         if (cardModel.IsMonster && droppedLeft)
@@ -599,6 +667,81 @@ public partial class ScoundrelGame : Node
 
         // Sync any new room cards the engine may have dealt (auto-advance).
         SyncRoomToGodot();
+        UpdateUI();
+    }
+
+    /// <summary>
+    /// Dispatches a drag-release for a card whose source is a joker pocket
+    /// (PotionJokerSlot/WeaponJokerSlot) rather than the room. Dropping on the top zone
+    /// (LeftDropZone) retrieves and activates it — heal-or-waste for a potion, equip for a
+    /// weapon — reusing the exact same "activate" semantics the top zone already has for
+    /// room potions/weapons. Dropping on the right zone (RightDropZone) discards it without
+    /// activating. Landing anywhere else (a joker fight sub-zone, the room dead-zone) just
+    /// bounces the card back to its pocket slot. A side action: room state is untouched, so
+    /// this never calls SyncRoomToGodot.
+    /// </summary>
+    private void HandlePocketRetrieve(GodotObject card, string name)
+    {
+        bool isPotion = _engine.PocketedPotion?.Name == name;
+        var pocketedModel = isPotion ? _engine.PocketedPotion! : _engine.PocketedWeapon!;
+        var slot = isPotion ? _potionJokerSlot : _weaponJokerSlot;
+
+        ulong containerId = card.Get("card_container").AsGodotObject().GetInstanceId();
+        bool droppedTop   = containerId == _leftDropZone.GetInstanceId();
+        bool droppedRight = containerId == _rightDropZone.GetInstanceId();
+
+        if (!droppedTop && !droppedRight)
+        {
+            slot.Call("move_cards", new Array { card }, -1, false);
+            return;
+        }
+
+        if (isPotion)
+        {
+            bool potionUsedBefore   = _engine.PotionUsedThisRoom;
+            bool potionWastedBefore = _engine.PotionWastedThisRoom;
+
+            _engine.RetrievePotion(activate: droppedTop);
+            DecrementSuit(pocketedModel);
+
+            if (droppedTop && !potionUsedBefore)
+                AudioManager.PlayBubbles();
+            else if (!droppedTop)
+                AudioManager.PlayPotionDiscard();
+            if (droppedTop && !potionWastedBefore && _engine.PotionWastedThisRoom)
+                ShowBriefMessage("Potion wasted! (one per room)");
+
+            MoveToDiscard(card);
+        }
+        else
+        {
+            var oldWeapon = _engine.EquippedWeapon;
+            _engine.RetrieveWeapon(activate: droppedTop);
+
+            if (droppedTop)
+            {
+                AudioManager.PlaySwordDrawn();
+                if (oldWeapon != null)
+                {
+                    DecrementSuit(oldWeapon);
+                    ClearSlainBadges(_godotCards[oldWeapon.Name]);
+                    MoveToDiscard(_godotCards[oldWeapon.Name]);
+                }
+                ResetCardScale(card);
+                card.Set("tooltip_text", "");
+                _weaponSlot.Call("move_cards", new Array { card }, -1, false);
+            }
+            else
+            {
+                AudioManager.PlayWeaponDiscard();
+                DecrementSuit(pocketedModel);
+                MoveToDiscard(card);
+            }
+        }
+
+        if (_engine.GameOver) { ShowGameOver(); UpdateUI(); return; }
+        if (_engine.Won)      { ShowWin();      UpdateUI(); return; }
+
         UpdateUI();
     }
 
