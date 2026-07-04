@@ -35,6 +35,20 @@ public sealed class ScoundrelLayoutController
     private const int JokerLabelMinFontSize = 12;
     private const int JokerLabelMaxFontSize = 16;
 
+    // A pocketed potion/weapon (PotionJokerSlot/WeaponJokerSlot, index 1 — the
+    // joker's own card is always index 0, see JokerPocketSlot.gd) is scaled down
+    // to this fraction of full card size so it reads as a small badge instead of
+    // covering the joker's card art and the HP label above the slot (playtest
+    // bug: the previous full-size stored card, offset by Pile's default ~8px
+    // stack_display_gap, poked into the label's bottom edge). ScoundrelGame sets
+    // `scale` on the stored Card node to this value when storing.
+    public const float PocketedItemScale = 0.42f;
+
+    // Pile.PileDirection.DOWN (addons/card-framework/pile.gd) — a GDScript enum
+    // ordinal, not exposed as a type to C#. Enum order there is UP=0, DOWN=1,
+    // LEFT=2, RIGHT=3.
+    private const int PileDirectionDown = 1;
+
     private readonly Node _owner;
     private readonly GodotObject _cardFactory;
     private readonly Node _cardManager;
@@ -291,6 +305,38 @@ public sealed class ScoundrelLayoutController
         _weaponJokerSlot.OffsetBottom = labelHeight + cardSize.Y;
 
         _jokerGroup.OffsetBottom = _jokerGroup.OffsetTop + labelHeight + cardSize.Y;
+
+        // A stored potion/weapon (index 1 in this Pile) must land as a small badge
+        // in the bottom of the slot, clear of the joker's own card art and the HP
+        // label above — never covering either (playtest bug fixed here). Rather
+        // than fighting the framework's own layout/tween machinery with a manual
+        // position override (any absolute position we set gets re-tweened back by
+        // Pile's deferred reapply, Card.return_card(), and this very resize path),
+        // we teach the Pile itself where index 1 belongs: `layout = DOWN` moves it
+        // straight down from the joker's own position (index 0, always at offset
+        // zero), and `stack_display_gap` is sized so the *scaled-down* card's
+        // bottom edge lands exactly flush with the slot's bottom edge.
+        //
+        // Derivation: a Control scales around `pivot_offset`, which Card.gd always
+        // sets to (unscaled) card_size / 2 — the pivot point's global position is
+        // therefore fixed under scaling, i.e. it IS the shrunk card's visual
+        // center. We want that center at slot_bottom - (cardSize.Y*scale)/2, i.e.
+        // offset.y = cardSize.Y/2 - (cardSize.Y*scale)/2 = (cardSize.Y/2)*(1-scale).
+        // ScoundrelGame sets `scale` on the stored Card node to PocketedItemScale
+        // when storing (see ShrinkCardForPocket).
+        var pocketedItemOffset = (int)((cardSize.Y / 2f) * (1f - PocketedItemScale));
+        _potionJokerSlot.Set("layout", PileDirectionDown);
+        _potionJokerSlot.Set("stack_display_gap", pocketedItemOffset);
+        _weaponJokerSlot.Set("layout", PileDirectionDown);
+        _weaponJokerSlot.Set("stack_display_gap", pocketedItemOffset);
+
+        // Mirrors the room's one-liner above (UpdateCardSize) — without this, a
+        // resize while something is pocketed updates the gap value here but
+        // doesn't re-tween the already-placed badge card to match (the same
+        // pre-existing gap applies to every non-room Pile; out of scope for this
+        // fix, called out for visibility).
+        _potionJokerSlot.Call("_update_target_positions");
+        _weaponJokerSlot.Call("_update_target_positions");
     }
 
     private void UpdateRoomLayout(Vector2 cardSize)
