@@ -1322,4 +1322,49 @@ public class ScoundrelSceneTests
         AssertThat(game.BounceActive).IsTrue();
         AssertThat(game.BounceCardCount).IsEqual(4);
     }
+
+    [TestCase(Description = "Extended Rules deck (Blacksmith/Merchant/Jokers) loads without error")]
+    public async Task ExtendedRules_NewCardKindsLoadWithoutError()
+    {
+        // Room 2 (bottom — dealt second): plain Classic padding cards.
+        // Room 1 (top — dealt first): one of each new Extended Rules card kind.
+        // This chunk only wires up data model + deck infrastructure — no gameplay
+        // effects for these cards yet, so this test only checks the scene loads and
+        // the card nodes are created, not that clicking them does anything special.
+        var deck = new List<CardModel>
+        {
+            new CardModel(Suit.Clubs,      2,  "2_clubs"),
+            new CardModel(Suit.Hearts,     3,  "3_hearts"),
+            new CardModel(Suit.Spades,     4,  "4_spades"),
+            new CardModel(Suit.Diamonds,   5,  "5_diamonds"),
+            new CardModel(Suit.Diamonds,   11, "jack_diamonds"),  // Blacksmith
+            new CardModel(Suit.Hearts,     11, "jack_hearts"),    // Merchant
+            new CardModel(Suit.RedJoker,   0,  "joker_red"),      // Potion Joker
+            new CardModel(Suit.BlackJoker, 0,  "joker_black"),    // Weapon Joker
+        };
+
+        var game = (ScoundrelGame)_runner!.Scene();
+        game.ExtendedRules = true;
+        game.StartGameWithDeck(deck);
+        await _runner!.AwaitMillis(200);
+
+        AssertThat(game.ExtendedRules).IsTrue();
+
+        var scene = _runner!.Scene();
+        var room  = scene.GetNode("UI/RoomContainer");
+        var roomCards = (GArray)room.Call("get_all_cards");
+        AssertThat(roomCards.Count).IsEqual(ScoundrelRules.RoomSize);
+
+        var names = new HashSet<string>();
+        foreach (var obj in roomCards)
+        {
+            var card = obj.AsGodotObject();
+            names.Add(card.Get("card_info").AsGodotDictionary()["name"].AsString());
+        }
+
+        AssertThat(names.Contains("jack_diamonds")).IsTrue();
+        AssertThat(names.Contains("jack_hearts")).IsTrue();
+        AssertThat(names.Contains("joker_red")).IsTrue();
+        AssertThat(names.Contains("joker_black")).IsTrue();
+    }
 }

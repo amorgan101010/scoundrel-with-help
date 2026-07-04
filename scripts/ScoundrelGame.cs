@@ -63,6 +63,12 @@ public partial class ScoundrelGame : Node
     // ── Sound effects ─────────────────────────────────────────────────────
     required public AudioManager AudioManager {get; set;}
 
+    // ── Ruleset toggle ────────────────────────────────────────────────────
+    // Lightweight stand-in for the future main-menu ruleset toggle (PRD §5.5,
+    // out of scope here). When true, BuildDeck() adds the Extended Rules cards
+    // (Blacksmith, Merchant, Jokers) and the engine is constructed accordingly.
+    [Export] public bool ExtendedRules = false;
+
     // ── Layout constants ──────────────────────────────────────────────────
     // Base card dimensions for a 1080p viewport. These are scaled at runtime
     // to match the current viewport size and applied to the card factory.
@@ -263,7 +269,7 @@ public partial class ScoundrelGame : Node
         }
 
         // Engine auto-deals room 1 in its constructor; sync Godot visuals to match.
-        _engine = new GameEngine(deck);
+        _engine = new GameEngine(deck, ExtendedRules);
         SyncRoomToGodot();
         UpdateUI();
     }
@@ -283,6 +289,23 @@ public partial class ScoundrelGame : Node
                 var s = suit == "hearts" ? Suit.Hearts : Suit.Diamonds;
                 deck.Add(new CardModel(s, int.Parse(rank), $"{rank}_{suit}"));
             }
+
+        if (ExtendedRules)
+        {
+            // Blacksmith (Diamond face cards + Ace) and Merchant (Heart face cards + Ace).
+            // RedRanks only covers 2-10, so these ranks (1, 11-13) never collide with the
+            // weapon/potion cards added above.
+            foreach (var rank in new[] { "jack", "queen", "king", "ace" })
+            {
+                deck.Add(new CardModel(Suit.Diamonds, RankToInt(rank), $"{rank}_diamonds"));
+                deck.Add(new CardModel(Suit.Hearts,   RankToInt(rank), $"{rank}_hearts"));
+            }
+
+            // Jokers carry no rank.
+            deck.Add(new CardModel(Suit.RedJoker,   0, "joker_red"));
+            deck.Add(new CardModel(Suit.BlackJoker, 0, "joker_black"));
+        }
+
         return deck;
     }
 
