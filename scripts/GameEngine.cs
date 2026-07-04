@@ -490,10 +490,43 @@ public class GameEngine
     }
 
     /// <summary>
+    /// True iff every remaining card across the deck and the current room is a Blacksmith
+    /// or Merchant card — i.e. nothing left that can hurt or help the player (no monsters,
+    /// no potions, no real weapons) and no undrawn Jokers either, since a Joker card is
+    /// neither Blacksmith nor Merchant. This is a distinct win condition from the classic
+    /// "deck exhausted" one: with Extended Rules, a no-weapon player recycles every
+    /// Blacksmith/Merchant card back into the deck instead of discarding it (see
+    /// <see cref="ApplyBlacksmithEffect"/>/<see cref="ApplyMerchantEffect"/>), so the deck
+    /// can otherwise never actually empty.
+    ///
+    /// Gated on <see cref="ExtendedRules"/>: a Classic deck can never contain a Blacksmith
+    /// or Merchant card by construction (Classic diamonds/hearts top out at rank 10, no
+    /// face cards), so this condition is meaningless outside Extended Rules. Without this
+    /// gate, a Classic-mode <see cref="GameEngine"/> built directly from a hand-crafted test
+    /// deck that happens to include a bare CardModel classified as Blacksmith/Merchant would
+    /// win as soon as it became the only room card left — before the player got a chance to
+    /// use it — which is not the intended behavior for a non-Extended-Rules game.
+    ///
+    /// Guarded against the vacuous-true case: <c>Enumerable.All</c> on an empty sequence
+    /// returns true, so without the precondition an empty deck AND empty room would
+    /// incorrectly read as "only friendly NPCs remain." That state is the pre-existing
+    /// "deck exhausted" win handled separately below.
+    ///
+    /// A joker already taken by the player (<see cref="HasPotionJoker"/>/
+    /// <see cref="HasWeaponJoker"/>) is a companion, not a card in the deck or room any
+    /// more, so it never blocks this check — no special-casing needed.
+    /// </summary>
+    private bool OnlyFriendlyNpcsRemain()
+        => ExtendedRules
+           && (_deck.Count > 0 || _room.Count > 0)
+           && _deck.Concat(_room).All(c => c.IsBlacksmith || c.IsMerchant);
+
+    /// <summary>
     /// Common tail for actions that consume one of the room's card slots (TakeCard,
-    /// StorePotion): counts toward CardsTakenThisRoom, checks for game over, and
-    /// refills/wins the room when empty. Not used by RetrievePotion, which is a side
-    /// action that doesn't touch room state.
+    /// StorePotion): counts toward CardsTakenThisRoom, checks for game over, checks the
+    /// friendly-NPCs-only win condition, and refills/wins the room when empty. Not used by
+    /// RetrievePotion/RetrieveWeapon, which are side actions that don't touch deck/room
+    /// state and so can never flip either win condition.
     /// </summary>
     private void FinishRoomAction()
     {
@@ -501,6 +534,12 @@ public class GameEngine
 
         CheckGameOver();
         if (GameOver) return;
+
+        if (OnlyFriendlyNpcsRemain())
+        {
+            Won = true;
+            return;
+        }
 
         if (_room.Count == 0)
         {
