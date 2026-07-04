@@ -98,6 +98,20 @@ public class ScoundrelSceneTests
         return null;
     }
 
+    // Blacksmith/Merchant cards share the "diamonds"/"hearts" suit string with real
+    // weapons/potions (only Rank distinguishes them), so tests needing one specific
+    // card must match by exact name rather than by suit.
+    private static GodotObject? FindRoomCardByName(Node scene, string name)
+    {
+        var room = scene.GetNode("UI/RoomContainer");
+        foreach (var obj in (GArray)room.Call("get_all_cards"))
+        {
+            var card = obj.AsGodotObject();
+            if (card.Get("card_info").AsGodotDictionary()["name"].AsString() == name) return card;
+        }
+        return null;
+    }
+
     private static void ClickCard(Node scene, GodotObject card) =>
         scene.GetNode("UI/RoomContainer").EmitSignal("card_selected", card);
 
@@ -138,6 +152,20 @@ public class ScoundrelSceneTests
     private Vector2 RightZoneCenter()
     {
         var zone = _runner!.Scene().GetNode<Control>("UI/RightPanel/RightDropZone");
+        return zone.GlobalPosition + zone.Size * 0.5f;
+    }
+
+    // Returns the centre of the Potion/Weapon Joker fight sub-zones (the bottom
+    // half of LeftPanel, split left/right) in viewport coordinates.
+    private Vector2 PotionJokerZoneCenter()
+    {
+        var zone = _runner!.Scene().GetNode<Control>("UI/LeftPanel/PotionJokerDropZone");
+        return zone.GlobalPosition + zone.Size * 0.5f;
+    }
+
+    private Vector2 WeaponJokerZoneCenter()
+    {
+        var zone = _runner!.Scene().GetNode<Control>("UI/LeftPanel/WeaponJokerDropZone");
         return zone.GlobalPosition + zone.Size * 0.5f;
     }
 
@@ -1366,5 +1394,364 @@ public class ScoundrelSceneTests
         AssertThat(names.Contains("jack_hearts")).IsTrue();
         AssertThat(names.Contains("joker_red")).IsTrue();
         AssertThat(names.Contains("joker_black")).IsTrue();
+    }
+
+    // ── Extended Rules: Joker UI wiring (placement, HP, fight-with-joker) ──────
+
+    [TestCase(Description = "Taking the Red Joker moves its card into the Potion Joker slot (not left in the room) and shows its starting HP")]
+    public async Task TakingRedJoker_MovesToPotionJokerSlotWithHp()
+    {
+        var deck = new List<CardModel>
+        {
+            // Room 2 padding
+            new CardModel(Suit.Hearts, 2, "2_hearts"),
+            new CardModel(Suit.Hearts, 3, "3_hearts"),
+            new CardModel(Suit.Hearts, 4, "4_hearts"),
+            new CardModel(Suit.Hearts, 5, "5_hearts"),
+            // Room 1 (dealt first)
+            new CardModel(Suit.Clubs, 2, "2_clubs"),
+            new CardModel(Suit.Clubs, 3, "3_clubs"),
+            new CardModel(Suit.Clubs, 4, "4_clubs"),
+            new CardModel(Suit.RedJoker, 0, "joker_red"),
+        };
+        var game = (ScoundrelGame)_runner!.Scene();
+        game.ExtendedRules = true;
+        game.StartGameWithDeck(deck);
+        await _runner!.AwaitMillis(200);
+
+        var scene = _runner!.Scene();
+        var room  = scene.GetNode("UI/RoomContainer");
+        var potionJokerSlot = scene.GetNode("UI/LeftPanel/JokerGroup/PotionJokerSlot");
+
+        var joker = FindRoomCard(scene, s => s == "red_joker");
+        AssertThat(joker).IsNotNull();
+
+        ClickCard(scene, joker!);
+        await _runner!.AwaitIdleFrame();
+
+        AssertThat((int)potionJokerSlot.Call("get_card_count")).IsEqual(1);
+        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(3);
+
+        var hpLabel = scene.GetNode<Label>("UI/LeftPanel/JokerGroup/PotionJokerHpLabel");
+        AssertThat(hpLabel.Text).IsEqual("Potion Joker HP: 8/8");
+    }
+
+    [TestCase(Description = "Taking the Black Joker moves its card into the Weapon Joker slot (not left in the room) and shows its starting HP")]
+    public async Task TakingBlackJoker_MovesToWeaponJokerSlotWithHp()
+    {
+        var deck = new List<CardModel>
+        {
+            // Room 2 padding
+            new CardModel(Suit.Hearts, 2, "2_hearts"),
+            new CardModel(Suit.Hearts, 3, "3_hearts"),
+            new CardModel(Suit.Hearts, 4, "4_hearts"),
+            new CardModel(Suit.Hearts, 5, "5_hearts"),
+            // Room 1 (dealt first)
+            new CardModel(Suit.Clubs, 2, "2_clubs"),
+            new CardModel(Suit.Clubs, 3, "3_clubs"),
+            new CardModel(Suit.Clubs, 4, "4_clubs"),
+            new CardModel(Suit.BlackJoker, 0, "joker_black"),
+        };
+        var game = (ScoundrelGame)_runner!.Scene();
+        game.ExtendedRules = true;
+        game.StartGameWithDeck(deck);
+        await _runner!.AwaitMillis(200);
+
+        var scene = _runner!.Scene();
+        var room  = scene.GetNode("UI/RoomContainer");
+        var weaponJokerSlot = scene.GetNode("UI/LeftPanel/JokerGroup/WeaponJokerSlot");
+
+        var joker = FindRoomCard(scene, s => s == "black_joker");
+        AssertThat(joker).IsNotNull();
+
+        ClickCard(scene, joker!);
+        await _runner!.AwaitIdleFrame();
+
+        AssertThat((int)weaponJokerSlot.Call("get_card_count")).IsEqual(1);
+        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(3);
+
+        var hpLabel = scene.GetNode<Label>("UI/LeftPanel/JokerGroup/WeaponJokerHpLabel");
+        AssertThat(hpLabel.Text).IsEqual("Weapon Joker HP: 8/8");
+    }
+
+    [TestCase(Description = "Dragging a monster onto the Potion Joker fight zone reduces the joker's HP, not the player's Health")]
+    public async Task FightingMonsterWithPotionJoker_ReducesJokerHpNotPlayerHealth()
+    {
+        var deck = new List<CardModel>
+        {
+            // Room 2 padding
+            new CardModel(Suit.Hearts, 2, "2_hearts"),
+            new CardModel(Suit.Hearts, 3, "3_hearts"),
+            new CardModel(Suit.Hearts, 4, "4_hearts"),
+            new CardModel(Suit.Hearts, 5, "5_hearts"),
+            // Room 1 (dealt first)
+            new CardModel(Suit.Clubs, 5, "5_clubs"),
+            new CardModel(Suit.Clubs, 3, "3_clubs"),
+            new CardModel(Suit.Clubs, 4, "4_clubs"),
+            new CardModel(Suit.RedJoker, 0, "joker_red"),
+        };
+        var game = (ScoundrelGame)_runner!.Scene();
+        game.ExtendedRules = true;
+        game.StartGameWithDeck(deck);
+        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+
+        var scene = _runner!.Scene();
+        var room  = scene.GetNode("UI/RoomContainer");
+        var discardPile = scene.GetNode("UI/RightPanel/DiscardGroup/DiscardPile");
+
+        var joker = FindRoomCard(scene, s => s == "red_joker");
+        AssertThat(joker).IsNotNull();
+        ClickCard(scene, joker!);
+        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+
+        int hpBefore = ParseHP(scene);
+
+        var monster = FindRoomCardByName(scene, "5_clubs");
+        AssertThat(monster).IsNotNull();
+        int monsterValue = MonsterDamage(monster!.Get("card_info").AsGodotDictionary());
+
+        await MouseDragCard(monster!, PotionJokerZoneCenter());
+
+        // Player Health is completely untouched by a joker-absorbed hit.
+        AssertThat(ParseHP(scene)).IsEqual(hpBefore);
+        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(2); // 3 (post-joker-take) - 1
+        AssertThat((int)discardPile.Call("get_card_count")).IsEqual(1);
+
+        var hpLabel = scene.GetNode<Label>("UI/LeftPanel/JokerGroup/PotionJokerHpLabel");
+        AssertThat(hpLabel.Text).IsEqual($"Potion Joker HP: {8 - monsterValue}/8");
+    }
+
+    [TestCase(Description = "Dragging a monster onto the Weapon Joker fight zone reduces the joker's HP, not the player's Health")]
+    public async Task FightingMonsterWithWeaponJoker_ReducesJokerHpNotPlayerHealth()
+    {
+        var deck = new List<CardModel>
+        {
+            // Room 2 padding
+            new CardModel(Suit.Hearts, 2, "2_hearts"),
+            new CardModel(Suit.Hearts, 3, "3_hearts"),
+            new CardModel(Suit.Hearts, 4, "4_hearts"),
+            new CardModel(Suit.Hearts, 5, "5_hearts"),
+            // Room 1 (dealt first)
+            new CardModel(Suit.Spades, 6, "6_spades"),
+            new CardModel(Suit.Clubs, 3, "3_clubs"),
+            new CardModel(Suit.Clubs, 4, "4_clubs"),
+            new CardModel(Suit.BlackJoker, 0, "joker_black"),
+        };
+        var game = (ScoundrelGame)_runner!.Scene();
+        game.ExtendedRules = true;
+        game.StartGameWithDeck(deck);
+        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+
+        var scene = _runner!.Scene();
+        var room  = scene.GetNode("UI/RoomContainer");
+        var discardPile = scene.GetNode("UI/RightPanel/DiscardGroup/DiscardPile");
+
+        var joker = FindRoomCard(scene, s => s == "black_joker");
+        AssertThat(joker).IsNotNull();
+        ClickCard(scene, joker!);
+        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+
+        int hpBefore = ParseHP(scene);
+
+        var monster = FindRoomCardByName(scene, "6_spades");
+        AssertThat(monster).IsNotNull();
+        int monsterValue = MonsterDamage(monster!.Get("card_info").AsGodotDictionary());
+
+        await MouseDragCard(monster!, WeaponJokerZoneCenter());
+
+        AssertThat(ParseHP(scene)).IsEqual(hpBefore);
+        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(2);
+        AssertThat((int)discardPile.Call("get_card_count")).IsEqual(1);
+
+        var hpLabel = scene.GetNode<Label>("UI/LeftPanel/JokerGroup/WeaponJokerHpLabel");
+        AssertThat(hpLabel.Text).IsEqual($"Weapon Joker HP: {8 - monsterValue}/8");
+    }
+
+    [TestCase(Description = "A joker whose HP hits 0 is lost: its card moves to discard, its HP label clears, and the game continues without crashing")]
+    public async Task PotionJokerDying_MovesToDiscardAndClearsHpLabel()
+    {
+        var deck = new List<CardModel>
+        {
+            // Room 2 padding
+            new CardModel(Suit.Hearts, 2, "2_hearts"),
+            new CardModel(Suit.Hearts, 3, "3_hearts"),
+            new CardModel(Suit.Hearts, 4, "4_hearts"),
+            new CardModel(Suit.Hearts, 5, "5_hearts"),
+            // Room 1 (dealt first): 10_clubs (value 10) kills the 8-HP joker outright.
+            new CardModel(Suit.Clubs, 10, "10_clubs"),
+            new CardModel(Suit.Clubs, 3, "3_clubs"),
+            new CardModel(Suit.Clubs, 4, "4_clubs"),
+            new CardModel(Suit.RedJoker, 0, "joker_red"),
+        };
+        var game = (ScoundrelGame)_runner!.Scene();
+        game.ExtendedRules = true;
+        game.StartGameWithDeck(deck);
+        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+
+        var scene = _runner!.Scene();
+        var room  = scene.GetNode("UI/RoomContainer");
+        var discardPile = scene.GetNode("UI/RightPanel/DiscardGroup/DiscardPile");
+        var potionJokerSlot = scene.GetNode("UI/LeftPanel/JokerGroup/PotionJokerSlot");
+
+        var joker = FindRoomCard(scene, s => s == "red_joker");
+        AssertThat(joker).IsNotNull();
+        ClickCard(scene, joker!);
+        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+
+        var monster = FindRoomCardByName(scene, "10_clubs");
+        AssertThat(monster).IsNotNull();
+        await MouseDragCard(monster!, PotionJokerZoneCenter());
+
+        // Joker died: its card left the slot for discard, and the label resets.
+        AssertThat((int)potionJokerSlot.Call("get_card_count")).IsEqual(0);
+        AssertThat((int)discardPile.Call("get_card_count")).IsEqual(2); // monster + dead joker
+
+        var hpLabel = scene.GetNode<Label>("UI/LeftPanel/JokerGroup/PotionJokerHpLabel");
+        AssertThat(hpLabel.Text).IsEqual("Potion Joker: —");
+
+        // The game must continue normally — taking another card doesn't crash.
+        var nextCard = FindRoomCardByName(scene, "3_clubs");
+        AssertThat(nextCard).IsNotNull();
+        int hpBefore = ParseHP(scene);
+        ClickCard(scene, nextCard!);
+        await _runner!.AwaitIdleFrame();
+
+        AssertThat(ParseHP(scene)).IsEqual(hpBefore - 3);
+    }
+
+    [TestCase(Description = "Dragging a monster onto a joker fight zone with no joker owned bounces it back without discarding")]
+    public async Task DraggingMonsterToJokerZoneWithoutJoker_BouncesBack()
+    {
+        await SetupFixedDeck(UITimings.DragAnimationMs);
+        var scene = _runner!.Scene();
+        var room  = scene.GetNode("UI/RoomContainer");
+
+        // FixedDeck Room 1 has no jokers — HasPotionJoker/HasWeaponJoker are both false.
+        var monster = FindRoomCard(scene, s => s == "clubs");
+        AssertThat(monster).IsNotNull();
+
+        int countBefore = ((GArray)room.Call("get_all_cards")).Count;
+        int hpBefore = ParseHP(scene);
+
+        await MouseDragCard(monster!, PotionJokerZoneCenter());
+
+        AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(countBefore);
+        AssertThat(ParseHP(scene)).IsEqual(hpBefore);
+        AssertThat(scene.GetNode<Label>("HudLayer/StatusLabel").Text).IsEqual("Potion Joker can't fight!");
+    }
+
+    // ── Bug fix: Blacksmith/Merchant dispatch must not key off raw Suit ────────
+    //
+    // Blacksmith cards share Suit.Diamonds with real weapons and Merchant cards
+    // share Suit.Hearts with real potions (only Rank distinguishes them — see
+    // CardModel.cs). OnCardSelected's visual side-effect dispatch previously
+    // switched on cardModel.Suit, which mis-equipped a Blacksmith card as a
+    // weapon and mis-drank a Merchant card as a potion.
+
+    [TestCase(Description = "Dropping a Blacksmith card into the left zone applies its effect without touching the equipped weapon's slot or playing weapon audio")]
+    public async Task DroppingBlacksmithCard_DoesNotTouchWeaponSlot()
+    {
+        var deck = new List<CardModel>
+        {
+            // Room 2 padding
+            new CardModel(Suit.Hearts, 2, "2_hearts"),
+            new CardModel(Suit.Hearts, 3, "3_hearts"),
+            new CardModel(Suit.Hearts, 4, "4_hearts"),
+            new CardModel(Suit.Hearts, 5, "5_hearts"),
+            // Room 1 (dealt first)
+            new CardModel(Suit.Clubs, 2, "2_clubs"),
+            new CardModel(Suit.Clubs, 3, "3_clubs"),
+            new CardModel(Suit.Diamonds, 11, "jack_diamonds"),
+            new CardModel(Suit.Diamonds, 6, "6_diamonds"),
+        };
+        var game = (ScoundrelGame)_runner!.Scene();
+        game.ExtendedRules = true;
+        game.StartGameWithDeck(deck);
+        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+
+        var scene = _runner!.Scene();
+        var weaponSlot = scene.GetNode("UI/LeftPanel/WeaponGroup/WeaponSlot");
+        var discardPile = scene.GetNode("UI/RightPanel/DiscardGroup/DiscardPile");
+
+        // Equip the real weapon first.
+        var weapon = FindRoomCardByName(scene, "6_diamonds");
+        AssertThat(weapon).IsNotNull();
+        ClickCard(scene, weapon!);
+        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+
+        AssertThat((int)weaponSlot.Call("get_card_count")).IsEqual(1);
+        AssertThat(game.AudioManager.LastSfxPlayed).IsEqual(nameof(game.AudioManager._sfxSwordDrawn));
+
+        // Drop the Blacksmith card into the (top-half) left zone.
+        var blacksmith = FindRoomCardByName(scene, "jack_diamonds");
+        AssertThat(blacksmith).IsNotNull();
+        await MouseDragCard(blacksmith!, new Vector2(192f, 345f));
+
+        // Weapon slot must still hold only the original weapon card — untouched.
+        AssertThat((int)weaponSlot.Call("get_card_count")).IsEqual(1);
+        var weaponCards = (GArray)weaponSlot.Call("get_top_cards", 1);
+        var weaponName = weaponCards[0].AsGodotObject().Get("card_info").AsGodotDictionary()["name"].AsString();
+        AssertThat(weaponName).IsEqual("6_diamonds");
+
+        // No new weapon-equip (or any other) audio fired for the Blacksmith card.
+        AssertThat(game.AudioManager.LastSfxPlayed).IsEqual(nameof(game.AudioManager._sfxSwordDrawn));
+
+        // The Blacksmith card applied its effect (weapon equipped, nothing to
+        // remove → attack bonus) and was discarded, not left inert or equipped.
+        AssertThat((int)discardPile.Call("get_card_count")).IsEqual(1);
+    }
+
+    [TestCase(Description = "Selling the equipped weapon via a Merchant card clears the visual weapon slot")]
+    public async Task MerchantSale_ClearsVisualWeaponSlot()
+    {
+        var deck = new List<CardModel>
+        {
+            // Room 2 padding
+            new CardModel(Suit.Hearts, 2, "2_hearts"),
+            new CardModel(Suit.Hearts, 3, "3_hearts"),
+            new CardModel(Suit.Hearts, 4, "4_hearts"),
+            new CardModel(Suit.Hearts, 5, "5_hearts"),
+            // Room 1 (dealt first)
+            new CardModel(Suit.Clubs, 2, "2_clubs"),
+            new CardModel(Suit.Clubs, 10, "10_clubs"),
+            new CardModel(Suit.Hearts, 11, "jack_hearts"),
+            new CardModel(Suit.Diamonds, 6, "6_diamonds"),
+        };
+        var game = (ScoundrelGame)_runner!.Scene();
+        game.ExtendedRules = true;
+        game.StartGameWithDeck(deck);
+        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+
+        var scene = _runner!.Scene();
+        var weaponSlot = scene.GetNode("UI/LeftPanel/WeaponGroup/WeaponSlot");
+        var discardPile = scene.GetNode("UI/RightPanel/DiscardGroup/DiscardPile");
+
+        // Take 10 damage bare-handed first so the sale's heal is observable
+        // (starting from full HP would saturate at the cap).
+        var monster = FindRoomCardByName(scene, "10_clubs");
+        AssertThat(monster).IsNotNull();
+        ClickCard(scene, monster!);
+        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        int hpAfterDamage = ParseHP(scene);
+
+        var weapon = FindRoomCardByName(scene, "6_diamonds");
+        AssertThat(weapon).IsNotNull();
+        ClickCard(scene, weapon!);
+        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        AssertThat((int)weaponSlot.Call("get_card_count")).IsEqual(1);
+
+        var merchant = FindRoomCardByName(scene, "jack_hearts");
+        AssertThat(merchant).IsNotNull();
+        await MouseDragCard(merchant!, new Vector2(192f, 345f));
+
+        // Weapon slot must be cleared out — the sold weapon is gone.
+        AssertThat((int)weaponSlot.Call("get_card_count")).IsEqual(0);
+        AssertThat(scene.GetNode<Label>("UI/LeftPanel/WeaponGroup/WeaponLabel").Text).IsEqual("Weapon: none");
+
+        // Sale formula: max(1, WeaponValue(6) - SlainMonsterCount(0)) + Jack bonus(0) = 6 HP.
+        AssertThat(ParseHP(scene)).IsEqual(Math.Min(ScoundrelRules.MaxHealth, hpAfterDamage + 6));
+
+        // The sold weapon and the merchant card both ended up in discard (plus the earlier monster).
+        AssertThat((int)discardPile.Call("get_card_count")).IsEqual(3);
     }
 }

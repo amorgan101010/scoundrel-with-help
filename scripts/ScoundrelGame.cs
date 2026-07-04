@@ -14,17 +14,27 @@ public partial class ScoundrelGame : Node
     private Node _deckPile = null!;
     private Node _discardPile = null!;
     private Node _weaponSlot = null!;
+    private Node _potionJokerSlot = null!;
+    private Node _weaponJokerSlot = null!;
     private Control _roomContainer = null!;
     private HBoxContainer _bottomButtonGroup = null!;
     private HBoxContainer _topButtonGroup = null!;
     private Node _leftDropZone = null!;
     private Node _rightDropZone = null!;
+    private Node _potionJokerDropZone = null!;
+    private Node _weaponJokerDropZone = null!;
 
     // ── Drop-zone overlays (highlights + labels, created at runtime) ─────
     private ColorRect _leftHighlight = null!;
     private ColorRect _rightHighlight = null!;
     private Label _leftLabel = null!;
     private Label _rightLabel = null!;
+    private ColorRect _potionJokerHighlight = null!;
+    private ColorRect _weaponJokerHighlight = null!;
+    private Label _potionJokerZoneLabel = null!;
+    private Label _weaponJokerZoneLabel = null!;
+    private Label _potionJokerHpLabel = null!;
+    private Label _weaponJokerHpLabel = null!;
     private Label _healthLabel = null!;
     private HealthDie _healthDie = null!;
     private Label _weaponLabel = null!;
@@ -116,11 +126,15 @@ public partial class ScoundrelGame : Node
         _deckPile       = GetNode<Node>("UI/RightPanel/DeckGroup/DeckPile");
         _discardPile    = GetNode<Node>("UI/RightPanel/DiscardGroup/DiscardPile");
         _weaponSlot     = GetNode<Node>("UI/LeftPanel/WeaponGroup/WeaponSlot");
+        _potionJokerSlot = GetNode<Node>("UI/LeftPanel/JokerGroup/PotionJokerSlot");
+        _weaponJokerSlot = GetNode<Node>("UI/LeftPanel/JokerGroup/WeaponJokerSlot");
         _roomContainer  = GetNode<Control>("UI/RoomContainer");
         _bottomButtonGroup = GetNode<HBoxContainer>("UI/BottomButtonGroup");
         _topButtonGroup = GetNode<HBoxContainer>("UI/TopButtonGroup");
         _leftDropZone   = GetNode<Node>("UI/LeftPanel/LeftDropZone");
         _rightDropZone  = GetNode<Node>("UI/RightPanel/RightDropZone");
+        _potionJokerDropZone = GetNode<Node>("UI/LeftPanel/PotionJokerDropZone");
+        _weaponJokerDropZone = GetNode<Node>("UI/LeftPanel/WeaponJokerDropZone");
         _healthLabel    = GetNode<Label>("UI/HealthLabel");
         _weaponLabel    = GetNode<Label>("UI/LeftPanel/WeaponGroup/WeaponLabel");
         _statusLabel    = GetNode<Label>("UI/StatusLabel");
@@ -140,6 +154,11 @@ public partial class ScoundrelGame : Node
         var inPlayHeader = GetNode<Label>("UI/LeftPanel/WeaponGroup/InPlayGroup/InPlayHeader");
         var deckGroup   = GetNode<Control>("UI/RightPanel/DeckGroup");
         var discardGroup = GetNode<Control>("UI/RightPanel/DiscardGroup");
+        var jokerGroup  = GetNode<Control>("UI/LeftPanel/JokerGroup");
+        var potionJokerSlotControl = GetNode<Control>("UI/LeftPanel/JokerGroup/PotionJokerSlot");
+        var weaponJokerSlotControl = GetNode<Control>("UI/LeftPanel/JokerGroup/WeaponJokerSlot");
+        _potionJokerHpLabel = GetNode<Label>("UI/LeftPanel/JokerGroup/PotionJokerHpLabel");
+        _weaponJokerHpLabel = GetNode<Label>("UI/LeftPanel/JokerGroup/WeaponJokerHpLabel");
 
         _cardFactory = (GodotObject)_cardManager.Get("card_factory");
 
@@ -164,6 +183,11 @@ public partial class ScoundrelGame : Node
             _spadesLabel,
             _heartsLabel,
             _diamondsLabel,
+            jokerGroup,
+            potionJokerSlotControl,
+            weaponJokerSlotControl,
+            _potionJokerHpLabel,
+            _weaponJokerHpLabel,
             BaseCardWidth,
             BaseCardHeight,
             cardSize => _cardSize = cardSize);
@@ -206,10 +230,18 @@ public partial class ScoundrelGame : Node
         var overlayLayer = new CanvasLayer();
         overlayLayer.Layer = LayerOverlay;
         AddChild(overlayLayer);
-        _leftHighlight  = AddZoneHighlight(overlayLayer, 0f,    1f/3f, new Color(0.25f, 0.8f, 0.25f, 0.30f));
+        // Left third is split top/bottom: top half keeps the original "fight with
+        // weapon" zone; the bottom half is split left/right into two joker-fight
+        // sub-zones (potion joker on the left, weapon joker on the right).
+        _leftHighlight  = AddZoneHighlight(overlayLayer, 0f,    1f/3f, new Color(0.25f, 0.8f, 0.25f, 0.30f), 0f, 0.5f);
         _rightHighlight = AddZoneHighlight(overlayLayer, 2f/3f, 1f,    new Color(0.25f, 0.5f, 1.0f,  0.30f));
-        _leftLabel      = AddZoneLabel(overlayLayer, 0f,    1f/3f);
+        _leftLabel      = AddZoneLabel(overlayLayer, 0f,    1f/3f, 0f, 0.5f);
         _rightLabel     = AddZoneLabel(overlayLayer, 2f/3f, 1f);
+
+        _potionJokerHighlight = AddZoneHighlight(overlayLayer, 0f,    1f/6f, new Color(0.8f, 0.25f, 0.25f, 0.30f), 0.5f, 1f);
+        _weaponJokerHighlight = AddZoneHighlight(overlayLayer, 1f/6f, 1f/3f, new Color(0.3f, 0.3f, 0.3f,  0.30f), 0.5f, 1f);
+        _potionJokerZoneLabel = AddZoneLabel(overlayLayer, 0f,    1f/6f, 0.5f, 1f);
+        _weaponJokerZoneLabel = AddZoneLabel(overlayLayer, 1f/6f, 1f/3f, 0.5f, 1f);
 
         AudioManager = new AudioManager
         {
@@ -255,6 +287,8 @@ public partial class ScoundrelGame : Node
         _deckPile.Call("clear_cards");
         _discardPile.Call("clear_cards");
         _weaponSlot.Call("clear_cards");
+        _potionJokerSlot.Call("clear_cards");
+        _weaponJokerSlot.Call("clear_cards");
 
         _inPlayClubs    = deck.Count(c => c.Suit == Suit.Clubs);
         _inPlaySpades   = deck.Count(c => c.Suit == Suit.Spades);
@@ -366,6 +400,52 @@ public partial class ScoundrelGame : Node
         ulong containerId = card.Get("card_container").AsGodotObject().GetInstanceId();
         bool droppedLeft  = containerId == _leftDropZone.GetInstanceId();
         bool droppedRight = containerId == _rightDropZone.GetInstanceId();
+        bool droppedPotionJokerZone = containerId == _potionJokerDropZone.GetInstanceId();
+        bool droppedWeaponJokerZone = containerId == _weaponJokerDropZone.GetInstanceId();
+
+        // A monster dropped on a joker fight sub-zone is handled entirely here,
+        // independent of the TakeCard/weapon path below.
+        if (cardModel.IsMonster && (droppedPotionJokerZone || droppedWeaponJokerZone))
+        {
+            bool viaPotionJoker = droppedPotionJokerZone;
+            bool canFight = viaPotionJoker
+                ? _engine.CanFightWithPotionJoker(cardModel)
+                : _engine.CanFightWithWeaponJoker(cardModel);
+
+            if (!canFight)
+            {
+                _roomContainer.Call("move_cards", new Array { card }, -1, false);
+                ShowBriefMessage(viaPotionJoker ? "Potion Joker can't fight!" : "Weapon Joker can't fight!");
+                return;
+            }
+
+            if (viaPotionJoker)
+                _engine.FightWithPotionJoker(cardModel);
+            else
+                _engine.FightWithWeaponJoker(cardModel);
+
+            AudioManager.PlayPunch();
+            DecrementSuit(cardModel);
+            MoveToDiscard(card);
+
+            if (viaPotionJoker && !_engine.HasPotionJoker)
+                HandleJokerLoss(potionJoker: true);
+            else if (!viaPotionJoker && !_engine.HasWeaponJoker)
+                HandleJokerLoss(potionJoker: false);
+
+            if (_engine.GameOver) { ShowGameOver(); UpdateUI(); return; }
+            if (_engine.Won)      { ShowWin();      UpdateUI(); return; }
+
+            SyncRoomToGodot();
+            UpdateUI();
+            return;
+        }
+
+        // Non-monster card dropped on a joker fight sub-zone: no dedicated
+        // semantics for that yet — fall back to the same behavior as the
+        // top/left zone (the safest default).
+        if (droppedPotionJokerZone || droppedWeaponJokerZone)
+            droppedLeft = true;
 
         // Monster + left zone: validate weapon usability before accepting.
         if (cardModel.IsMonster && droppedLeft)
@@ -391,9 +471,11 @@ public partial class ScoundrelGame : Node
         bool useWeapon   = !(cardModel.IsMonster && droppedRight);
         bool activateCard = !((cardModel.IsPotion || cardModel.IsWeapon) && droppedRight);
 
-        var oldWeapon           = _engine.EquippedWeapon;
-        bool potionUsedBefore   = _engine.PotionUsedThisRoom;
-        bool potionWastedBefore = _engine.PotionWastedThisRoom;
+        var oldWeapon             = _engine.EquippedWeapon;
+        bool potionUsedBefore     = _engine.PotionUsedThisRoom;
+        bool potionWastedBefore   = _engine.PotionWastedThisRoom;
+        bool hadPotionJokerBefore = _engine.HasPotionJoker;
+        bool hadWeaponJokerBefore = _engine.HasWeaponJoker;
         bool willUseWeapon      = useWeapon
             && cardModel.IsMonster
             && _engine.EquippedWeapon != null
@@ -401,50 +483,115 @@ public partial class ScoundrelGame : Node
 
         _engine.TakeCard(cardModel, useWeapon, activateCard);
 
-        // Visual side-effects per card type
-        switch (cardModel.Suit)
+        // Visual side-effects per card type. Dispatch on the engine's card-kind
+        // classification (IsMonster/IsPotion/IsWeapon/IsBlacksmith/IsMerchant/
+        // IsPotionJoker/IsWeaponJoker) rather than raw cardModel.Suit: Blacksmith
+        // cards share Suit.Diamonds with real weapons and Merchant cards share
+        // Suit.Hearts with real potions (see CardModel.cs — they're
+        // distinguished by Rank), so a raw-Suit switch would (and previously
+        // did) mis-equip a Blacksmith card as a weapon and mis-drink a
+        // Merchant card as a potion.
+        if (cardModel.IsMonster)
         {
-            case Suit.Clubs:
-            case Suit.Spades:
-                AudioManager.PlayPunch();
-                DecrementSuit(cardModel);
-                if (willUseWeapon)
-                    AddSlainBadge(_godotCards[oldWeapon!.Name], cardModel);
-                MoveToDiscard(card);
-                break;
-
-            case Suit.Hearts:
-                if (activateCard && !potionUsedBefore)
-                    AudioManager.PlayBubbles();
-                else if (!activateCard)
-                    AudioManager.PlayPotionDiscard();
-                if (activateCard && !potionWastedBefore && _engine.PotionWastedThisRoom)
-                    ShowBriefMessage("Potion wasted! (one per room)");
-                DecrementSuit(cardModel);
-                MoveToDiscard(card);
-                break;
-
-            case Suit.Diamonds:
-                if (activateCard)
+            AudioManager.PlayPunch();
+            DecrementSuit(cardModel);
+            if (willUseWeapon)
+                AddSlainBadge(_godotCards[oldWeapon!.Name], cardModel);
+            MoveToDiscard(card);
+        }
+        else if (cardModel.IsPotion)
+        {
+            if (activateCard && !potionUsedBefore)
+                AudioManager.PlayBubbles();
+            else if (!activateCard)
+                AudioManager.PlayPotionDiscard();
+            if (activateCard && !potionWastedBefore && _engine.PotionWastedThisRoom)
+                ShowBriefMessage("Potion wasted! (one per room)");
+            DecrementSuit(cardModel);
+            MoveToDiscard(card);
+        }
+        else if (cardModel.IsWeapon)
+        {
+            if (activateCard)
+            {
+                AudioManager.PlaySwordDrawn();
+                if (oldWeapon != null)
                 {
-                    AudioManager.PlaySwordDrawn();
-                    if (oldWeapon != null)
-                    {
-                        DecrementSuit(oldWeapon);
-                        ClearSlainBadges(_godotCards[oldWeapon.Name]);
-                        MoveToDiscard(_godotCards[oldWeapon.Name]);
-                    }
-                    ResetCardScale(card);
-                    card.Set("tooltip_text", "");
-                    _weaponSlot.Call("move_cards", new Array { card }, -1, false);
+                    DecrementSuit(oldWeapon);
+                    ClearSlainBadges(_godotCards[oldWeapon.Name]);
+                    MoveToDiscard(_godotCards[oldWeapon.Name]);
                 }
-                else
-                {
-                    AudioManager.PlayWeaponDiscard();
-                    DecrementSuit(cardModel);
-                    MoveToDiscard(card);
-                }
-                break;
+                ResetCardScale(card);
+                card.Set("tooltip_text", "");
+                _weaponSlot.Call("move_cards", new Array { card }, -1, false);
+            }
+            else
+            {
+                AudioManager.PlayWeaponDiscard();
+                DecrementSuit(cardModel);
+                MoveToDiscard(card);
+            }
+        }
+        else if (cardModel.IsBlacksmith)
+        {
+            // Blacksmith only adjusts the equipped weapon's wear/bonus counters
+            // (SlainMonsterCount/WeaponAttackBonus/SingleUseWeaponBonus) — it
+            // never changes EquippedWeapon itself, so the weapon slot, its
+            // badges, and its card node must be left completely untouched.
+            if (activateCard && oldWeapon != null)
+            {
+                DecrementSuit(cardModel);
+                MoveToDiscard(card);
+            }
+            else
+            {
+                // Declined, or no weapon to blacksmith: the engine recycled the
+                // card into the deck instead of discarding it.
+                RecycleCardToDeck(card);
+            }
+        }
+        else if (cardModel.IsMerchant)
+        {
+            // Merchant sells the equipped weapon for HP — unlike Blacksmith,
+            // this DOES clear EquippedWeapon and discard the old weapon
+            // (ApplyMerchantEffect), so the visual weapon slot must be cleared
+            // out to match.
+            if (activateCard && oldWeapon != null)
+            {
+                DecrementSuit(oldWeapon);
+                ClearSlainBadges(_godotCards[oldWeapon.Name]);
+                MoveToDiscard(_godotCards[oldWeapon.Name]);
+
+                DecrementSuit(cardModel);
+                MoveToDiscard(card);
+            }
+            else
+            {
+                // Declined, or no weapon to sell: the engine recycled the card
+                // into the deck instead of discarding it.
+                RecycleCardToDeck(card);
+            }
+        }
+        else if (cardModel.IsPotionJoker)
+        {
+            // Taking the Red Joker: it becomes a permanent companion, not a
+            // room/discard card — move it into its dedicated slot.
+            if (_engine.HasPotionJoker && !hadPotionJokerBefore)
+            {
+                ResetCardScale(card);
+                card.Set("tooltip_text", "");
+                _potionJokerSlot.Call("move_cards", new Array { card }, -1, false);
+            }
+        }
+        else if (cardModel.IsWeaponJoker)
+        {
+            // Taking the Black Joker: same companion treatment as the Red Joker.
+            if (_engine.HasWeaponJoker && !hadWeaponJokerBefore)
+            {
+                ResetCardScale(card);
+                card.Set("tooltip_text", "");
+                _weaponJokerSlot.Call("move_cards", new Array { card }, -1, false);
+            }
         }
 
         if (_engine.GameOver) { ShowGameOver(); UpdateUI(); return; }
@@ -470,6 +617,8 @@ public partial class ScoundrelGame : Node
                 int monsterValue = rank == 1 ? 14 : rank;
                 bool canUseWeapon = _engine.EquippedWeapon != null
                     && ScoundrelRules.CanUseWeapon(monsterValue, _engine.WeaponFloor);
+                bool canUsePotionJoker = _engine.HasPotionJoker && _engine.PotionJokerHealth > 0;
+                bool canUseWeaponJoker = _engine.HasWeaponJoker && _engine.WeaponJokerHealth > 0;
 
                 _leftHighlight.Visible  = canUseWeapon;
                 _leftLabel.Text         = "Fight (Weapon)";
@@ -477,6 +626,13 @@ public partial class ScoundrelGame : Node
                 _rightHighlight.Visible = true;
                 _rightLabel.Text        = "Fight (Fists)";
                 _rightLabel.Visible     = true;
+
+                _potionJokerHighlight.Visible = canUsePotionJoker;
+                _potionJokerZoneLabel.Text    = "Fight (Potion Joker)";
+                _potionJokerZoneLabel.Visible = canUsePotionJoker;
+                _weaponJokerHighlight.Visible = canUseWeaponJoker;
+                _weaponJokerZoneLabel.Text    = "Fight (Weapon Joker)";
+                _weaponJokerZoneLabel.Visible = canUseWeaponJoker;
                 break;
             }
             case "hearts":
@@ -507,6 +663,10 @@ public partial class ScoundrelGame : Node
         _rightHighlight.Visible = false;
         _leftLabel.Visible      = false;
         _rightLabel.Visible     = false;
+        _potionJokerHighlight.Visible = false;
+        _weaponJokerHighlight.Visible = false;
+        _potionJokerZoneLabel.Visible = false;
+        _weaponJokerZoneLabel.Visible = false;
     }
 
     // ── Buttons ───────────────────────────────────────────────────────────
@@ -594,6 +754,27 @@ public partial class ScoundrelGame : Node
         card.Set("modulate", new Color(1f, 1f, 1f));
         card.Set("tooltip_text", "");
         _discardPile.Call("move_cards", new Array { card }, -1, false);
+    }
+
+    // A Blacksmith/Merchant card that couldn't or wouldn't be used is recycled
+    // by the engine into a random deck position rather than discarded — visually,
+    // any position in the (face-down) deck pile is fine, mirroring how Run
+    // returns room cards to the deck.
+    private void RecycleCardToDeck(GodotObject card)
+    {
+        ResetCardScale(card);
+        card.Set("modulate", new Color(1f, 1f, 1f));
+        card.Set("tooltip_text", "");
+        _deckPile.Call("move_cards", new Array { card }, 0, false);
+    }
+
+    // A joker's HP pool just hit 0 (Has*Joker flipped false): the joker is lost
+    // entirely — move its card node to discard and let UpdateUI clear its label.
+    private void HandleJokerLoss(bool potionJoker)
+    {
+        var jokerCardName = potionJoker ? "joker_red" : "joker_black";
+        if (_godotCards.TryGetValue(jokerCardName, out var jokerCard))
+            MoveToDiscard(jokerCard);
     }
 
     private void AddSlainBadge(GodotObject weaponCard, CardModel monster)
@@ -704,6 +885,13 @@ public partial class ScoundrelGame : Node
             _weaponLabel.Text = "Weapon: none";
         }
 
+        _potionJokerHpLabel.Text = _engine.HasPotionJoker
+            ? $"Potion Joker HP: {_engine.PotionJokerHealth}/8"
+            : "Potion Joker: —";
+        _weaponJokerHpLabel.Text = _engine.HasWeaponJoker
+            ? $"Weapon Joker HP: {_engine.WeaponJokerHealth}/8"
+            : "Weapon Joker: —";
+
         _runButton.Disabled     = !_engine.CanRun;
         _nextRoomButton.Visible = _engine.CanNextRoom;
 
@@ -721,13 +909,14 @@ public partial class ScoundrelGame : Node
     }
 
     // ── Utilities ─────────────────────────────────────────────────────────
-    private static Label AddZoneLabel(Node parent, float anchorLeft, float anchorRight)
+    private static Label AddZoneLabel(Node parent, float anchorLeft, float anchorRight, float anchorTop = 0f, float anchorBottom = 1f)
     {
         var label = new Label
         {
             AnchorLeft = anchorLeft,
             AnchorRight = anchorRight,
-            AnchorBottom = 1.0f,
+            AnchorTop = anchorTop,
+            AnchorBottom = anchorBottom,
             GrowVertical = Control.GrowDirection.Both,
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center
@@ -740,12 +929,13 @@ public partial class ScoundrelGame : Node
         return label;
     }
 
-    private static ColorRect AddZoneHighlight(Node parent, float anchorLeft, float anchorRight, Color color)
+    private static ColorRect AddZoneHighlight(Node parent, float anchorLeft, float anchorRight, Color color, float anchorTop = 0f, float anchorBottom = 1f)
     {
         var rect = new ColorRect();
         rect.AnchorLeft   = anchorLeft;
         rect.AnchorRight  = anchorRight;
-        rect.AnchorBottom = 1.0f;
+        rect.AnchorTop    = anchorTop;
+        rect.AnchorBottom = anchorBottom;
         rect.GrowVertical = Control.GrowDirection.Both;
         rect.Color        = color;
         rect.MouseFilter  = Control.MouseFilterEnum.Ignore;

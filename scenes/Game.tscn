@@ -214,6 +214,22 @@ visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+script = ExtResource("6_dzc")
+card_face_up = false
+allow_card_movement = false
+restrict_to_top_card = false
+
+[node name="PotionJokerDropZone" type="Control" parent="UI/LeftPanel" unique_id=700000001]
+visible = false
+layout_mode = 1
+anchors_preset = 0
+anchor_left = 0.0
+anchor_top = 0.5
+anchor_right = 0.5
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
@@ -222,6 +238,70 @@ script = ExtResource("6_dzc")
 card_face_up = false
 allow_card_movement = false
 restrict_to_top_card = false
+
+[node name="WeaponJokerDropZone" type="Control" parent="UI/LeftPanel" unique_id=700000002]
+visible = false
+layout_mode = 1
+anchors_preset = 0
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+script = ExtResource("6_dzc")
+card_face_up = false
+allow_card_movement = false
+restrict_to_top_card = false
+
+[node name="JokerGroup" type="Control" parent="UI/LeftPanel" unique_id=700000003]
+anchors_preset = 0
+offset_left = 30.0
+offset_top = 718.0
+offset_right = 460.0
+offset_bottom = 1053.0
+mouse_filter = 2
+
+[node name="PotionJokerHpLabel" type="Label" parent="UI/LeftPanel/JokerGroup" unique_id=700000004]
+layout_mode = 0
+offset_right = 225.0
+offset_bottom = 20.0
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 1
+text = "Potion Joker: —"
+
+[node name="PotionJokerSlot" type="Control" parent="UI/LeftPanel/JokerGroup" unique_id=700000005]
+anchors_preset = 0
+offset_top = 24.0
+offset_right = 225.0
+offset_bottom = 339.0
+mouse_filter = 1
+script = ExtResource("4_pile")
+allow_card_movement = false
+restrict_to_top_card = false
+enable_drop_zone = false
+
+[node name="WeaponJokerHpLabel" type="Label" parent="UI/LeftPanel/JokerGroup" unique_id=700000006]
+layout_mode = 0
+offset_left = 245.0
+offset_right = 470.0
+offset_bottom = 20.0
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 1
+text = "Weapon Joker: —"
+
+[node name="WeaponJokerSlot" type="Control" parent="UI/LeftPanel/JokerGroup" unique_id=700000007]
+anchors_preset = 0
+offset_left = 245.0
+offset_top = 24.0
+offset_right = 470.0
+offset_bottom = 339.0
+mouse_filter = 1
+script = ExtResource("4_pile")
+allow_card_movement = false
+restrict_to_top_card = false
+enable_drop_zone = false
 
 [node name="StatusLabel" type="Label" parent="UI" unique_id=927201028]
 anchors_preset = 5
