@@ -1,4 +1,4 @@
-public enum Suit { Clubs, Spades, Hearts, Diamonds }
+public enum Suit { Clubs, Spades, Hearts, Diamonds, RedJoker, BlackJoker }
 
 /// <summary>
 /// Pure game-logic functions for Scoundrel. No Godot dependencies — fully unit-testable.

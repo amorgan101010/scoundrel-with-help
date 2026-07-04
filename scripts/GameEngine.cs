@@ -22,6 +22,18 @@ public class GameEngine
     public bool GameOver { get; private set; }
     public bool Won { get; private set; }
 
+    /// <summary>
+    /// Number of monsters slain with the currently-equipped weapon. Resets to 0 whenever
+    /// a new weapon is equipped (including the first).
+    /// </summary>
+    public int SlainMonsterCount { get; private set; }
+
+    /// <summary>
+    /// When true, the deck/room may contain Extended Rules cards (Blacksmith, Merchant,
+    /// Jokers) in addition to the Classic monster/weapon/potion cards.
+    /// </summary>
+    public bool ExtendedRules { get; }
+
     public IReadOnlyList<CardModel> Deck    => _deck;
     public IReadOnlyList<CardModel> Discard => _discard;
     public IReadOnlyList<CardModel> Room    => _room;
@@ -30,9 +42,10 @@ public class GameEngine
     public bool CanRun     => !IsOver && !RanLastRoom;
     public bool CanNextRoom => !IsOver && CardsTakenThisRoom >= ScoundrelRules.MinCardsTaken && _room.Count > 0;
 
-    public GameEngine(IEnumerable<CardModel> deck)
+    public GameEngine(IEnumerable<CardModel> deck, bool extendedRules = false)
     {
         _deck = deck.ToList();
+        ExtendedRules = extendedRules;
         DealRoom();
     }
 
@@ -53,30 +66,32 @@ public class GameEngine
         }
         else
         {
-            switch (card.Suit)
+            if (card.IsMonster)
             {
-                case Suit.Clubs:
-                case Suit.Spades:
-                    ApplyMonsterDamage(card, useWeapon);
-                    _discard.Add(card);
-                    break;
-
-                case Suit.Hearts:
-                    if (!PotionUsedThisRoom)
-                    {
-                        Health = ScoundrelRules.Heal(Health, card.PotionValue);
-                        PotionUsedThisRoom = true;
-                    }
-                    else
-                    {
-                        PotionWastedThisRoom = true;
-                    }
-                    _discard.Add(card);
-                    break;
-
-                case Suit.Diamonds:
-                    EquipWeapon(card);
-                    break;
+                ApplyMonsterDamage(card, useWeapon);
+                _discard.Add(card);
+            }
+            else if (card.IsWeapon)
+            {
+                EquipWeapon(card);
+            }
+            else if (card.IsPotion)
+            {
+                if (!PotionUsedThisRoom)
+                {
+                    Health = ScoundrelRules.Heal(Health, card.PotionValue);
+                    PotionUsedThisRoom = true;
+                }
+                else
+                {
+                    PotionWastedThisRoom = true;
+                }
+                _discard.Add(card);
+            }
+            else
+            {
+                // Blacksmith, Merchant, and both Jokers: placeholder discard-only behavior.
+                _discard.Add(card);
             }
         }
 
@@ -152,6 +167,7 @@ public class GameEngine
         {
             damage = ScoundrelRules.CalcDamage(card.MonsterValue, EquippedWeapon.WeaponValue);
             WeaponFloor = ScoundrelRules.NextWeaponFloor(card.MonsterValue);
+            SlainMonsterCount++;
         }
         Health = Math.Max(0, Health - damage);
     }
@@ -162,5 +178,6 @@ public class GameEngine
             _discard.Add(EquippedWeapon);
         EquippedWeapon = card;
         WeaponFloor = int.MaxValue;
+        SlainMonsterCount = 0;
     }
 }

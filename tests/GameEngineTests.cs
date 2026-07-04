@@ -31,6 +31,76 @@ public class CardModelTests
         => Assert.That(new CardModel(Suit.Diamonds, 8).WeaponValue, Is.EqualTo(8));
     [Test] public void PotionValueIsRank()
         => Assert.That(new CardModel(Suit.Hearts, 4).PotionValue, Is.EqualTo(4));
+
+    // ── Extended Rules classification (Diamonds/Hearts are rank-aware) ─────────
+
+    [TestCase(2)]
+    [TestCase(6)]
+    [TestCase(10)]
+    public void Diamonds_RankInWeaponRange_IsWeaponNotBlacksmith(int rank)
+    {
+        var card = new CardModel(Suit.Diamonds, rank);
+        Assert.That(card.IsWeapon,    Is.True);
+        Assert.That(card.IsBlacksmith, Is.False);
+    }
+
+    [TestCase(1)]
+    [TestCase(11)]
+    [TestCase(12)]
+    [TestCase(13)]
+    public void Diamonds_RankOutsideWeaponRange_IsBlacksmithNotWeapon(int rank)
+    {
+        var card = new CardModel(Suit.Diamonds, rank);
+        Assert.That(card.IsBlacksmith, Is.True);
+        Assert.That(card.IsWeapon,     Is.False);
+    }
+
+    [TestCase(2)]
+    [TestCase(6)]
+    [TestCase(10)]
+    public void Hearts_RankInPotionRange_IsPotionNotMerchant(int rank)
+    {
+        var card = new CardModel(Suit.Hearts, rank);
+        Assert.That(card.IsPotion,   Is.True);
+        Assert.That(card.IsMerchant, Is.False);
+    }
+
+    [TestCase(1)]
+    [TestCase(11)]
+    [TestCase(12)]
+    [TestCase(13)]
+    public void Hearts_RankOutsidePotionRange_IsMerchantNotPotion(int rank)
+    {
+        var card = new CardModel(Suit.Hearts, rank);
+        Assert.That(card.IsMerchant, Is.True);
+        Assert.That(card.IsPotion,   Is.False);
+    }
+
+    [Test]
+    public void RedJoker_IsPotionJokerOnly()
+    {
+        var card = new CardModel(Suit.RedJoker, 0);
+        Assert.That(card.IsPotionJoker, Is.True);
+        Assert.That(card.IsWeaponJoker, Is.False);
+        Assert.That(card.IsMonster,     Is.False);
+        Assert.That(card.IsWeapon,      Is.False);
+        Assert.That(card.IsPotion,      Is.False);
+        Assert.That(card.IsBlacksmith,  Is.False);
+        Assert.That(card.IsMerchant,    Is.False);
+    }
+
+    [Test]
+    public void BlackJoker_IsWeaponJokerOnly()
+    {
+        var card = new CardModel(Suit.BlackJoker, 0);
+        Assert.That(card.IsWeaponJoker, Is.True);
+        Assert.That(card.IsPotionJoker, Is.False);
+        Assert.That(card.IsMonster,     Is.False);
+        Assert.That(card.IsWeapon,      Is.False);
+        Assert.That(card.IsPotion,      Is.False);
+        Assert.That(card.IsBlacksmith,  Is.False);
+        Assert.That(card.IsMerchant,    Is.False);
+    }
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -868,5 +938,184 @@ public class BadPathTests
         Assert.That(engine.Won, Is.True);
 
         Assert.Throws<InvalidOperationException>(() => engine.Run());
+    }
+}
+
+// ── SlainMonsterCount (Blacksmith infrastructure) ──────────────────────────────
+
+[TestFixture]
+public class SlainMonsterCountTests
+{
+    [Test]
+    public void NoWeaponEquipped_StaysZero()
+    {
+        var engine = Cards.RoomOf(Cards.Monster(5), Cards.Potion(2), Cards.Potion(3), Cards.Potion(4));
+        engine.TakeCard(engine.Room.First(c => c.IsMonster));
+
+        Assert.That(engine.SlainMonsterCount, Is.EqualTo(0));
+    }
+
+    [Test]
+    public void FightingBareHanded_DoesNotIncrementCount()
+    {
+        var weapon  = Cards.Weapon(7);
+        var monster = Cards.Monster(5);
+        var engine  = Cards.RoomOf(weapon, monster, Cards.Potion(2), Cards.Potion(3));
+
+        engine.TakeCard(weapon);
+        engine.TakeCard(monster, useWeapon: false);
+
+        Assert.That(engine.SlainMonsterCount, Is.EqualTo(0));
+    }
+
+    [Test]
+    public void WeaponBlocksMonster_IncrementsCount()
+    {
+        var weapon  = Cards.Weapon(7);
+        var monster = Cards.Monster(5);
+        var engine  = Cards.RoomOf(weapon, monster, Cards.Potion(2), Cards.Potion(3));
+
+        engine.TakeCard(weapon);
+        engine.TakeCard(monster);
+
+        Assert.That(engine.SlainMonsterCount, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void WeaponCannotBlock_MonsterAtFloor_DoesNotIncrementCount()
+    {
+        var weapon    = Cards.Weapon(7);
+        var monster9  = Cards.Monster(9);
+        var monster9b = Cards.Monster(9);
+        var deck = new[]
+        {
+            Cards.Monster(2), Cards.Monster(2), Cards.Monster(2), Cards.Monster(2),
+            Cards.Monster(2),
+            monster9b,
+            Cards.Potion(2), Cards.Potion(3), monster9, weapon
+        };
+        var engine = new GameEngine(deck);
+
+        engine.TakeCard(weapon);
+        engine.TakeCard(monster9); // blocked → count 1, floor → 9
+        Assert.That(engine.SlainMonsterCount, Is.EqualTo(1));
+
+        engine.TakeCard(engine.Room[0]);
+        engine.NextRoom();
+
+        engine.TakeCard(monster9b); // 9 not < floor(9) → bare-handed, no increment
+        Assert.That(engine.SlainMonsterCount, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void EquippingNewWeapon_ResetsCountToZero()
+    {
+        var weapon1 = Cards.Weapon(7);
+        var monster = Cards.Monster(5);
+        var weapon2 = Cards.Weapon(3);
+        var engine  = Cards.RoomOf(weapon1, monster, weapon2, Cards.Potion(2));
+
+        engine.TakeCard(weapon1);
+        engine.TakeCard(monster);
+        Assert.That(engine.SlainMonsterCount, Is.EqualTo(1));
+
+        engine.TakeCard(weapon2);
+        Assert.That(engine.SlainMonsterCount, Is.EqualTo(0));
+    }
+
+    [Test]
+    public void EquippingFirstWeapon_CountStartsAtZero()
+    {
+        var weapon = Cards.Weapon(5);
+        var engine = Cards.RoomOf(weapon, Cards.Potion(2), Cards.Potion(3), Cards.Potion(4));
+
+        engine.TakeCard(weapon);
+
+        Assert.That(engine.SlainMonsterCount, Is.EqualTo(0));
+    }
+}
+
+// ── Extended Rules infrastructure (Blacksmith/Merchant/Joker placeholders) ─────
+
+[TestFixture]
+public class ExtendedRulesPlaceholderTests
+{
+    [Test]
+    public void ExtendedRulesFlag_DefaultsFalse()
+    {
+        var engine = Cards.RoomOf(Cards.Potion(2), Cards.Potion(3), Cards.Potion(4), Cards.Monster(5));
+        Assert.That(engine.ExtendedRules, Is.False);
+    }
+
+    [Test]
+    public void ExtendedRulesFlag_IsExposedWhenTrue()
+    {
+        var deck   = new[] { Cards.Potion(2), Cards.Potion(3), Cards.Potion(4), Cards.Potion(5) };
+        var engine = new GameEngine(deck, extendedRules: true);
+        Assert.That(engine.ExtendedRules, Is.True);
+    }
+
+    [Test]
+    public void TakingBlacksmithCard_DiscardsWithoutChangingHealthOrWeapon()
+    {
+        var blacksmith = new CardModel(Suit.Diamonds, 11, "jack_diamonds");
+        var deck = new[] { Cards.Potion(2), Cards.Potion(3), Cards.Potion(4), blacksmith };
+        var engine = new GameEngine(deck, extendedRules: true);
+        int healthBefore = engine.Health;
+
+        Assert.DoesNotThrow(() => engine.TakeCard(blacksmith));
+
+        Assert.That(engine.Discard, Contains.Item(blacksmith));
+        Assert.That(engine.Health, Is.EqualTo(healthBefore));
+        Assert.That(engine.EquippedWeapon, Is.Null);
+        Assert.That(engine.CardsTakenThisRoom, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void TakingMerchantCard_DiscardsWithoutChangingHealthOrWeapon()
+    {
+        var merchant = new CardModel(Suit.Hearts, 12, "queen_hearts");
+        var deck = new[] { Cards.Potion(2), Cards.Potion(3), Cards.Potion(4), merchant };
+        var engine = new GameEngine(deck, extendedRules: true);
+        int healthBefore = engine.Health;
+
+        Assert.DoesNotThrow(() => engine.TakeCard(merchant));
+
+        Assert.That(engine.Discard, Contains.Item(merchant));
+        Assert.That(engine.Health, Is.EqualTo(healthBefore));
+        Assert.That(engine.EquippedWeapon, Is.Null);
+        Assert.That(engine.CardsTakenThisRoom, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void TakingRedJoker_DiscardsWithoutChangingHealthOrWeapon()
+    {
+        var joker = new CardModel(Suit.RedJoker, 0, "joker_red");
+        var deck = new[] { Cards.Potion(2), Cards.Potion(3), Cards.Potion(4), joker };
+        var engine = new GameEngine(deck, extendedRules: true);
+        int healthBefore = engine.Health;
+
+        Assert.DoesNotThrow(() => engine.TakeCard(joker));
+
+        Assert.That(engine.Discard, Contains.Item(joker));
+        Assert.That(engine.Health, Is.EqualTo(healthBefore));
+        Assert.That(engine.EquippedWeapon, Is.Null);
+        Assert.That(engine.CardsTakenThisRoom, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void TakingBlackJoker_DiscardsWithoutChangingHealthOrWeapon()
+    {
+        var joker = new CardModel(Suit.BlackJoker, 0, "joker_black");
+        var deck = new[] { Cards.Potion(2), Cards.Potion(3), Cards.Potion(4), joker };
+        var engine = new GameEngine(deck, extendedRules: true);
+        int healthBefore = engine.Health;
+
+        Assert.DoesNotThrow(() => engine.TakeCard(joker));
+
+        Assert.That(engine.Discard, Contains.Item(joker));
+        Assert.That(engine.Health, Is.EqualTo(healthBefore));
+        Assert.That(engine.EquippedWeapon, Is.Null);
+        Assert.That(engine.CardsTakenThisRoom, Is.EqualTo(1));
     }
 }
