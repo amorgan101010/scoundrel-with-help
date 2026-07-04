@@ -21,7 +21,7 @@ public sealed class ScoundrelLayoutController
     private const float WeaponAndInPlayGap = 12f;
     private const float InPlayMinWidth = 130f;
     private const float InPlayMinGapFromSlot = 4f;
-    private const float WeaponGroupMinBottom = 349f;
+    private const float WeaponGroupMinHeight = 349f;
     private const float DeckDesignCardWidth = 225f;
     private const float DeckDesignRightMargin = 30f;
     private const float HelpDialogMaxWidth = 760f;
@@ -228,7 +228,8 @@ public sealed class ScoundrelLayoutController
             _inPlayGroup.OffsetTop = inPlayY;
             _inPlayGroup.OffsetRight = weaponGroupWidth;
             _inPlayGroup.OffsetBottom = inPlayY + inPlayHeight;
-            _weaponGroup.OffsetBottom = Mathf.Max(WeaponGroupMinBottom, Mathf.Max(_weaponSlot.OffsetBottom, _inPlayGroup.OffsetBottom));
+            _weaponGroup.OffsetBottom = _weaponGroup.OffsetTop
+                + Mathf.Max(WeaponGroupMinHeight, Mathf.Max(_weaponSlot.OffsetBottom, _inPlayGroup.OffsetBottom));
             return;
         }
 
@@ -239,7 +240,8 @@ public sealed class ScoundrelLayoutController
 
         _inPlayGroup.OffsetRight = weaponGroupWidth;
         _inPlayGroup.OffsetBottom = _inPlayGroup.OffsetTop + inPlayHeight;
-        _weaponGroup.OffsetBottom = Mathf.Max(WeaponGroupMinBottom, Mathf.Max(_inPlayGroup.OffsetBottom, _weaponSlot.OffsetBottom));
+        _weaponGroup.OffsetBottom = _weaponGroup.OffsetTop
+            + Mathf.Max(WeaponGroupMinHeight, Mathf.Max(_inPlayGroup.OffsetBottom, _weaponSlot.OffsetBottom));
     }
 
     /// <summary>
