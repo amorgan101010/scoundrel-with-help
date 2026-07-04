@@ -132,6 +132,15 @@ public class GameEngine
     public bool CanUseBlacksmith(CardModel card)
         => card.IsBlacksmith && _room.Contains(card) && !IsOver;
 
+    /// <summary>
+    /// True iff the given Merchant card can be used right now: it's a Merchant card
+    /// currently in the room and the game isn't over. Usable regardless of whether a
+    /// weapon is equipped — the "cannot be used" case (no weapon) is handled inside
+    /// <see cref="UseMerchant"/> by recycling the card, not by blocking the call.
+    /// </summary>
+    public bool CanUseMerchant(CardModel card)
+        => card.IsMerchant && _room.Contains(card) && !IsOver;
+
     public GameEngine(IEnumerable<CardModel> deck, bool extendedRules = false, Random? rng = null)
     {
         _deck = deck.ToList();
@@ -145,9 +154,10 @@ public class GameEngine
     /// <param name="activateCard">
     /// When false, the card is discarded without its type-specific effect
     /// (no equip for weapons, no heal for potions). Useful for player-chosen discards.
-    /// For a Blacksmith card, "declined" means recycled into the deck rather than
-    /// discarded — see <see cref="ApplyBlacksmithEffect"/> — so it is handled before the
-    /// general activateCard/discard branch below, not inside it.
+    /// For a Blacksmith or Merchant card, "declined" means recycled into the deck rather
+    /// than discarded — see <see cref="ApplyBlacksmithEffect"/> and
+    /// <see cref="ApplyMerchantEffect"/> — so both are handled before the general
+    /// activateCard/discard branch below, not inside it.
     /// </param>
     public void TakeCard(CardModel card, bool useWeapon = true, bool activateCard = true)
     {
@@ -157,6 +167,10 @@ public class GameEngine
         if (card.IsBlacksmith)
         {
             ApplyBlacksmithEffect(card, activateCard);
+        }
+        else if (card.IsMerchant)
+        {
+            ApplyMerchantEffect(card, activateCard);
         }
         else if (!activateCard)
         {
@@ -192,7 +206,9 @@ public class GameEngine
             }
             else
             {
-                // Merchant: placeholder discard-only behavior pending its own chunk.
+                // Unreachable: every Extended Rules card kind is classified as Blacksmith,
+                // Merchant, a Joker, or a Classic monster/weapon/potion above. Kept as a
+                // defensive fallback rather than an assert.
                 _discard.Add(card);
             }
         }
@@ -285,6 +301,28 @@ public class GameEngine
 
         _room.Remove(card);
         ApplyBlacksmithEffect(card, activate);
+        FinishRoomAction();
+    }
+
+    /// <summary>
+    /// Sell the equipped weapon for HP using a Heart face card / Ace (PRD §6, item 4). If
+    /// there's no equipped weapon to sell, or the player declines (<paramref
+    /// name="activate"/> false), the card is recycled into a random position in the deck
+    /// instead of being discarded — the same mechanism <see cref="UseBlacksmith"/> uses.
+    /// Otherwise: HP gained = max(1, EquippedWeapon.WeaponValue - SlainMonsterCount) plus a
+    /// rank bonus (Jack +0, Queen +1, King +3), applied via <see cref="ScoundrelRules.Heal"/>
+    /// (capped at MaxHealth). The Ace of Hearts is a special case that ignores
+    /// SlainMonsterCount entirely: HP gained = EquippedWeapon.WeaponValue + 5. Selling clears
+    /// the main weapon system back to its no-weapon defaults and discards the old weapon —
+    /// see <see cref="ApplyMerchantEffect"/>.
+    /// </summary>
+    public void UseMerchant(CardModel card, bool activate = true)
+    {
+        if (!CanUseMerchant(card))
+            throw new InvalidOperationException("Cannot use this Merchant card right now.");
+
+        _room.Remove(card);
+        ApplyMerchantEffect(card, activate);
         FinishRoomAction();
     }
 
@@ -456,6 +494,52 @@ public class GameEngine
             };
             SlainMonsterCount = Math.Max(0, SlainMonsterCount - removal);
         }
+
+        _discard.Add(card);
+    }
+
+    /// <summary>
+    /// Core Merchant effect (PRD §6, item 4), shared by <see cref="UseMerchant"/> and
+    /// <see cref="TakeCard"/>'s Merchant branch. Assumes the card has already been removed
+    /// from the room; does not touch room/CardsTakenThisRoom bookkeeping — callers are
+    /// responsible for that (via FinishRoomAction).
+    /// </summary>
+    private void ApplyMerchantEffect(CardModel card, bool activate)
+    {
+        if (!activate || EquippedWeapon == null)
+        {
+            RecycleIntoDeck(card);
+            return;
+        }
+
+        var oldWeapon = EquippedWeapon;
+        int hpGain;
+        if (card.Rank == ScoundrelRules.AceRank)
+        {
+            // Ace of Hearts: full unreduced weapon value + 5, ignoring SlainMonsterCount
+            // wear entirely — distinct from the J/Q/K formula below.
+            hpGain = oldWeapon.WeaponValue + 5;
+        }
+        else
+        {
+            int bonus = card.Rank switch
+            {
+                11 => 0, // Jack
+                12 => 1, // Queen
+                13 => 3, // King
+                _ => 0,
+            };
+            hpGain = Math.Max(1, oldWeapon.WeaponValue - SlainMonsterCount) + bonus;
+        }
+
+        Health = ScoundrelRules.Heal(Health, hpGain);
+
+        _discard.Add(oldWeapon);
+        EquippedWeapon = null;
+        WeaponFloor = int.MaxValue;
+        SlainMonsterCount = 0;
+        WeaponAttackBonus = 0;
+        SingleUseWeaponBonus = 0;
 
         _discard.Add(card);
     }
