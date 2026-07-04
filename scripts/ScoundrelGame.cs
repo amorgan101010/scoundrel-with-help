@@ -67,7 +67,7 @@ public partial class ScoundrelGame : Node
     // Lightweight stand-in for the future main-menu ruleset toggle (PRD §5.5,
     // out of scope here). When true, BuildDeck() adds the Extended Rules cards
     // (Blacksmith, Merchant, Jokers) and the engine is constructed accordingly.
-    [Export] public bool ExtendedRules = true;
+    [Export] public bool ExtendedRules = false;
 
     // ── Layout constants ──────────────────────────────────────────────────
     // Base card dimensions for a 1080p viewport. These are scaled at runtime
