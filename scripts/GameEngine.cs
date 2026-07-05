@@ -142,13 +142,22 @@ public class GameEngine
     public bool CanRetrieveWeapon => HasWeaponJoker && PocketedWeapon != null && !IsOver;
 
     /// <summary>
+    /// Shared guard shape for <see cref="CanFightWithPotionJoker"/>/<see cref="CanFightWithWeaponJoker"/>:
+    /// the joker has been taken, its HP pool is above 0, the given card is a monster
+    /// currently in the room, and the game isn't over. Takes the specific joker's
+    /// Has*Joker/*JokerHealth values as parameters since C# can't pass one property in
+    /// place of another.
+    /// </summary>
+    private bool CanFightWithJoker(bool hasJoker, int jokerHealth, CardModel monster)
+        => hasJoker && jokerHealth > 0 && monster.IsMonster && _room.Contains(monster) && !IsOver;
+
+    /// <summary>
     /// True iff a monster in the room can be handled by the Red Joker right now: the joker
     /// has been taken, its HP pool is above 0, the given card is a monster currently in the
     /// room, and the game isn't over.
     /// </summary>
     public bool CanFightWithPotionJoker(CardModel monster)
-        => HasPotionJoker && PotionJokerHealth > 0 && monster.IsMonster
-           && _room.Contains(monster) && !IsOver;
+        => CanFightWithJoker(HasPotionJoker, PotionJokerHealth, monster);
 
     /// <summary>
     /// True iff a monster in the room can be handled by the Black Joker right now: the joker
@@ -156,8 +165,7 @@ public class GameEngine
     /// room, and the game isn't over.
     /// </summary>
     public bool CanFightWithWeaponJoker(CardModel monster)
-        => HasWeaponJoker && WeaponJokerHealth > 0 && monster.IsMonster
-           && _room.Contains(monster) && !IsOver;
+        => CanFightWithJoker(HasWeaponJoker, WeaponJokerHealth, monster);
 
     /// <summary>
     /// True iff the given Blacksmith card can be used right now: it's a Blacksmith card
@@ -381,6 +389,24 @@ public class GameEngine
     }
 
     /// <summary>
+    /// Shared logic for <see cref="FightWithPotionJoker"/>/<see cref="FightWithWeaponJoker"/>:
+    /// moves the monster from the room to discard and computes the joker's HP pool after
+    /// absorbing the monster's full value, floored at 0. The health/flag/pocket state that
+    /// differs per joker (PotionJokerHealth vs WeaponJokerHealth, HasPotionJoker vs
+    /// HasWeaponJoker, PocketedPotion vs PocketedWeapon) can't be passed by ref (C# doesn't
+    /// allow taking a ref to an auto-property), so the caller passes in its own current
+    /// health, assigns the returned value back onto its own property, and is responsible for
+    /// clearing its own Has*Joker flag/pocket when the result is 0 and calling
+    /// <see cref="FinishRoomAction"/> afterward.
+    /// </summary>
+    private int FightMonsterWithJoker(CardModel monster, int jokerHealth)
+    {
+        _room.Remove(monster);
+        _discard.Add(monster);
+        return Math.Max(0, jokerHealth - monster.MonsterValue);
+    }
+
+    /// <summary>
     /// Handle a monster with the Red Joker instead of fighting it: the joker absorbs the
     /// monster's full value into its own HP pool (<see cref="PotionJokerHealth"/>), never
     /// reduced by a weapon and never touching the player's <see cref="Health"/>. The monster
@@ -394,9 +420,7 @@ public class GameEngine
         if (!CanFightWithPotionJoker(monster))
             throw new InvalidOperationException("Cannot handle this monster with the Potion Joker right now.");
 
-        _room.Remove(monster);
-        _discard.Add(monster);
-        PotionJokerHealth = Math.Max(0, PotionJokerHealth - monster.MonsterValue);
+        PotionJokerHealth = FightMonsterWithJoker(monster, PotionJokerHealth);
 
         if (PotionJokerHealth == 0)
         {
@@ -421,9 +445,7 @@ public class GameEngine
         if (!CanFightWithWeaponJoker(monster))
             throw new InvalidOperationException("Cannot handle this monster with the Weapon Joker right now.");
 
-        _room.Remove(monster);
-        _discard.Add(monster);
-        WeaponJokerHealth = Math.Max(0, WeaponJokerHealth - monster.MonsterValue);
+        WeaponJokerHealth = FightMonsterWithJoker(monster, WeaponJokerHealth);
 
         if (WeaponJokerHealth == 0)
         {
