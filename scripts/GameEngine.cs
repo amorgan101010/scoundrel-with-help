@@ -200,57 +200,62 @@ public class GameEngine
         if (IsOver) throw new InvalidOperationException("Game is over.");
         if (!_room.Remove(card)) throw new ArgumentException("Card is not in the room.");
 
-        if (card.IsBlacksmith)
+        // Dispatches on card.Kind (backed by the Is* classification properties — see
+        // CardModel.cs) instead of an if/else-if boolean chain, so a missing case throws
+        // immediately instead of silently discarding. Blacksmith/Merchant hand activateCard
+        // straight to their Apply*Effect methods (which decide recycle-vs-use themselves —
+        // see ApplyBlacksmithEffect/ApplyMerchantEffect), so they're handled before the
+        // shared "!activateCard -> plain discard" behavior the other five kinds share.
+        switch (card.Kind)
         {
-            ApplyBlacksmithEffect(card, activateCard);
-        }
-        else if (card.IsMerchant)
-        {
-            ApplyMerchantEffect(card, activateCard);
-        }
-        else if (!activateCard)
-        {
-            _discard.Add(card);
-        }
-        else
-        {
-            if (card.IsMonster)
-            {
+            case CardKind.Blacksmith:
+                ApplyBlacksmithEffect(card, activateCard);
+                break;
+
+            case CardKind.Merchant:
+                ApplyMerchantEffect(card, activateCard);
+                break;
+
+            case CardKind.Monster:
+                if (!activateCard) { _discard.Add(card); break; }
                 ApplyMonsterDamage(card, useWeapon);
                 _discard.Add(card);
-            }
-            else if (card.IsWeapon)
-            {
+                break;
+
+            case CardKind.Weapon:
+                if (!activateCard) { _discard.Add(card); break; }
                 EquipWeapon(card);
-            }
-            else if (card.IsPotion)
-            {
+                break;
+
+            case CardKind.Potion:
+                if (!activateCard) { _discard.Add(card); break; }
                 ApplyPotionHealOrWaste(card);
                 _discard.Add(card);
-            }
-            else if (card.IsPotionJoker)
-            {
+                break;
+
+            case CardKind.PotionJoker:
+                if (!activateCard) { _discard.Add(card); break; }
                 // Red Joker (Potion Pocket): becomes a permanent companion, not a card in
                 // play. It is never discarded — see StorePotion/RetrievePotion/
                 // FightWithPotionJoker below. Its own HP pool starts at a flat 8.
                 HasPotionJoker = true;
                 PotionJokerHealth = JokerStartingHealth;
-            }
-            else if (card.IsWeaponJoker)
-            {
+                break;
+
+            case CardKind.WeaponJoker:
+                if (!activateCard) { _discard.Add(card); break; }
                 // Black Joker (Weapon Pocket): becomes a permanent companion, not a card in
                 // play. It is never discarded — see StoreWeapon/RetrieveWeapon/
                 // FightWithWeaponJoker below. Its own HP pool starts at a flat 8.
                 HasWeaponJoker = true;
                 WeaponJokerHealth = JokerStartingHealth;
-            }
-            else
-            {
-                // Unreachable: every Extended Rules card kind is classified as Blacksmith,
-                // Merchant, a Joker, or a Classic monster/weapon/potion above. Kept as a
-                // defensive fallback rather than an assert.
-                _discard.Add(card);
-            }
+                break;
+
+            default:
+                // Unreachable today — every CardKind is handled above. Thrown instead of a
+                // silent fallback discard so an 8th kind added later fails loudly here
+                // instead of vanishing with no trace.
+                throw new InvalidOperationException($"Unhandled card kind: {card.Kind}");
         }
 
         FinishRoomAction();
