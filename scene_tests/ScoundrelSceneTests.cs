@@ -1644,15 +1644,16 @@ public class ScoundrelSceneTests
     {
         var deck = new List<CardModel>
         {
-            // Room 2 (dealt second): killer monster + padding.
-            new CardModel(Suit.Hearts, 4, "4_hearts"),
-            new CardModel(Suit.Hearts, 3, "3_hearts"),
+            // Room 2 padding
             new CardModel(Suit.Hearts, 2, "2_hearts"),
-            new CardModel(Suit.Clubs, 10, "10_clubs"), // kills the 8-HP joker outright
-            // Room 1 (dealt first): joker, a potion to pocket, and filler to empty the room.
-            new CardModel(Suit.Clubs, 3, "3_clubs"),
-            new CardModel(Suit.Clubs, 2, "2_clubs"),
+            new CardModel(Suit.Hearts, 3, "3_hearts"),
+            new CardModel(Suit.Hearts, 4, "4_hearts"),
             new CardModel(Suit.Hearts, 5, "5_hearts"),
+            // Room 1 (dealt first): joker, a potion to pocket, and the killer monster —
+            // everything happens in this one room, no room transition required.
+            new CardModel(Suit.Clubs, 10, "10_clubs"), // kills the 8-HP joker outright
+            new CardModel(Suit.Clubs, 3, "3_clubs"),
+            new CardModel(Suit.Hearts, 6, "6_hearts"),
             new CardModel(Suit.RedJoker, 0, "joker_red"),
         };
         var game = (ScoundrelGame)_runner!.Scene();
@@ -1665,26 +1666,20 @@ public class ScoundrelSceneTests
         var potionJokerSlot = scene.GetNode("UI/LeftPanel/JokerGroup/PotionJokerSlot");
         var heartsLabel = scene.GetNode<Label>("UI/LeftPanel/WeaponGroup/InPlayGroup/HeartsLabel");
 
-        AssertThat(heartsLabel.Text).IsEqual("♥  4"); // 5,4,3,2 of hearts in this custom deck
+        AssertThat(heartsLabel.Text).IsEqual("♥  5"); // 6,5,4,3,2 of hearts in this custom deck
 
         var joker = FindRoomCard(scene, s => s == "red_joker");
         AssertThat(joker).IsNotNull();
         ClickCard(scene, joker!);
         await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
 
-        var potion = FindRoomCardByName(scene, "5_hearts");
+        var potion = FindRoomCardByName(scene, "6_hearts");
         AssertThat(potion).IsNotNull();
         await MouseDragCard(potion!, PotionJokerZoneCenter());
         await _runner!.AwaitMillis(UITimings.DragAnimationMs);
 
         AssertThat((int)potionJokerSlot.Call("get_card_count")).IsEqual(2); // joker + pocketed potion
-        AssertThat(heartsLabel.Text).IsEqual("♥  4"); // storing doesn't remove it from play
-
-        // Empty the room so it refills with the killer monster.
-        ClickCard(scene, FindRoomCardByName(scene, "2_clubs")!);
-        await _runner!.AwaitIdleFrame();
-        ClickCard(scene, FindRoomCardByName(scene, "3_clubs")!);
-        await _runner!.AwaitIdleFrame();
+        AssertThat(heartsLabel.Text).IsEqual("♥  5"); // storing doesn't remove it from play
 
         var monster = FindRoomCardByName(scene, "10_clubs");
         AssertThat(monster).IsNotNull();
@@ -1694,7 +1689,7 @@ public class ScoundrelSceneTests
         // The joker died (10 damage >= 8 HP). Both its own card AND the pocketed potion
         // must have left the slot -- a stuck pocketed card is the bug being tested for.
         AssertThat((int)potionJokerSlot.Call("get_card_count")).IsEqual(0);
-        AssertThat(heartsLabel.Text).IsEqual("♥  3"); // the lost potion must be decremented
+        AssertThat(heartsLabel.Text).IsEqual("♥  4"); // the lost potion must be decremented
 
         var pocketedCardContainerId = potion!.Get("card_container").AsGodotObject().GetInstanceId();
         AssertThat(pocketedCardContainerId).IsEqual(discardPile.GetInstanceId());
