@@ -303,7 +303,10 @@ public partial class ScoundrelGame : Node
         _bounceController.Reset();
 
         _extendedRulesToggle.Disabled = false;
-        _extendedRulesToggle.ButtonPressed = ExtendedRules;
+        // No-signal: this runs inside StartGame(), which OnExtendedRulesToggled
+        // itself calls — a plain ButtonPressed assignment here would re-fire
+        // "toggled" and recurse.
+        _extendedRulesToggle.SetPressedNoSignal(ExtendedRules);
 
         _godotCards.Clear();
         _statusLabel.Text    = "";
@@ -1008,11 +1011,12 @@ public partial class ScoundrelGame : Node
     private void OnExtendedRulesToggled(bool pressed)
     {
         ExtendedRules = pressed;
+        StartGame();
     }
 
     // Disables the ruleset checkbox once the player has taken any action this
-    // game, so toggling it can't desync from the deck already dealt — the new
-    // value only takes effect on the next StartGame()/Retry.
+    // game, so it can't be flipped mid-run — only reachable while nothing has
+    // happened yet this game, so restarting immediately on toggle is safe.
     private void LockRulesetToggle()
     {
         _extendedRulesToggle.Disabled = true;
