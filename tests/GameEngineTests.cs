@@ -2400,10 +2400,13 @@ public class BlacksmithTests
     }
 
     [Test]
-    public void UseBlacksmith_PartialRemoval_LeavesWeaponFloorDegraded()
+    public void UseBlacksmith_PartialRemoval_RemovesMostRecentKillFirst_ImprovingTheFloor()
     {
-        // Removing some (not all) slain monsters shouldn't un-degrade the floor --
-        // there's still recent-use history left attached to the weapon.
+        // Weapon degradation forces each kill to be strictly weaker than the last (9 then
+        // 8), so removal must target the most recent (lowest-value, floor-setting) kill
+        // first -- otherwise the floor could never improve short of removing everything.
+        // Removing the "8" here should reveal "9" as the new most-recent survivor, raising
+        // the floor from 8 back to 9 (able to block another 8-or-weaker monster again).
         var weapon   = Cards.Weapon(10);
         var monster9 = Cards.Monster(9);
         var monster8 = Cards.Spade(8);
@@ -2411,14 +2414,18 @@ public class BlacksmithTests
         var engine   = Cards.RoomOf(weapon, monster9, monster8, jack);
 
         engine.TakeCard(weapon);
-        engine.TakeCard(monster9); // blocked -> slain 1, floor 9
-        engine.TakeCard(monster8); // blocked -> slain 2, floor 8
+        engine.TakeCard(monster9); // blocked -> slain [9], floor 9
+        engine.TakeCard(monster8); // blocked -> slain [9,8], floor 8
         Assert.That(engine.SlainMonsterCount, Is.EqualTo(2));
+        Assert.That(engine.WeaponFloor, Is.EqualTo(8));
 
-        engine.UseBlacksmith(jack); // removes 1 of 2 -> count 1, still nonzero
+        engine.UseBlacksmith(jack); // removes the most recent (8) -> slain [9]
 
         Assert.That(engine.SlainMonsterCount, Is.EqualTo(1));
-        Assert.That(engine.WeaponFloor, Is.EqualTo(8), "Floor is untouched while the weapon still has slain monsters attached");
+        Assert.That(engine.WeaponFloor, Is.EqualTo(9),
+            "Removing the most recent kill should reveal the next-most-recent survivor's value as the new floor");
+        Assert.That(ScoundrelRules.CanUseWeapon(8, engine.WeaponFloor), Is.True,
+            "The weapon should be able to block another 8 now that the kill setting the stricter floor is gone");
     }
 
     [Test]

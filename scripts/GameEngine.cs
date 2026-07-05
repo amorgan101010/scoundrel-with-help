@@ -13,6 +13,14 @@ public class GameEngine
     private readonly List<CardModel> _room    = new();
     private readonly Random _rng;
 
+    // Monster values slain with the currently-equipped weapon, oldest first. Weapon
+    // degradation forces each kill to be strictly weaker than the last, so this list is
+    // always in decreasing value order — the most recent (last) entry is what WeaponFloor
+    // is derived from. Tracked as a list, not just a count, so Blacksmith can remove
+    // specific kills (the most recent/lowest-value ones — see ApplyBlacksmithEffect) and
+    // recompute the correct resulting floor, rather than only being able to tell "how many".
+    private readonly List<int> _slainMonsterValues = new();
+
     /// <summary>Flat starting HP for either joker's own pool — no randomness.</summary>
     private const int JokerStartingHealth = 8;
 
@@ -28,9 +36,9 @@ public class GameEngine
 
     /// <summary>
     /// Number of monsters slain with the currently-equipped weapon. Resets to 0 whenever
-    /// a new weapon is equipped (including the first).
+    /// a new weapon is equipped (including the first). Derived from <see cref="_slainMonsterValues"/>.
     /// </summary>
-    public int SlainMonsterCount { get; private set; }
+    public int SlainMonsterCount => _slainMonsterValues.Count;
 
     /// <summary>
     /// Permanent bonus added to the equipped weapon's effective value, granted by a
@@ -362,7 +370,7 @@ public class GameEngine
         PocketedWeapon = EquippedWeapon;
         EquippedWeapon = null;
         WeaponFloor = int.MaxValue;
-        SlainMonsterCount = 0;
+        _slainMonsterValues.Clear();
         WeaponAttackBonus = 0;
         SingleUseWeaponBonus = 0;
     }
@@ -604,7 +612,7 @@ public class GameEngine
             int effectiveWeaponValue = EquippedWeapon.WeaponValue + WeaponAttackBonus + SingleUseWeaponBonus;
             damage = ScoundrelRules.CalcDamage(card.MonsterValue, effectiveWeaponValue);
             WeaponFloor = ScoundrelRules.NextWeaponFloor(card.MonsterValue);
-            SlainMonsterCount++;
+            _slainMonsterValues.Add(card.MonsterValue);
             SingleUseWeaponBonus = 0;
         }
         Health = Math.Max(0, Health - damage);
@@ -616,7 +624,7 @@ public class GameEngine
             _discard.Add(EquippedWeapon);
         EquippedWeapon = card;
         WeaponFloor = int.MaxValue;
-        SlainMonsterCount = 0;
+        _slainMonsterValues.Clear();
         WeaponAttackBonus = 0;
         SingleUseWeaponBonus = 0;
     }
@@ -669,13 +677,18 @@ public class GameEngine
                 ScoundrelRules.AceRank => SlainMonsterCount,  // Ace — remove all
                 _ => 0,
             };
-            SlainMonsterCount = Math.Max(0, SlainMonsterCount - removal);
 
-            // A weapon with no slain monsters attached has nothing left degrading
-            // it — restore it to a fresh, unrestricted floor. Partial removals
-            // that don't reach zero leave the floor as-is (still degraded).
-            if (SlainMonsterCount == 0)
-                WeaponFloor = int.MaxValue;
+            // Weapon degradation forces each kill to be strictly weaker than the last, so
+            // _slainMonsterValues is in decreasing-value order — the most recent (last) kill
+            // is both the lowest value AND the one WeaponFloor is derived from. Removing from
+            // the front (oldest/highest-value) would strip everything except that last entry,
+            // leaving the floor untouched until every kill is gone. Removing from the back
+            // (most recent/lowest-value first) instead means the floor actually improves with
+            // each removal, correctly reflecting whichever kill is now the "most recent".
+            int toRemove = Math.Min(removal, _slainMonsterValues.Count);
+            _slainMonsterValues.RemoveRange(_slainMonsterValues.Count - toRemove, toRemove);
+
+            WeaponFloor = _slainMonsterValues.Count == 0 ? int.MaxValue : _slainMonsterValues[^1];
         }
 
         _discard.Add(card);
@@ -720,7 +733,7 @@ public class GameEngine
         _discard.Add(oldWeapon);
         EquippedWeapon = null;
         WeaponFloor = int.MaxValue;
-        SlainMonsterCount = 0;
+        _slainMonsterValues.Clear();
         WeaponAttackBonus = 0;
         SingleUseWeaponBonus = 0;
 

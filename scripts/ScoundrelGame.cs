@@ -1112,7 +1112,12 @@ public partial class ScoundrelGame : Node
         var weaponNode = (Node)weaponCard;
         var badges = SlainBadges(weaponNode);
         int toRemove = System.Math.Min(count, badges.Count);
-        for (int i = 0; i < toRemove; i++)
+        // Badges are added in kill order (oldest first), matching GameEngine's
+        // _slainMonsterValues. Blacksmith removes the most recent (lowest-value) kills
+        // first — see ApplyBlacksmithEffect — so the badges removed here must be the
+        // tail of the list, not the front, or the visible badges would desync from
+        // which kills the engine actually still has attached.
+        for (int i = badges.Count - 1; i >= badges.Count - toRemove; i--)
         {
             badges[i].Visible = false;
             badges[i].RemoveFromGroup("slain_badge");
