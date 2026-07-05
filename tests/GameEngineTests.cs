@@ -2374,6 +2374,54 @@ public class BlacksmithTests
     }
 
     [Test]
+    public void UseBlacksmith_RemovalReachingZero_ResetsWeaponFloor()
+    {
+        // Weapon blocks a 9, degrading WeaponFloor to 9 -- it can no longer block
+        // anything >= 9. Removing the only slain monster should restore the floor
+        // to unrestricted, since nothing is left degrading the weapon.
+        var weapon    = Cards.Weapon(10);
+        var monster9  = Cards.Monster(9);
+        var monster10 = Cards.Spade(10);
+        var jack      = Cards.Blacksmith(11);
+        var engine    = Cards.RoomOf(weapon, monster9, monster10, jack);
+
+        engine.TakeCard(weapon);
+        engine.TakeCard(monster9); // blocked -> slain 1, floor 9
+        Assert.That(engine.SlainMonsterCount, Is.EqualTo(1));
+        Assert.That(engine.WeaponFloor, Is.EqualTo(9));
+
+        engine.UseBlacksmith(jack); // removes the only slain monster -> count 0
+
+        Assert.That(engine.SlainMonsterCount, Is.EqualTo(0));
+        Assert.That(engine.WeaponFloor, Is.EqualTo(int.MaxValue),
+            "A weapon with nothing attached should be fully fresh, not still restricted by past use");
+        Assert.That(ScoundrelRules.CanUseWeapon(monster10.MonsterValue, engine.WeaponFloor), Is.True,
+            "The weapon must now be able to block a monster the stale floor would have rejected");
+    }
+
+    [Test]
+    public void UseBlacksmith_PartialRemoval_LeavesWeaponFloorDegraded()
+    {
+        // Removing some (not all) slain monsters shouldn't un-degrade the floor --
+        // there's still recent-use history left attached to the weapon.
+        var weapon   = Cards.Weapon(10);
+        var monster9 = Cards.Monster(9);
+        var monster8 = Cards.Spade(8);
+        var jack     = Cards.Blacksmith(11);
+        var engine   = Cards.RoomOf(weapon, monster9, monster8, jack);
+
+        engine.TakeCard(weapon);
+        engine.TakeCard(monster9); // blocked -> slain 1, floor 9
+        engine.TakeCard(monster8); // blocked -> slain 2, floor 8
+        Assert.That(engine.SlainMonsterCount, Is.EqualTo(2));
+
+        engine.UseBlacksmith(jack); // removes 1 of 2 -> count 1, still nonzero
+
+        Assert.That(engine.SlainMonsterCount, Is.EqualTo(1));
+        Assert.That(engine.WeaponFloor, Is.EqualTo(8), "Floor is untouched while the weapon still has slain monsters attached");
+    }
+
+    [Test]
     public void UseBlacksmith_Queen_RemovesTwo_FromNonzeroSlainCount()
     {
         var weapon   = Cards.Weapon(10);

@@ -670,6 +670,12 @@ public class GameEngine
                 _ => 0,
             };
             SlainMonsterCount = Math.Max(0, SlainMonsterCount - removal);
+
+            // A weapon with no slain monsters attached has nothing left degrading
+            // it — restore it to a fresh, unrestricted floor. Partial removals
+            // that don't reach zero leave the floor as-is (still degraded).
+            if (SlainMonsterCount == 0)
+                WeaponFloor = int.MaxValue;
         }
 
         _discard.Add(card);
