@@ -10,6 +10,19 @@
 ## the signal because the mouse never reaches a zone sensor.
 ##
 ## card_drag_started / card_drag_ended let C# show/hide zone highlights.
+##
+## NOTE: the drag-signal declarations, _ready() retry-registration pattern,
+## on_card_pressed, and release_holding_cards below are the same shared logic
+## now factored into scenes/DraggableCardSlot.gd for WeaponSlot.gd and
+## JokerPocketSlot.gd. RoomContainer is intentionally NOT converted to extend
+## it: DraggableCardSlot extends Pile (needed by WeaponSlot/JokerPocketSlot for
+## their stacking layout), but RoomContainer extends CardContainer directly and
+## fully overrides _update_target_positions/_update_card_states with its own
+## 2×2 grid + per-slot index tracking, none of which Pile provides. Making
+## RoomContainer extend Pile just to share this block would bolt on unused
+## pile_layout/pile_interaction inspector properties for no behavioral benefit.
+## This remains a documented third copy rather than a forced inheritance
+## change; see DraggableCardSlot.gd's header comment for the full reasoning.
 @tool
 class_name RoomContainer
 extends CardContainer
