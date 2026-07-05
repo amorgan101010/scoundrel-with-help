@@ -101,6 +101,23 @@ public class CardModelTests
         Assert.That(card.IsBlacksmith,  Is.False);
         Assert.That(card.IsMerchant,    Is.False);
     }
+
+    // ── Kind (CardKind classification, one case per of the 7 kinds) ────────────
+
+    [Test] public void Kind_Monster()
+        => Assert.That(new CardModel(Suit.Clubs, 5).Kind, Is.EqualTo(CardKind.Monster));
+    [Test] public void Kind_Weapon()
+        => Assert.That(new CardModel(Suit.Diamonds, 5).Kind, Is.EqualTo(CardKind.Weapon));
+    [Test] public void Kind_Potion()
+        => Assert.That(new CardModel(Suit.Hearts, 5).Kind, Is.EqualTo(CardKind.Potion));
+    [Test] public void Kind_Blacksmith()
+        => Assert.That(new CardModel(Suit.Diamonds, 11).Kind, Is.EqualTo(CardKind.Blacksmith));
+    [Test] public void Kind_Merchant()
+        => Assert.That(new CardModel(Suit.Hearts, 11).Kind, Is.EqualTo(CardKind.Merchant));
+    [Test] public void Kind_PotionJoker()
+        => Assert.That(new CardModel(Suit.RedJoker, 0).Kind, Is.EqualTo(CardKind.PotionJoker));
+    [Test] public void Kind_WeaponJoker()
+        => Assert.That(new CardModel(Suit.BlackJoker, 0).Kind, Is.EqualTo(CardKind.WeaponJoker));
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

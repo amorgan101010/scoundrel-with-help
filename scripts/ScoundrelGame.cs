@@ -597,141 +597,147 @@ public partial class ScoundrelGame : Node
 
         _engine.TakeCard(cardModel, useWeapon, activateCard);
 
-        // Visual side-effects per card type. Dispatch on the engine's card-kind
-        // classification (IsMonster/IsPotion/IsWeapon/IsBlacksmith/IsMerchant/
-        // IsPotionJoker/IsWeaponJoker) rather than raw cardModel.Suit: Blacksmith
-        // cards share Suit.Diamonds with real weapons and Merchant cards share
-        // Suit.Hearts with real potions (see CardModel.cs — they're
-        // distinguished by Rank), so a raw-Suit switch would (and previously
-        // did) mis-equip a Blacksmith card as a weapon and mis-drink a
-        // Merchant card as a potion.
-        if (cardModel.IsMonster)
+        // Visual side-effects per card type. Dispatch on cardModel.Kind (backed by the
+        // engine's card-kind classification properties — IsMonster/IsPotion/IsWeapon/
+        // IsBlacksmith/IsMerchant/IsPotionJoker/IsWeaponJoker) rather than raw
+        // cardModel.Suit: Blacksmith cards share Suit.Diamonds with real weapons and
+        // Merchant cards share Suit.Hearts with real potions (see CardModel.cs — they're
+        // distinguished by Rank), so a raw-Suit switch would (and previously did)
+        // mis-equip a Blacksmith card as a weapon and mis-drink a Merchant card as a
+        // potion. The throwing default means an 8th kind added later fails loudly here
+        // instead of silently getting zero visual handling.
+        switch (cardModel.Kind)
         {
-            AudioManager.PlayPunch();
-            DecrementSuit(cardModel);
-            if (willUseWeapon)
-                AddSlainBadge(_godotCards[oldWeapon!.Name], cardModel);
-            MoveToDiscard(card);
-        }
-        else if (cardModel.IsPotion)
-        {
-            if (activateCard && !potionUsedBefore)
-                AudioManager.PlayBubbles();
-            else if (!activateCard)
-                AudioManager.PlayPotionDiscard();
-            if (activateCard && !potionWastedBefore && _engine.PotionWastedThisRoom)
-                ShowBriefMessage("Potion wasted! (one per room)");
-            DecrementSuit(cardModel);
-            MoveToDiscard(card);
-        }
-        else if (cardModel.IsWeapon)
-        {
-            if (activateCard)
-            {
-                AudioManager.PlaySwordDrawn();
-                if (oldWeapon != null)
+            case CardKind.Monster:
+                AudioManager.PlayPunch();
+                DecrementSuit(cardModel);
+                if (willUseWeapon)
+                    AddSlainBadge(_godotCards[oldWeapon!.Name], cardModel);
+                MoveToDiscard(card);
+                break;
+
+            case CardKind.Potion:
+                if (activateCard && !potionUsedBefore)
+                    AudioManager.PlayBubbles();
+                else if (!activateCard)
+                    AudioManager.PlayPotionDiscard();
+                if (activateCard && !potionWastedBefore && _engine.PotionWastedThisRoom)
+                    ShowBriefMessage("Potion wasted! (one per room)");
+                DecrementSuit(cardModel);
+                MoveToDiscard(card);
+                break;
+
+            case CardKind.Weapon:
+                if (activateCard)
+                {
+                    AudioManager.PlaySwordDrawn();
+                    if (oldWeapon != null)
+                    {
+                        DecrementSuit(oldWeapon);
+                        ClearSlainBadges(_godotCards[oldWeapon.Name]);
+                        MoveToDiscard(_godotCards[oldWeapon.Name]);
+                    }
+                    ResetCardScale(card);
+                    card.Set("tooltip_text", "");
+                    _weaponSlot.Call("move_cards", new Array { card }, -1, false);
+                }
+                else
+                {
+                    AudioManager.PlayWeaponDiscard();
+                    DecrementSuit(cardModel);
+                    MoveToDiscard(card);
+                }
+                break;
+
+            case CardKind.Blacksmith:
+                // Blacksmith only adjusts the equipped weapon's wear/bonus counters
+                // (SlainMonsterCount/WeaponAttackBonus/SingleUseWeaponBonus) — it
+                // never changes EquippedWeapon itself, so the weapon slot and its
+                // card node are left completely untouched. Its counters have no
+                // visual home of their own though (no badge, no label), so without
+                // the brief-message + badge-removal below the card visibly "does
+                // nothing" even though the engine-side effect is applied correctly.
+                if (activateCard && oldWeapon != null)
+                {
+                    int removed = slainBefore - _engine.SlainMonsterCount;
+                    if (removed > 0)
+                    {
+                        RemoveSlainBadges(_godotCards[oldWeapon.Name], removed);
+                        ShowBriefMessage($"Blacksmith removed {removed} slain monster{(removed == 1 ? "" : "s")} from your weapon!");
+                    }
+                    else if (_engine.SingleUseWeaponBonus > singleUseBonusBefore)
+                    {
+                        ShowBriefMessage($"Blacksmith granted a one-time +{_engine.SingleUseWeaponBonus - singleUseBonusBefore} attack bonus!");
+                    }
+                    else if (_engine.WeaponAttackBonus > atkBonusBefore)
+                    {
+                        ShowBriefMessage($"Blacksmith granted +{_engine.WeaponAttackBonus - atkBonusBefore} weapon attack!");
+                    }
+
+                    DecrementSuit(cardModel);
+                    MoveToDiscard(card);
+                }
+                else
+                {
+                    // Declined, or no weapon to blacksmith: the engine recycled the
+                    // card into the deck instead of discarding it.
+                    RecycleCardToDeck(card);
+                    ShowBriefMessage(oldWeapon == null
+                        ? "No weapon equipped — Blacksmith card recycled."
+                        : "Blacksmith declined — recycled into the deck.");
+                }
+                break;
+
+            case CardKind.Merchant:
+                // Merchant sells the equipped weapon for HP — unlike Blacksmith,
+                // this DOES clear EquippedWeapon and discard the old weapon
+                // (ApplyMerchantEffect), so the visual weapon slot must be cleared
+                // out to match.
+                if (activateCard && oldWeapon != null)
                 {
                     DecrementSuit(oldWeapon);
                     ClearSlainBadges(_godotCards[oldWeapon.Name]);
                     MoveToDiscard(_godotCards[oldWeapon.Name]);
-                }
-                ResetCardScale(card);
-                card.Set("tooltip_text", "");
-                _weaponSlot.Call("move_cards", new Array { card }, -1, false);
-            }
-            else
-            {
-                AudioManager.PlayWeaponDiscard();
-                DecrementSuit(cardModel);
-                MoveToDiscard(card);
-            }
-        }
-        else if (cardModel.IsBlacksmith)
-        {
-            // Blacksmith only adjusts the equipped weapon's wear/bonus counters
-            // (SlainMonsterCount/WeaponAttackBonus/SingleUseWeaponBonus) — it
-            // never changes EquippedWeapon itself, so the weapon slot and its
-            // card node are left completely untouched. Its counters have no
-            // visual home of their own though (no badge, no label), so without
-            // the brief-message + badge-removal below the card visibly "does
-            // nothing" even though the engine-side effect is applied correctly.
-            if (activateCard && oldWeapon != null)
-            {
-                int removed = slainBefore - _engine.SlainMonsterCount;
-                if (removed > 0)
-                {
-                    RemoveSlainBadges(_godotCards[oldWeapon.Name], removed);
-                    ShowBriefMessage($"Blacksmith removed {removed} slain monster{(removed == 1 ? "" : "s")} from your weapon!");
-                }
-                else if (_engine.SingleUseWeaponBonus > singleUseBonusBefore)
-                {
-                    ShowBriefMessage($"Blacksmith granted a one-time +{_engine.SingleUseWeaponBonus - singleUseBonusBefore} attack bonus!");
-                }
-                else if (_engine.WeaponAttackBonus > atkBonusBefore)
-                {
-                    ShowBriefMessage($"Blacksmith granted +{_engine.WeaponAttackBonus - atkBonusBefore} weapon attack!");
-                }
 
-                DecrementSuit(cardModel);
-                MoveToDiscard(card);
-            }
-            else
-            {
-                // Declined, or no weapon to blacksmith: the engine recycled the
-                // card into the deck instead of discarding it.
-                RecycleCardToDeck(card);
-                ShowBriefMessage(oldWeapon == null
-                    ? "No weapon equipped — Blacksmith card recycled."
-                    : "Blacksmith declined — recycled into the deck.");
-            }
-        }
-        else if (cardModel.IsMerchant)
-        {
-            // Merchant sells the equipped weapon for HP — unlike Blacksmith,
-            // this DOES clear EquippedWeapon and discard the old weapon
-            // (ApplyMerchantEffect), so the visual weapon slot must be cleared
-            // out to match.
-            if (activateCard && oldWeapon != null)
-            {
-                DecrementSuit(oldWeapon);
-                ClearSlainBadges(_godotCards[oldWeapon.Name]);
-                MoveToDiscard(_godotCards[oldWeapon.Name]);
+                    DecrementSuit(cardModel);
+                    MoveToDiscard(card);
 
-                DecrementSuit(cardModel);
-                MoveToDiscard(card);
+                    ShowBriefMessage($"Sold weapon for {_engine.Health - healthBefore} HP!");
+                }
+                else
+                {
+                    // Declined, or no weapon to sell: the engine recycled the card
+                    // into the deck instead of discarding it.
+                    RecycleCardToDeck(card);
+                    ShowBriefMessage(oldWeapon == null
+                        ? "No weapon equipped — Merchant card recycled."
+                        : "Merchant declined — recycled into the deck.");
+                }
+                break;
 
-                ShowBriefMessage($"Sold weapon for {_engine.Health - healthBefore} HP!");
-            }
-            else
-            {
-                // Declined, or no weapon to sell: the engine recycled the card
-                // into the deck instead of discarding it.
-                RecycleCardToDeck(card);
-                ShowBriefMessage(oldWeapon == null
-                    ? "No weapon equipped — Merchant card recycled."
-                    : "Merchant declined — recycled into the deck.");
-            }
-        }
-        else if (cardModel.IsPotionJoker)
-        {
-            // Taking the Red Joker: it becomes a permanent companion, not a
-            // room/discard card — move it into its dedicated slot.
-            if (_engine.HasPotionJoker && !hadPotionJokerBefore)
-            {
-                ResetCardScale(card);
-                card.Set("tooltip_text", "");
-                _potionJokerSlot.Call("move_cards", new Array { card }, -1, false);
-            }
-        }
-        else if (cardModel.IsWeaponJoker)
-        {
-            // Taking the Black Joker: same companion treatment as the Red Joker.
-            if (_engine.HasWeaponJoker && !hadWeaponJokerBefore)
-            {
-                ResetCardScale(card);
-                card.Set("tooltip_text", "");
-                _weaponJokerSlot.Call("move_cards", new Array { card }, -1, false);
-            }
+            case CardKind.PotionJoker:
+                // Taking the Red Joker: it becomes a permanent companion, not a
+                // room/discard card — move it into its dedicated slot.
+                if (_engine.HasPotionJoker && !hadPotionJokerBefore)
+                {
+                    ResetCardScale(card);
+                    card.Set("tooltip_text", "");
+                    _potionJokerSlot.Call("move_cards", new Array { card }, -1, false);
+                }
+                break;
+
+            case CardKind.WeaponJoker:
+                // Taking the Black Joker: same companion treatment as the Red Joker.
+                if (_engine.HasWeaponJoker && !hadWeaponJokerBefore)
+                {
+                    ResetCardScale(card);
+                    card.Set("tooltip_text", "");
+                    _weaponJokerSlot.Call("move_cards", new Array { card }, -1, false);
+                }
+                break;
+
+            default:
+                throw new System.InvalidOperationException($"Unhandled card kind: {cardModel.Kind}");
         }
 
         if (_engine.GameOver) { ShowGameOver(); UpdateUI(); return; }
@@ -890,77 +896,97 @@ public partial class ScoundrelGame : Node
             _weaponJokerZoneLabel.Text    = "Give to Weapon Joker";
             _weaponJokerZoneLabel.Visible = canGive;
         }
-        else if (cardModel.IsMonster)
+        else
         {
-            int monsterValue = cardModel.MonsterValue;
-            bool canUseWeapon = _engine.EquippedWeapon != null
-                && ScoundrelRules.CanUseWeapon(monsterValue, _engine.WeaponFloor);
-            bool canUsePotionJoker = _engine.HasPotionJoker && _engine.PotionJokerHealth > 0;
-            bool canUseWeaponJoker = _engine.HasWeaponJoker && _engine.WeaponJokerHealth > 0;
+            // Dispatch on cardModel.Kind rather than an if/else-if boolean chain — the
+            // throwing default means an 8th kind added later fails loudly here instead of
+            // silently leaving whatever highlight/label was visible from the last drag.
+            switch (cardModel.Kind)
+            {
+                case CardKind.Monster:
+                {
+                    int monsterValue = cardModel.MonsterValue;
+                    bool canUseWeapon = _engine.EquippedWeapon != null
+                        && ScoundrelRules.CanUseWeapon(monsterValue, _engine.WeaponFloor);
+                    bool canUsePotionJoker = _engine.HasPotionJoker && _engine.PotionJokerHealth > 0;
+                    bool canUseWeaponJoker = _engine.HasWeaponJoker && _engine.WeaponJokerHealth > 0;
 
-            _leftHighlight.Visible  = canUseWeapon;
-            _leftLabel.Text         = "Fight (Weapon)";
-            _leftLabel.Visible      = canUseWeapon;
-            _rightHighlight.Visible = true;
-            _rightLabel.Text        = "Fight (Fists)";
-            _rightLabel.Visible     = true;
+                    _leftHighlight.Visible  = canUseWeapon;
+                    _leftLabel.Text         = "Fight (Weapon)";
+                    _leftLabel.Visible      = canUseWeapon;
+                    _rightHighlight.Visible = true;
+                    _rightLabel.Text        = "Fight (Fists)";
+                    _rightLabel.Visible     = true;
 
-            _potionJokerHighlight.Visible = canUsePotionJoker;
-            _potionJokerZoneLabel.Text    = "Fight (Potion Joker)";
-            _potionJokerZoneLabel.Visible = canUsePotionJoker;
-            _weaponJokerHighlight.Visible = canUseWeaponJoker;
-            _weaponJokerZoneLabel.Text    = "Fight (Weapon Joker)";
-            _weaponJokerZoneLabel.Visible = canUseWeaponJoker;
-        }
-        else if (cardModel.IsPotion)
-        {
-            bool canDrink = !_engine.PotionUsedThisRoom;
-            _leftHighlight.Visible  = canDrink;
-            _leftLabel.Text         = "Drink";
-            _leftLabel.Visible      = canDrink;
-            _rightHighlight.Visible = true;
-            _rightLabel.Text        = "Discard";
-            _rightLabel.Visible     = true;
-        }
-        else if (cardModel.IsWeapon)
-        {
-            _leftHighlight.Visible  = true;
-            _leftLabel.Text         = "Equip";
-            _leftLabel.Visible      = true;
-            _rightHighlight.Visible = true;
-            _rightLabel.Text        = "Discard";
-            _rightLabel.Visible     = true;
-        }
-        else if (cardModel.IsBlacksmith)
-        {
-            bool hasWeapon = _engine.EquippedWeapon != null;
-            _leftHighlight.Visible  = true;
-            _leftLabel.Text         = hasWeapon ? "Blacksmith (repair weapon)" : "Recycle (no weapon)";
-            _leftLabel.Visible      = true;
-            _rightHighlight.Visible = true;
-            _rightLabel.Text        = "Decline (recycle)";
-            _rightLabel.Visible     = true;
-        }
-        else if (cardModel.IsMerchant)
-        {
-            bool hasWeapon = _engine.EquippedWeapon != null;
-            _leftHighlight.Visible  = true;
-            _leftLabel.Text         = hasWeapon ? "Merchant (sell weapon)" : "Recycle (no weapon)";
-            _leftLabel.Visible      = true;
-            _rightHighlight.Visible = true;
-            _rightLabel.Text        = "Decline (recycle)";
-            _rightLabel.Visible     = true;
-        }
-        else if (cardModel.IsPotionJoker || cardModel.IsWeaponJoker)
-        {
-            // Taking a Joker always makes it a companion regardless of which
-            // zone it lands in (see OnCardSelected) — both labels read "Take".
-            _leftHighlight.Visible  = true;
-            _leftLabel.Text         = "Take";
-            _leftLabel.Visible      = true;
-            _rightHighlight.Visible = true;
-            _rightLabel.Text        = "Take";
-            _rightLabel.Visible     = true;
+                    _potionJokerHighlight.Visible = canUsePotionJoker;
+                    _potionJokerZoneLabel.Text    = "Fight (Potion Joker)";
+                    _potionJokerZoneLabel.Visible = canUsePotionJoker;
+                    _weaponJokerHighlight.Visible = canUseWeaponJoker;
+                    _weaponJokerZoneLabel.Text    = "Fight (Weapon Joker)";
+                    _weaponJokerZoneLabel.Visible = canUseWeaponJoker;
+                    break;
+                }
+
+                case CardKind.Potion:
+                {
+                    bool canDrink = !_engine.PotionUsedThisRoom;
+                    _leftHighlight.Visible  = canDrink;
+                    _leftLabel.Text         = "Drink";
+                    _leftLabel.Visible      = canDrink;
+                    _rightHighlight.Visible = true;
+                    _rightLabel.Text        = "Discard";
+                    _rightLabel.Visible     = true;
+                    break;
+                }
+
+                case CardKind.Weapon:
+                    _leftHighlight.Visible  = true;
+                    _leftLabel.Text         = "Equip";
+                    _leftLabel.Visible      = true;
+                    _rightHighlight.Visible = true;
+                    _rightLabel.Text        = "Discard";
+                    _rightLabel.Visible     = true;
+                    break;
+
+                case CardKind.Blacksmith:
+                {
+                    bool hasWeapon = _engine.EquippedWeapon != null;
+                    _leftHighlight.Visible  = true;
+                    _leftLabel.Text         = hasWeapon ? "Blacksmith (repair weapon)" : "Recycle (no weapon)";
+                    _leftLabel.Visible      = true;
+                    _rightHighlight.Visible = true;
+                    _rightLabel.Text        = "Decline (recycle)";
+                    _rightLabel.Visible     = true;
+                    break;
+                }
+
+                case CardKind.Merchant:
+                {
+                    bool hasWeapon = _engine.EquippedWeapon != null;
+                    _leftHighlight.Visible  = true;
+                    _leftLabel.Text         = hasWeapon ? "Merchant (sell weapon)" : "Recycle (no weapon)";
+                    _leftLabel.Visible      = true;
+                    _rightHighlight.Visible = true;
+                    _rightLabel.Text        = "Decline (recycle)";
+                    _rightLabel.Visible     = true;
+                    break;
+                }
+
+                case CardKind.PotionJoker:
+                case CardKind.WeaponJoker:
+                    // Taking a Joker always makes it a companion regardless of which
+                    // zone it lands in (see OnCardSelected) — both labels read "Take".
+                    _leftHighlight.Visible  = true;
+                    _leftLabel.Text         = "Take";
+                    _leftLabel.Visible      = true;
+                    _rightHighlight.Visible = true;
+                    _rightLabel.Text        = "Take";
+                    _rightLabel.Visible     = true;
+                    break;
+
+                default:
+                    throw new System.InvalidOperationException($"Unhandled card kind: {cardModel.Kind}");
+            }
         }
     }
 
