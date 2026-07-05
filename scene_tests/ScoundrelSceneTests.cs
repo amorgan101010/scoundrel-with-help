@@ -2016,6 +2016,63 @@ public class ScoundrelSceneTests
         AssertThat(scene.GetNode<Label>("HudLayer/StatusLabel").Text).IsEqual("Blacksmith removed 1 slain monster from your weapon!");
     }
 
+    [TestCase(Description = "A partial Blacksmith removal removes the visible badge for the most recent (lowest-value) kill, not the oldest — must match GameEngine removing from the same end of its kill history")]
+    public async Task BlacksmithPartialRemoval_RemovesMostRecentKillBadge_NotOldest()
+    {
+        var deck = new List<CardModel>
+        {
+            new CardModel(Suit.Hearts, 6, "6_hearts"),
+            new CardModel(Suit.Hearts, 3, "3_hearts"),
+            new CardModel(Suit.Hearts, 4, "4_hearts"),
+            new CardModel(Suit.Hearts, 5, "5_hearts"),
+            new CardModel(Suit.Diamonds, 10, "10_diamonds"),
+            new CardModel(Suit.Clubs, 6, "6_clubs"),
+            new CardModel(Suit.Clubs, 4, "4_clubs"),
+            new CardModel(Suit.Diamonds, 11, "jack_diamonds"),
+        };
+        var game = (ScoundrelGame)_runner!.Scene();
+        game.ExtendedRules = true;
+        game.StartGameWithDeck(deck);
+        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+
+        var scene = _runner!.Scene();
+
+        var weapon = FindRoomCardByName(scene, "10_diamonds");
+        AssertThat(weapon).IsNotNull();
+        ClickCard(scene, weapon!);
+        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+
+        // Kill order matters: 6 first (floor -> 6), then 4 (4 < 6, floor -> 4). Badges are
+        // added oldest-first, so badge[0] is "6" (the earlier, higher-value kill) and
+        // badge[1] is "4" (the later, lower-value kill that currently sets the floor).
+        var monster6 = FindRoomCardByName(scene, "6_clubs");
+        AssertThat(monster6).IsNotNull();
+        ClickCard(scene, monster6!);
+        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+
+        var monster4 = FindRoomCardByName(scene, "4_clubs");
+        AssertThat(monster4).IsNotNull();
+        ClickCard(scene, monster4!);
+        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+
+        List<string> BadgeTexts() =>
+            ((Node)weapon!).GetChildren()
+                .Where(n => n.IsInGroup("slain_badge"))
+                .Select(n => n.GetChildren().OfType<Label>().First().Text)
+                .ToList();
+
+        AssertThat(BadgeTexts().Count).IsEqual(2);
+
+        var blacksmith = FindRoomCardByName(scene, "jack_diamonds");
+        AssertThat(blacksmith).IsNotNull();
+        ClickCard(scene, blacksmith!);
+        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+
+        var remaining = BadgeTexts();
+        AssertThat(remaining.Count).IsEqual(1);
+        AssertThat(remaining[0]).IsEqual("6"); // the higher-value, earlier kill must survive
+    }
+
     // ── Extended Rules: storing/retrieving via the joker pockets (chunk 10) ────
     //
     // Storing reuses the fight-with-joker drop zones (PotionJokerDropZone/
