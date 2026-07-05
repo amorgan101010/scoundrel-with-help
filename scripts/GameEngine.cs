@@ -359,13 +359,11 @@ public class GameEngine
     /// <summary>
     /// Move the currently-equipped weapon into the Weapon Pocket instead of retrieving a
     /// pocketed weapon out of it (the reverse of <see cref="RetrieveWeapon"/>). Resets the
-    /// main weapon system to its no-weapon defaults exactly like a fresh
-    /// <see cref="EquipWeapon"/> call or a Merchant sale (<see cref="ApplyMerchantEffect"/>)
-    /// does: WeaponFloor, SlainMonsterCount, WeaponAttackBonus, and SingleUseWeaponBonus all
-    /// clear. A side action like <see cref="RetrievePotion"/>/<see cref="RetrieveWeapon"/>:
-    /// it does not touch CardsTakenThisRoom and does not run the room-refill/win-check tail
-    /// — the weapon isn't in _room or _discard, it just moves from one already-possessed
-    /// slot (EquippedWeapon) to another (PocketedWeapon).
+    /// main weapon system to its no-weapon defaults — see <see cref="ResetWeaponSystem"/>.
+    /// A side action like <see cref="RetrievePotion"/>/<see cref="RetrieveWeapon"/>: it does
+    /// not touch CardsTakenThisRoom and does not run the room-refill/win-check tail — the
+    /// weapon isn't in _room or _discard, it just moves from one already-possessed slot
+    /// (EquippedWeapon) to another (PocketedWeapon).
     /// </summary>
     public void GiveEquippedWeaponToJoker()
     {
@@ -374,10 +372,7 @@ public class GameEngine
 
         PocketedWeapon = EquippedWeapon;
         EquippedWeapon = null;
-        WeaponFloor = int.MaxValue;
-        _slainMonsterValues.Clear();
-        WeaponAttackBonus = 0;
-        SingleUseWeaponBonus = 0;
+        ResetWeaponSystem();
     }
 
     /// <summary>
@@ -623,15 +618,33 @@ public class GameEngine
         Health = Math.Max(0, Health - damage);
     }
 
+    /// <summary>
+    /// Resets the main weapon system to its no-weapon defaults: clears
+    /// <see cref="WeaponFloor"/> (back to no floor), the slain-monster kill history
+    /// (<see cref="SlainMonsterCount"/>), <see cref="WeaponAttackBonus"/>, and
+    /// <see cref="SingleUseWeaponBonus"/>. Shared by every path that lets go of the
+    /// currently-equipped weapon without carrying its wear/bonuses forward: equipping a new
+    /// weapon (<see cref="EquipWeapon"/>), selling it to a Merchant
+    /// (<see cref="ApplyMerchantEffect"/>), and giving it to the Weapon Joker
+    /// (<see cref="GiveEquippedWeaponToJoker"/>). Does not touch
+    /// <see cref="EquippedWeapon"/>/<see cref="PocketedWeapon"/> or discard the old weapon —
+    /// each caller handles that itself, since what happens to the old weapon differs per
+    /// caller (discarded, sold, or pocketed).
+    /// </summary>
+    private void ResetWeaponSystem()
+    {
+        WeaponFloor = int.MaxValue;
+        _slainMonsterValues.Clear();
+        WeaponAttackBonus = 0;
+        SingleUseWeaponBonus = 0;
+    }
+
     private void EquipWeapon(CardModel card)
     {
         if (EquippedWeapon != null)
             _discard.Add(EquippedWeapon);
         EquippedWeapon = card;
-        WeaponFloor = int.MaxValue;
-        _slainMonsterValues.Clear();
-        WeaponAttackBonus = 0;
-        SingleUseWeaponBonus = 0;
+        ResetWeaponSystem();
     }
 
     /// <summary>
@@ -737,10 +750,7 @@ public class GameEngine
 
         _discard.Add(oldWeapon);
         EquippedWeapon = null;
-        WeaponFloor = int.MaxValue;
-        _slainMonsterValues.Clear();
-        WeaponAttackBonus = 0;
-        SingleUseWeaponBonus = 0;
+        ResetWeaponSystem();
 
         _discard.Add(card);
     }
