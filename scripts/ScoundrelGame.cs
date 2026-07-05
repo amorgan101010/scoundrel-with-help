@@ -469,6 +469,11 @@ public partial class ScoundrelGame : Node
                 return;
             }
 
+            // Captured before the fight call, since a lethal hit clears PocketedPotion/
+            // PocketedWeapon on the engine side (the item is lost along with the joker) —
+            // HandleJokerLoss needs to know what it was to clean up its Godot node too.
+            CardModel? pocketedBefore = viaPotionJoker ? _engine.PocketedPotion : _engine.PocketedWeapon;
+
             if (viaPotionJoker)
                 _engine.FightWithPotionJoker(cardModel);
             else
@@ -479,9 +484,9 @@ public partial class ScoundrelGame : Node
             MoveToDiscard(card);
 
             if (viaPotionJoker && !_engine.HasPotionJoker)
-                HandleJokerLoss(potionJoker: true);
+                HandleJokerLoss(potionJoker: true, pocketedBefore);
             else if (!viaPotionJoker && !_engine.HasWeaponJoker)
-                HandleJokerLoss(potionJoker: false);
+                HandleJokerLoss(potionJoker: false, pocketedBefore);
 
             if (_engine.GameOver) { ShowGameOver(); UpdateUI(); return; }
             if (_engine.Won)      { ShowWin();      UpdateUI(); return; }
@@ -1088,11 +1093,23 @@ public partial class ScoundrelGame : Node
 
     // A joker's HP pool just hit 0 (Has*Joker flipped false): the joker is lost
     // entirely — move its card node to discard and let UpdateUI clear its label.
-    private void HandleJokerLoss(bool potionJoker)
+    private void HandleJokerLoss(bool potionJoker, CardModel? pocketedItem)
     {
         var jokerCardName = potionJoker ? "joker_red" : "joker_black";
         if (_godotCards.TryGetValue(jokerCardName, out var jokerCard))
             MoveToDiscard(jokerCard);
+
+        // The joker's pocketed item, if any, is lost along with the joker (engine already
+        // nulled PocketedPotion/PocketedWeapon by this point) — without this, its Godot
+        // node would be stranded in the now-empty slot. JokerPocketSlot.gd only allows
+        // dragging the card at index > 0, so once the joker's own card is gone this would
+        // become the sole (index 0) child and permanently non-interactive, and its suit
+        // count would never be decremented since it's neither discarded nor retrieved.
+        if (pocketedItem != null && _godotCards.TryGetValue(pocketedItem.Name, out var pocketedCard))
+        {
+            DecrementSuit(pocketedItem);
+            MoveToDiscard(pocketedCard);
+        }
     }
 
     private void AddSlainBadge(GodotObject weaponCard, CardModel monster)
