@@ -283,28 +283,30 @@ public sealed class ScoundrelLayoutController
         _weaponJokerHpLabel.AddThemeFontSizeOverride("font_size", labelFontSize);
         var labelHeight = labelFontSize + JokerLabelBottomPadding;
 
-        _potionJokerHpLabel.OffsetLeft = 0f;
-        _potionJokerHpLabel.OffsetRight = cardSize.X;
-        _potionJokerHpLabel.OffsetTop = 0f;
-        _potionJokerHpLabel.OffsetBottom = labelHeight;
-
-        _potionJokerSlot.OffsetLeft = 0f;
-        _potionJokerSlot.OffsetTop = labelHeight;
-        _potionJokerSlot.OffsetRight = cardSize.X;
-        _potionJokerSlot.OffsetBottom = labelHeight + cardSize.Y;
-
-        var weaponJokerX = cardSize.X + JokerSlotGap;
-        _weaponJokerHpLabel.OffsetLeft = weaponJokerX;
-        _weaponJokerHpLabel.OffsetRight = weaponJokerX + cardSize.X;
-        _weaponJokerHpLabel.OffsetTop = 0f;
-        _weaponJokerHpLabel.OffsetBottom = labelHeight;
-
-        _weaponJokerSlot.OffsetLeft = weaponJokerX;
-        _weaponJokerSlot.OffsetTop = labelHeight;
-        _weaponJokerSlot.OffsetRight = weaponJokerX + cardSize.X;
-        _weaponJokerSlot.OffsetBottom = labelHeight + cardSize.Y;
+        PositionJokerSlot(_potionJokerHpLabel, _potionJokerSlot, 0f, labelHeight, cardSize);
+        PositionJokerSlot(_weaponJokerHpLabel, _weaponJokerSlot, cardSize.X + JokerSlotGap, labelHeight, cardSize);
 
         _jokerGroup.OffsetBottom = _jokerGroup.OffsetTop + labelHeight + cardSize.Y;
+    }
+
+    /// <summary>
+    /// Positions one joker's HP label and card slot at horizontal offset
+    /// <paramref name="xOffset"/> within JokerGroup, and configures the slot's
+    /// Pile so a pocketed potion/weapon (index 1) lands as a small badge.
+    /// Shared by both joker slots in <see cref="UpdateJokerGroupLayout"/> so a
+    /// future layout tweak can't land on only one of the two copies.
+    /// </summary>
+    private void PositionJokerSlot(Label hpLabel, Control slot, float xOffset, float labelHeight, Vector2 cardSize)
+    {
+        hpLabel.OffsetLeft = xOffset;
+        hpLabel.OffsetRight = xOffset + cardSize.X;
+        hpLabel.OffsetTop = 0f;
+        hpLabel.OffsetBottom = labelHeight;
+
+        slot.OffsetLeft = xOffset;
+        slot.OffsetTop = labelHeight;
+        slot.OffsetRight = xOffset + cardSize.X;
+        slot.OffsetBottom = labelHeight + cardSize.Y;
 
         // A stored potion/weapon (index 1 in this Pile) must land as a small badge
         // in the bottom of the slot, clear of the joker's own card art and the HP
@@ -325,18 +327,15 @@ public sealed class ScoundrelLayoutController
         // ScoundrelGame sets `scale` on the stored Card node to PocketedItemScale
         // when storing (see ShrinkCardForPocket).
         var pocketedItemOffset = (int)((cardSize.Y / 2f) * (1f - PocketedItemScale));
-        _potionJokerSlot.Set("layout", PileDirectionDown);
-        _potionJokerSlot.Set("stack_display_gap", pocketedItemOffset);
-        _weaponJokerSlot.Set("layout", PileDirectionDown);
-        _weaponJokerSlot.Set("stack_display_gap", pocketedItemOffset);
+        slot.Set("layout", PileDirectionDown);
+        slot.Set("stack_display_gap", pocketedItemOffset);
 
-        // Mirrors the room's one-liner above (UpdateCardSize) — without this, a
+        // Mirrors the room's one-liner in UpdateCardSize — without this, a
         // resize while something is pocketed updates the gap value here but
         // doesn't re-tween the already-placed badge card to match (the same
         // pre-existing gap applies to every non-room Pile; out of scope for this
         // fix, called out for visibility).
-        _potionJokerSlot.Call("_update_target_positions");
-        _weaponJokerSlot.Call("_update_target_positions");
+        slot.Call("_update_target_positions");
     }
 
     private void UpdateRoomLayout(Vector2 cardSize)
