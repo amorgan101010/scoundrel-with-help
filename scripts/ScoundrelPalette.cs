@@ -33,6 +33,32 @@ public static class ScoundrelPalette
     // Dark maroon-brown card-back fill for the deck-count badge.
     public static readonly Color CardBackMaroon      = new Color(0.133f, 0.094f, 0.059f); // #221810
 
+    // ── Room-card overlay banner colors (chunk 2 — see RoomCardOverlay.cs) ──
+    // Room cards classify into 4 banner "families" (RoomCardBannerFamily): the
+    // mockup only shows a gold/tan friendly banner (Blacksmith) and a red/maroon
+    // monster banner (Zombie) directly, so Weapon/Potion below are extrapolated
+    // to stay consistent with the existing suit-color convention (diamonds read
+    // blue-cool here to stay distinct from AccentGold's warm gold, hearts/potion
+    // get a plum/rose that reads distinct from the monster maroon).
+    // Gold/tan banner fill for friendly cards (Blacksmith/Merchant/PotionJoker/WeaponJoker).
+    public static readonly Color BannerGoldFriendly  = new Color(0.788f, 0.616f, 0.176f); // #C99D2D
+    // Red/maroon banner fill for monster cards.
+    public static readonly Color BannerMaroonMonster = new Color(0.545f, 0.118f, 0.157f); // #8B1E28
+    // Cool blue banner fill for weapon cards.
+    public static readonly Color BannerBlueWeapon    = new Color(0.176f, 0.322f, 0.498f); // #2D527F
+    // Plum/rose banner fill for potion cards.
+    public static readonly Color BannerPlumPotion    = new Color(0.478f, 0.180f, 0.353f); // #7A2E5A
+    // Brighter red used for the monster footer's large damage numeral.
+    public static readonly Color MonsterRedValue     = new Color(0.761f, 0.231f, 0.290f); // #C23B4A
+    // Neutral warm gray used for room-card overlay body/description text.
+    public static readonly Color DescriptionGray     = new Color(0.741f, 0.702f, 0.663f); // #BDB3A9
+    // Brighter versions of the weapon/potion banner fills, used only for the icon
+    // line art drawn on top of the near-black card background — the banner fills
+    // themselves (BannerBlueWeapon/BannerPlumPotion) are tuned to host white banner
+    // text and read far too dark/low-contrast as line art on CardBackMaroon.
+    public static readonly Color WeaponBlueBright    = new Color(0.475f, 0.647f, 0.847f); // #79A5D8
+    public static readonly Color PotionRoseBright    = new Color(0.796f, 0.412f, 0.616f); // #CB699D
+
     // ── Fonts ───────────────────────────────────────────────────────────────
     public const string DisplayBoldFontPath  = "res://assets/fonts/NotoSerifDisplay-Bold.ttf";
     public const string SerifRegularFontPath = "res://assets/fonts/NotoSerif-Regular.ttf";
