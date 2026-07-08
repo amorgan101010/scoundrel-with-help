@@ -15,11 +15,13 @@ public static class CardData
 
         var suit = info["suit"].AsString() switch
         {
-            "clubs"    => Suit.Clubs,
-            "spades"   => Suit.Spades,
-            "hearts"   => Suit.Hearts,
-            "diamonds" => Suit.Diamonds,
-            _          => Suit.Clubs,
+            "clubs"       => Suit.Clubs,
+            "spades"      => Suit.Spades,
+            "hearts"      => Suit.Hearts,
+            "diamonds"    => Suit.Diamonds,
+            "red_joker"   => Suit.RedJoker,
+            "black_joker" => Suit.BlackJoker,
+            _             => Suit.Clubs,
         };
 
         return new CardModel(suit, rank, name);

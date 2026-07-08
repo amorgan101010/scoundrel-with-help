@@ -214,6 +214,94 @@ public class TooltipForTests
         => Assert.That(
             ScoundrelRules.TooltipFor(Weapon(7), Weapon(4), int.MaxValue, false, 20),
             Is.EqualTo("Weapon — value 7\nReplaces equipped (4)"));
+
+    [Test]
+    public void Monster_WeaponWithAttackBonus_IncludesBonusInDamage()
+        // Weapon 4 + WeaponAttackBonus 2 = effective 6. Monster 9 - 6 = 3 damage.
+        => Assert.That(
+            ScoundrelRules.TooltipFor(Monster(9), Weapon(4), int.MaxValue, false, 20, weaponAttackBonus: 2),
+            Is.EqualTo("Monster — 9 damage\nWith weapon: 3 damage"));
+
+    [Test]
+    public void Monster_WeaponWithSingleUseBonus_IncludesBonusInDamage()
+        // Weapon 4 + SingleUseWeaponBonus 4 = effective 8. Monster 9 - 8 = 1 damage.
+        => Assert.That(
+            ScoundrelRules.TooltipFor(Monster(9), Weapon(4), int.MaxValue, false, 20, singleUseWeaponBonus: 4),
+            Is.EqualTo("Monster — 9 damage\nWith weapon: 1 damage"));
+}
+
+// Blacksmith/Merchant cards share Suit.Diamonds/Suit.Hearts with real weapons/
+// potions (only Rank distinguishes them — see CardModel.cs). TooltipFor used to
+// switch on raw card.Suit, so a Blacksmith card got the weapon tooltip and a
+// Merchant card got the potion tooltip. These fixtures cover every rank of
+// both, with and without an equipped weapon, plus both Jokers.
+[TestFixture]
+public class BlacksmithTooltipForTests
+{
+    private static CardModel Blacksmith(int rank) => new(Suit.Diamonds, rank, $"blacksmith_{rank}");
+    private static CardModel Weapon(int rank)      => new(Suit.Diamonds, rank, $"weapon_{rank}");
+
+    [TestCase(11, "Removes 1 slain monster from your weapon. If it has none attached, grants +1 attack instead.")]
+    [TestCase(12, "Removes 2 slain monsters from your weapon. If it has none attached, grants +2 attack instead.")]
+    [TestCase(13, "Removes 3 slain monsters from your weapon. If it has none attached, grants +3 attack instead.")]
+    [TestCase(1,  "Removes all slain monsters from your weapon. If it has none attached, grants a one-time +4 attack bonus instead.")]
+    public void WithWeaponEquipped_ShowsEffectText(int rank, string effect)
+        => Assert.That(
+            ScoundrelRules.TooltipFor(Blacksmith(rank), Weapon(6), int.MaxValue, false, 20),
+            Is.EqualTo($"Blacksmith — {effect}"));
+
+    [TestCase(11, "Removes 1 slain monster from your weapon. If it has none attached, grants +1 attack instead.")]
+    [TestCase(12, "Removes 2 slain monsters from your weapon. If it has none attached, grants +2 attack instead.")]
+    [TestCase(13, "Removes 3 slain monsters from your weapon. If it has none attached, grants +3 attack instead.")]
+    [TestCase(1,  "Removes all slain monsters from your weapon. If it has none attached, grants a one-time +4 attack bonus instead.")]
+    public void NoWeaponEquipped_ShowsRecycleNote(int rank, string effect)
+        => Assert.That(
+            ScoundrelRules.TooltipFor(Blacksmith(rank), null, int.MaxValue, false, 20),
+            Is.EqualTo($"Blacksmith — {effect}\nNo weapon equipped — this card will recycle back into the deck."));
+}
+
+[TestFixture]
+public class MerchantTooltipForTests
+{
+    private static CardModel Merchant(int rank) => new(Suit.Hearts, rank, $"merchant_{rank}");
+    private static CardModel Weapon(int rank)    => new(Suit.Diamonds, rank, $"weapon_{rank}");
+
+    [TestCase(11, "Sells your weapon for HP equal to its value minus attached monsters (minimum 1).")]
+    [TestCase(12, "Sells your weapon for HP equal to its value minus attached monsters (minimum 1), plus 1.")]
+    [TestCase(13, "Sells your weapon for HP equal to its value minus attached monsters (minimum 1), plus 3.")]
+    [TestCase(1,  "Sells your weapon for its full value plus 5 HP, ignoring attached monsters.")]
+    public void WithWeaponEquipped_ShowsEffectText(int rank, string effect)
+        => Assert.That(
+            ScoundrelRules.TooltipFor(Merchant(rank), Weapon(6), int.MaxValue, false, 20),
+            Is.EqualTo($"Merchant — {effect}"));
+
+    [TestCase(11, "Sells your weapon for HP equal to its value minus attached monsters (minimum 1).")]
+    [TestCase(12, "Sells your weapon for HP equal to its value minus attached monsters (minimum 1), plus 1.")]
+    [TestCase(13, "Sells your weapon for HP equal to its value minus attached monsters (minimum 1), plus 3.")]
+    [TestCase(1,  "Sells your weapon for its full value plus 5 HP, ignoring attached monsters.")]
+    public void NoWeaponEquipped_ShowsRecycleNote(int rank, string effect)
+        => Assert.That(
+            ScoundrelRules.TooltipFor(Merchant(rank), null, int.MaxValue, false, 20),
+            Is.EqualTo($"Merchant — {effect}\nNo weapon equipped — this card will recycle back into the deck."));
+}
+
+[TestFixture]
+public class JokerTooltipForTests
+{
+    private static CardModel RedJoker()   => new(Suit.RedJoker, 0, "joker_red");
+    private static CardModel BlackJoker() => new(Suit.BlackJoker, 0, "joker_black");
+
+    [Test]
+    public void PotionJoker_ShowsPocketAndFightText()
+        => Assert.That(
+            ScoundrelRules.TooltipFor(RedJoker(), null, int.MaxValue, false, 20),
+            Is.EqualTo("Potion Joker — Can store a potion for later use by the player. Can fight monsters bare-handed. When HP drops to 0, the joker and its carried item are permanently lost."));
+
+    [Test]
+    public void WeaponJoker_ShowsPocketAndFightText()
+        => Assert.That(
+            ScoundrelRules.TooltipFor(BlackJoker(), null, int.MaxValue, false, 20),
+            Is.EqualTo("Weapon Joker — Can store a weapon for later use by the player. Can fight monsters bare-handed. When HP drops to 0, the joker and its carried item are permanently lost."));
 }
 
 [TestFixture]

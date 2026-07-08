@@ -11,6 +11,18 @@ public class GameEngine
     private readonly List<CardModel> _deck;
     private readonly List<CardModel> _discard = new();
     private readonly List<CardModel> _room    = new();
+    private readonly Random _rng;
+
+    // Monster values slain with the currently-equipped weapon, oldest first. Weapon
+    // degradation forces each kill to be strictly weaker than the last, so this list is
+    // always in decreasing value order — the most recent (last) entry is what WeaponFloor
+    // is derived from. Tracked as a list, not just a count, so Blacksmith can remove
+    // specific kills (the most recent/lowest-value ones — see ApplyBlacksmithEffect) and
+    // recompute the correct resulting floor, rather than only being able to tell "how many".
+    private readonly List<int> _slainMonsterValues = new();
+
+    /// <summary>Flat starting HP for either joker's own pool — no randomness.</summary>
+    private const int JokerStartingHealth = 8;
 
     public int Health { get; private set; } = ScoundrelRules.StartHealth;
     public CardModel? EquippedWeapon { get; private set; }
@@ -22,6 +34,76 @@ public class GameEngine
     public bool GameOver { get; private set; }
     public bool Won { get; private set; }
 
+    /// <summary>
+    /// Number of monsters slain with the currently-equipped weapon. Resets to 0 whenever
+    /// a new weapon is equipped (including the first). Derived from <see cref="_slainMonsterValues"/>.
+    /// </summary>
+    public int SlainMonsterCount => _slainMonsterValues.Count;
+
+    /// <summary>
+    /// Permanent bonus added to the equipped weapon's effective value, granted by a
+    /// Jack/Queen/King Blacksmith card used while <see cref="SlainMonsterCount"/> is 0
+    /// (nothing to remove). Resets to 0 whenever a new weapon is equipped.
+    /// </summary>
+    public int WeaponAttackBonus { get; private set; }
+
+    /// <summary>
+    /// Single-use bonus added to the equipped weapon's effective value, granted by the Ace
+    /// of Diamonds Blacksmith card ("Excalibur") used while <see cref="SlainMonsterCount"/>
+    /// is 0. Consumed after the very next weapon-blocked fight (see
+    /// <see cref="ApplyMonsterDamage"/>), then reverts to 0. Also resets to 0 whenever a
+    /// new weapon is equipped.
+    /// </summary>
+    public int SingleUseWeaponBonus { get; private set; }
+
+    /// <summary>
+    /// When true, the deck/room may contain Extended Rules cards (Blacksmith, Merchant,
+    /// Jokers) in addition to the Classic monster/weapon/potion cards.
+    /// </summary>
+    public bool ExtendedRules { get; }
+
+    /// <summary>
+    /// True once the Red Joker (Potion Pocket companion) has been taken. The joker is a
+    /// permanent companion, not a card in play — it is never discarded.
+    /// </summary>
+    public bool HasPotionJoker { get; private set; }
+
+    /// <summary>
+    /// The potion currently held in the Potion Pocket, or null if the pocket is empty.
+    /// </summary>
+    public CardModel? PocketedPotion { get; private set; }
+
+    /// <summary>
+    /// The Red Joker's own HP pool. Set to a flat 8 (no randomness) the moment the joker is
+    /// taken. Absorbs a monster's full value when the player chooses to handle the monster
+    /// with the joker instead of fighting it — see <see cref="FightWithPotionJoker"/>.
+    /// Floored at 0; hitting 0 loses the joker entirely (<see cref="HasPotionJoker"/> becomes
+    /// false and any pocketed potion is lost, not discarded).
+    /// </summary>
+    public int PotionJokerHealth { get; private set; }
+
+    /// <summary>
+    /// True once the Black Joker (Weapon Pocket companion) has been taken. The joker is a
+    /// permanent companion, not a card in play — it is never discarded.
+    /// </summary>
+    public bool HasWeaponJoker { get; private set; }
+
+    /// <summary>
+    /// The weapon currently held in the Weapon Pocket, or null if the pocket is empty. Has no
+    /// combat role of its own — see <see cref="RetrieveWeapon"/> to equip it as the player's
+    /// actual weapon.
+    /// </summary>
+    public CardModel? PocketedWeapon { get; private set; }
+
+    /// <summary>
+    /// The Black Joker's own HP pool. Set to a flat 8 (no randomness) the moment the joker is
+    /// taken. Absorbs a monster's full value when the player chooses to handle the monster
+    /// with the joker instead of fighting it — see <see cref="FightWithWeaponJoker"/>.
+    /// Floored at 0; hitting 0 loses the joker entirely (<see cref="HasWeaponJoker"/> becomes
+    /// false and any pocketed weapon is lost, not discarded).
+    /// </summary>
+    public int WeaponJokerHealth { get; private set; }
+
     public IReadOnlyList<CardModel> Deck    => _deck;
     public IReadOnlyList<CardModel> Discard => _discard;
     public IReadOnlyList<CardModel> Room    => _room;
@@ -30,9 +112,84 @@ public class GameEngine
     public bool CanRun     => !IsOver && !RanLastRoom;
     public bool CanNextRoom => !IsOver && CardsTakenThisRoom >= ScoundrelRules.MinCardsTaken && _room.Count > 0;
 
-    public GameEngine(IEnumerable<CardModel> deck)
+    /// <summary>
+    /// True iff a potion can be stored in the Potion Pocket right now: the joker has been
+    /// taken, the pocket is empty, the given card is a potion currently in the room, and
+    /// the game isn't over. Storing does NOT consume the room's one-potion-per-room limit.
+    /// </summary>
+    public bool CanStorePotion(CardModel card)
+        => HasPotionJoker && PocketedPotion == null && card.IsPotion && _room.Contains(card) && !IsOver;
+
+    /// <summary>
+    /// True iff there is a pocketed potion that can be retrieved right now. Retrieval is a
+    /// side action (not a room pick), so it is available any time regardless of room state.
+    /// </summary>
+    public bool CanRetrievePotion => HasPotionJoker && PocketedPotion != null && !IsOver;
+
+    /// <summary>
+    /// True iff a weapon can be stored in the Weapon Pocket right now: the joker has been
+    /// taken, the pocket is empty, the given card is a weapon currently in the room, and
+    /// the game isn't over.
+    /// </summary>
+    public bool CanStoreWeapon(CardModel card)
+        => HasWeaponJoker && PocketedWeapon == null && card.IsWeapon && _room.Contains(card) && !IsOver;
+
+    /// <summary>
+    /// True iff a weapon can be retrieved from the Weapon Pocket right now: the joker has
+    /// been taken, the pocket holds a weapon, and the game isn't over. A side action (not a
+    /// room pick), so it doesn't depend on room state.
+    /// </summary>
+    public bool CanRetrieveWeapon => HasWeaponJoker && PocketedWeapon != null && !IsOver;
+
+    /// <summary>
+    /// Shared guard shape for <see cref="CanFightWithPotionJoker"/>/<see cref="CanFightWithWeaponJoker"/>:
+    /// the joker has been taken, its HP pool is above 0, the given card is a monster
+    /// currently in the room, and the game isn't over. Takes the specific joker's
+    /// Has*Joker/*JokerHealth values as parameters since C# can't pass one property in
+    /// place of another.
+    /// </summary>
+    private bool CanFightWithJoker(bool hasJoker, int jokerHealth, CardModel monster)
+        => hasJoker && jokerHealth > 0 && monster.IsMonster && _room.Contains(monster) && !IsOver;
+
+    /// <summary>
+    /// True iff a monster in the room can be handled by the Red Joker right now: the joker
+    /// has been taken, its HP pool is above 0, the given card is a monster currently in the
+    /// room, and the game isn't over.
+    /// </summary>
+    public bool CanFightWithPotionJoker(CardModel monster)
+        => CanFightWithJoker(HasPotionJoker, PotionJokerHealth, monster);
+
+    /// <summary>
+    /// True iff a monster in the room can be handled by the Black Joker right now: the joker
+    /// has been taken, its HP pool is above 0, the given card is a monster currently in the
+    /// room, and the game isn't over.
+    /// </summary>
+    public bool CanFightWithWeaponJoker(CardModel monster)
+        => CanFightWithJoker(HasWeaponJoker, WeaponJokerHealth, monster);
+
+    /// <summary>
+    /// True iff the given Blacksmith card can be used right now: it's a Blacksmith card
+    /// currently in the room and the game isn't over. Usable regardless of whether a
+    /// weapon is equipped — the "cannot be used" case (no weapon) is handled inside
+    /// <see cref="UseBlacksmith"/> by recycling the card, not by blocking the call.
+    /// </summary>
+    public bool CanUseBlacksmith(CardModel card)
+        => card.IsBlacksmith && _room.Contains(card) && !IsOver;
+
+    /// <summary>
+    /// True iff the given Merchant card can be used right now: it's a Merchant card
+    /// currently in the room and the game isn't over. Usable regardless of whether a
+    /// weapon is equipped — the "cannot be used" case (no weapon) is handled inside
+    /// <see cref="UseMerchant"/> by recycling the card, not by blocking the call.
+    /// </summary>
+    public bool CanUseMerchant(CardModel card)
+        => card.IsMerchant && _room.Contains(card) && !IsOver;
+
+    public GameEngine(IEnumerable<CardModel> deck, bool extendedRules = false, Random? rng = null)
     {
         _deck = deck.ToList();
+        ExtendedRules = extendedRules;
+        _rng = rng ?? new Random();
         DealRoom();
     }
 
@@ -41,60 +198,300 @@ public class GameEngine
     /// <param name="activateCard">
     /// When false, the card is discarded without its type-specific effect
     /// (no equip for weapons, no heal for potions). Useful for player-chosen discards.
+    /// For a Blacksmith or Merchant card, "declined" means recycled into the deck rather
+    /// than discarded — see <see cref="ApplyBlacksmithEffect"/> and
+    /// <see cref="ApplyMerchantEffect"/> — so both are handled before the general
+    /// activateCard/discard branch below, not inside it.
     /// </param>
     public void TakeCard(CardModel card, bool useWeapon = true, bool activateCard = true)
     {
         if (IsOver) throw new InvalidOperationException("Game is over.");
         if (!_room.Remove(card)) throw new ArgumentException("Card is not in the room.");
 
-        if (!activateCard)
+        // Dispatches on card.Kind (backed by the Is* classification properties — see
+        // CardModel.cs) instead of an if/else-if boolean chain, so a missing case throws
+        // immediately instead of silently discarding. Blacksmith/Merchant hand activateCard
+        // straight to their Apply*Effect methods (which decide recycle-vs-use themselves —
+        // see ApplyBlacksmithEffect/ApplyMerchantEffect), so they're handled before the
+        // shared "!activateCard -> plain discard" behavior the other five kinds share.
+        switch (card.Kind)
         {
-            _discard.Add(card);
+            case CardKind.Blacksmith:
+                ApplyBlacksmithEffect(card, activateCard);
+                break;
+
+            case CardKind.Merchant:
+                ApplyMerchantEffect(card, activateCard);
+                break;
+
+            case CardKind.Monster:
+                if (!activateCard) { _discard.Add(card); break; }
+                ApplyMonsterDamage(card, useWeapon);
+                _discard.Add(card);
+                break;
+
+            case CardKind.Weapon:
+                if (!activateCard) { _discard.Add(card); break; }
+                EquipWeapon(card);
+                break;
+
+            case CardKind.Potion:
+                if (!activateCard) { _discard.Add(card); break; }
+                ApplyPotionHealOrWaste(card);
+                _discard.Add(card);
+                break;
+
+            case CardKind.PotionJoker:
+                if (!activateCard) { _discard.Add(card); break; }
+                // Red Joker (Potion Pocket): becomes a permanent companion, not a card in
+                // play. It is never discarded — see StorePotion/RetrievePotion/
+                // FightWithPotionJoker below. Its own HP pool starts at a flat 8.
+                HasPotionJoker = true;
+                PotionJokerHealth = JokerStartingHealth;
+                break;
+
+            case CardKind.WeaponJoker:
+                if (!activateCard) { _discard.Add(card); break; }
+                // Black Joker (Weapon Pocket): becomes a permanent companion, not a card in
+                // play. It is never discarded — see StoreWeapon/RetrieveWeapon/
+                // FightWithWeaponJoker below. Its own HP pool starts at a flat 8.
+                HasWeaponJoker = true;
+                WeaponJokerHealth = JokerStartingHealth;
+                break;
+
+            default:
+                // Unreachable today — every CardKind is handled above. Thrown instead of a
+                // silent fallback discard so an 8th kind added later fails loudly here
+                // instead of vanishing with no trace.
+                throw new InvalidOperationException($"Unhandled card kind: {card.Kind}");
         }
+
+        FinishRoomAction();
+    }
+
+    /// <summary>
+    /// Store a potion from the room into the Potion Pocket instead of drinking it.
+    /// Independent of the room's one-potion-per-room limit — storing doesn't heal, so it
+    /// doesn't consume the allowance. Counts as one of the room's taken cards.
+    /// </summary>
+    public void StorePotion(CardModel card)
+    {
+        if (!CanStorePotion(card))
+            throw new InvalidOperationException("Cannot store this potion right now.");
+
+        _room.Remove(card);
+        PocketedPotion = card;
+        FinishRoomAction();
+    }
+
+    /// <summary>
+    /// Retrieve the pocketed potion. Counts as the room's one potion — if a potion was
+    /// already drunk this room, the retrieved potion is wasted instead of healing. This is
+    /// a side action: it does not affect CardsTakenThisRoom and does not deal a new room or
+    /// trigger a win check (room state doesn't change).
+    /// </summary>
+    /// <param name="activate">
+    /// When true (default), retrieving heals (or wastes, per the room's one-potion limit)
+    /// exactly like the original behavior. When false, the potion is simply discarded from
+    /// the pocket with no heal/waste side effect — <see cref="PotionUsedThisRoom"/> and
+    /// <see cref="PotionWastedThisRoom"/> are left untouched. Either way the pocket is
+    /// emptied and the existing <see cref="CanRetrievePotion"/> gating still applies.
+    /// </param>
+    public void RetrievePotion(bool activate = true)
+    {
+        if (!CanRetrievePotion)
+            throw new InvalidOperationException("Cannot retrieve a potion right now.");
+
+        var potion = PocketedPotion!;
+        PocketedPotion = null;
+
+        if (activate)
+            ApplyPotionHealOrWaste(potion);
+
+        _discard.Add(potion);
+
+        CheckGameOver();
+    }
+
+    /// <summary>
+    /// Store a weapon from the room into the Weapon Pocket. Fully independent of the main
+    /// weapon system — does not touch EquippedWeapon/WeaponFloor/SlainMonsterCount. Counts
+    /// as one of the room's taken cards.
+    /// </summary>
+    public void StoreWeapon(CardModel card)
+    {
+        if (!CanStoreWeapon(card))
+            throw new InvalidOperationException("Cannot store this weapon right now.");
+
+        _room.Remove(card);
+        PocketedWeapon = card;
+        FinishRoomAction();
+    }
+
+    /// <summary>
+    /// Retrieve the pocketed weapon and equip it as the player's actual weapon, via the same
+    /// <see cref="EquipWeapon"/> path a room weapon uses (discarding the previously-equipped
+    /// weapon, if any, and resetting WeaponFloor/SlainMonsterCount/WeaponAttackBonus/
+    /// SingleUseWeaponBonus). A side action: it does not affect CardsTakenThisRoom and does
+    /// not deal a new room or trigger a win check (room state doesn't change).
+    /// </summary>
+    /// <param name="activate">
+    /// When true (default), retrieving equips the weapon via <see cref="EquipWeapon"/>
+    /// exactly like the original behavior. When false, the pocketed weapon is simply
+    /// discarded without equipping — the currently-equipped weapon (if any) is left
+    /// completely untouched. Either way the pocket is emptied and the existing
+    /// <see cref="CanRetrieveWeapon"/> gating still applies.
+    /// </param>
+    public void RetrieveWeapon(bool activate = true)
+    {
+        if (!CanRetrieveWeapon)
+            throw new InvalidOperationException("Cannot retrieve a weapon right now.");
+
+        var weapon = PocketedWeapon!;
+        PocketedWeapon = null;
+
+        if (activate)
+            EquipWeapon(weapon);
         else
+            _discard.Add(weapon);
+    }
+
+    /// <summary>
+    /// True iff the currently-equipped weapon can be moved into the Weapon Pocket right
+    /// now — the reverse direction of <see cref="RetrieveWeapon"/>: the joker has been
+    /// taken, the pocket is empty, a weapon is actually equipped, and the game isn't over.
+    /// </summary>
+    public bool CanGiveEquippedWeaponToJoker
+        => HasWeaponJoker && PocketedWeapon == null && EquippedWeapon != null && !IsOver;
+
+    /// <summary>
+    /// Move the currently-equipped weapon into the Weapon Pocket instead of retrieving a
+    /// pocketed weapon out of it (the reverse of <see cref="RetrieveWeapon"/>). Resets the
+    /// main weapon system to its no-weapon defaults — see <see cref="ResetWeaponSystem"/>.
+    /// A side action like <see cref="RetrievePotion"/>/<see cref="RetrieveWeapon"/>: it does
+    /// not touch CardsTakenThisRoom and does not run the room-refill/win-check tail — the
+    /// weapon isn't in _room or _discard, it just moves from one already-possessed slot
+    /// (EquippedWeapon) to another (PocketedWeapon).
+    /// </summary>
+    public void GiveEquippedWeaponToJoker()
+    {
+        if (!CanGiveEquippedWeaponToJoker)
+            throw new InvalidOperationException("Cannot give the equipped weapon to the Weapon Joker right now.");
+
+        PocketedWeapon = EquippedWeapon;
+        EquippedWeapon = null;
+        ResetWeaponSystem();
+    }
+
+    /// <summary>
+    /// Shared logic for <see cref="FightWithPotionJoker"/>/<see cref="FightWithWeaponJoker"/>:
+    /// moves the monster from the room to discard and computes the joker's HP pool after
+    /// absorbing the monster's full value, floored at 0. The health/flag/pocket state that
+    /// differs per joker (PotionJokerHealth vs WeaponJokerHealth, HasPotionJoker vs
+    /// HasWeaponJoker, PocketedPotion vs PocketedWeapon) can't be passed by ref (C# doesn't
+    /// allow taking a ref to an auto-property), so the caller passes in its own current
+    /// health, assigns the returned value back onto its own property, and is responsible for
+    /// clearing its own Has*Joker flag/pocket when the result is 0 and calling
+    /// <see cref="FinishRoomAction"/> afterward.
+    /// </summary>
+    private int FightMonsterWithJoker(CardModel monster, int jokerHealth)
+    {
+        _room.Remove(monster);
+        _discard.Add(monster);
+        return Math.Max(0, jokerHealth - monster.MonsterValue);
+    }
+
+    /// <summary>
+    /// Handle a monster with the Red Joker instead of fighting it: the joker absorbs the
+    /// monster's full value into its own HP pool (<see cref="PotionJokerHealth"/>), never
+    /// reduced by a weapon and never touching the player's <see cref="Health"/>. The monster
+    /// still leaves the room to the discard pile and counts toward CardsTakenThisRoom. If the
+    /// joker's HP hits 0, the joker is lost entirely — <see cref="HasPotionJoker"/> becomes
+    /// false and any pocketed potion is lost (not discarded), matching the "companion, not a
+    /// card" framing used elsewhere for the jokers.
+    /// </summary>
+    public void FightWithPotionJoker(CardModel monster)
+    {
+        if (!CanFightWithPotionJoker(monster))
+            throw new InvalidOperationException("Cannot handle this monster with the Potion Joker right now.");
+
+        PotionJokerHealth = FightMonsterWithJoker(monster, PotionJokerHealth);
+
+        if (PotionJokerHealth == 0)
         {
-            switch (card.Suit)
-            {
-                case Suit.Clubs:
-                case Suit.Spades:
-                    ApplyMonsterDamage(card, useWeapon);
-                    _discard.Add(card);
-                    break;
-
-                case Suit.Hearts:
-                    if (!PotionUsedThisRoom)
-                    {
-                        Health = ScoundrelRules.Heal(Health, card.PotionValue);
-                        PotionUsedThisRoom = true;
-                    }
-                    else
-                    {
-                        PotionWastedThisRoom = true;
-                    }
-                    _discard.Add(card);
-                    break;
-
-                case Suit.Diamonds:
-                    EquipWeapon(card);
-                    break;
-            }
+            HasPotionJoker = false;
+            PocketedPotion = null;
         }
 
-        CardsTakenThisRoom++;
+        FinishRoomAction();
+    }
 
-        if (Health <= 0)
+    /// <summary>
+    /// Handle a monster with the Black Joker instead of fighting it: the joker absorbs the
+    /// monster's full value into its own HP pool (<see cref="WeaponJokerHealth"/>), never
+    /// reduced by a weapon and never touching the player's <see cref="Health"/>. The monster
+    /// still leaves the room to the discard pile and counts toward CardsTakenThisRoom. If the
+    /// joker's HP hits 0, the joker is lost entirely — <see cref="HasWeaponJoker"/> becomes
+    /// false and any pocketed weapon is lost (not discarded), matching the "companion, not a
+    /// card" framing used elsewhere for the jokers.
+    /// </summary>
+    public void FightWithWeaponJoker(CardModel monster)
+    {
+        if (!CanFightWithWeaponJoker(monster))
+            throw new InvalidOperationException("Cannot handle this monster with the Weapon Joker right now.");
+
+        WeaponJokerHealth = FightMonsterWithJoker(monster, WeaponJokerHealth);
+
+        if (WeaponJokerHealth == 0)
         {
-            GameOver = true;
-            return;
+            HasWeaponJoker = false;
+            PocketedWeapon = null;
         }
 
-        if (_room.Count == 0)
-        {
-            if (_deck.Count == 0)
-                Won = true;
-            else
-                DealRoom();
-        }
+        FinishRoomAction();
+    }
+
+    /// <summary>
+    /// Apply a Blacksmith (diamond face card / Ace) to the equipped weapon (PRD §6, item 3).
+    /// If there's no equipped weapon to blacksmith, or the player declines
+    /// (<paramref name="activate"/> false), the card is recycled into a random position in
+    /// the deck instead of being discarded — unlike Run, which returns cards to the back.
+    /// Otherwise: if <see cref="SlainMonsterCount"/> is already 0 (nothing to remove), the
+    /// card instead grants a rank-based attack bonus (Jack +1, Queen +2, King +3 —
+    /// permanent; Ace +4 — single-use "Excalibur", see <see cref="SingleUseWeaponBonus"/>).
+    /// If <see cref="SlainMonsterCount"/> is positive, the card removes from it instead
+    /// (Jack 1, Queen 2, King 3, Ace all), clamped at 0.
+    /// </summary>
+    public void UseBlacksmith(CardModel card, bool activate = true)
+    {
+        if (!CanUseBlacksmith(card))
+            throw new InvalidOperationException("Cannot use this Blacksmith card right now.");
+
+        _room.Remove(card);
+        ApplyBlacksmithEffect(card, activate);
+        FinishRoomAction();
+    }
+
+    /// <summary>
+    /// Sell the equipped weapon for HP using a Heart face card / Ace (PRD §6, item 4). If
+    /// there's no equipped weapon to sell, or the player declines (<paramref
+    /// name="activate"/> false), the card is recycled into a random position in the deck
+    /// instead of being discarded — the same mechanism <see cref="UseBlacksmith"/> uses.
+    /// Otherwise: HP gained = max(1, EquippedWeapon.WeaponValue - SlainMonsterCount) plus a
+    /// rank bonus (Jack +0, Queen +1, King +3), applied via <see cref="ScoundrelRules.Heal"/>
+    /// (capped at MaxHealth). The Ace of Hearts is a special case that ignores
+    /// SlainMonsterCount entirely: HP gained = EquippedWeapon.WeaponValue + 5. Selling clears
+    /// the main weapon system back to its no-weapon defaults and discards the old weapon —
+    /// see <see cref="ApplyMerchantEffect"/>.
+    /// </summary>
+    public void UseMerchant(CardModel card, bool activate = true)
+    {
+        if (!CanUseMerchant(card))
+            throw new InvalidOperationException("Cannot use this Merchant card right now.");
+
+        _room.Remove(card);
+        ApplyMerchantEffect(card, activate);
+        FinishRoomAction();
     }
 
     /// <summary>
@@ -131,6 +528,90 @@ public class GameEngine
 
     // ── Internal ──────────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Heal from a potion, or mark it wasted if one was already drunk this room.
+    /// Shared by TakeCard's Hearts branch and RetrievePotion.
+    /// </summary>
+    private void ApplyPotionHealOrWaste(CardModel potion)
+    {
+        if (!PotionUsedThisRoom)
+        {
+            Health = ScoundrelRules.Heal(Health, potion.PotionValue);
+            PotionUsedThisRoom = true;
+        }
+        else
+        {
+            PotionWastedThisRoom = true;
+        }
+    }
+
+    private void CheckGameOver()
+    {
+        if (Health <= 0)
+            GameOver = true;
+    }
+
+    /// <summary>
+    /// True iff every remaining card across the deck and the current room is a Blacksmith
+    /// or Merchant card — i.e. nothing left that can hurt or help the player (no monsters,
+    /// no potions, no real weapons) and no undrawn Jokers either, since a Joker card is
+    /// neither Blacksmith nor Merchant. This is a distinct win condition from the classic
+    /// "deck exhausted" one: with Extended Rules, a no-weapon player recycles every
+    /// Blacksmith/Merchant card back into the deck instead of discarding it (see
+    /// <see cref="ApplyBlacksmithEffect"/>/<see cref="ApplyMerchantEffect"/>), so the deck
+    /// can otherwise never actually empty.
+    ///
+    /// Gated on <see cref="ExtendedRules"/>: a Classic deck can never contain a Blacksmith
+    /// or Merchant card by construction (Classic diamonds/hearts top out at rank 10, no
+    /// face cards), so this condition is meaningless outside Extended Rules. Without this
+    /// gate, a Classic-mode <see cref="GameEngine"/> built directly from a hand-crafted test
+    /// deck that happens to include a bare CardModel classified as Blacksmith/Merchant would
+    /// win as soon as it became the only room card left — before the player got a chance to
+    /// use it — which is not the intended behavior for a non-Extended-Rules game.
+    ///
+    /// Guarded against the vacuous-true case: <c>Enumerable.All</c> on an empty sequence
+    /// returns true, so without the precondition an empty deck AND empty room would
+    /// incorrectly read as "only friendly NPCs remain." That state is the pre-existing
+    /// "deck exhausted" win handled separately below.
+    ///
+    /// A joker already taken by the player (<see cref="HasPotionJoker"/>/
+    /// <see cref="HasWeaponJoker"/>) is a companion, not a card in the deck or room any
+    /// more, so it never blocks this check — no special-casing needed.
+    /// </summary>
+    private bool OnlyFriendlyNpcsRemain()
+        => ExtendedRules
+           && (_deck.Count > 0 || _room.Count > 0)
+           && _deck.Concat(_room).All(c => c.IsBlacksmith || c.IsMerchant);
+
+    /// <summary>
+    /// Common tail for actions that consume one of the room's card slots (TakeCard,
+    /// StorePotion): counts toward CardsTakenThisRoom, checks for game over, checks the
+    /// friendly-NPCs-only win condition, and refills/wins the room when empty. Not used by
+    /// RetrievePotion/RetrieveWeapon, which are side actions that don't touch deck/room
+    /// state and so can never flip either win condition.
+    /// </summary>
+    private void FinishRoomAction()
+    {
+        CardsTakenThisRoom++;
+
+        CheckGameOver();
+        if (GameOver) return;
+
+        if (OnlyFriendlyNpcsRemain())
+        {
+            Won = true;
+            return;
+        }
+
+        if (_room.Count == 0)
+        {
+            if (_deck.Count == 0)
+                Won = true;
+            else
+                DealRoom();
+        }
+    }
+
     private void DealRoom()
     {
         PotionUsedThisRoom  = false;
@@ -150,10 +631,34 @@ public class GameEngine
         int damage = card.MonsterValue;
         if (useWeapon && EquippedWeapon != null && ScoundrelRules.CanUseWeapon(card.MonsterValue, WeaponFloor))
         {
-            damage = ScoundrelRules.CalcDamage(card.MonsterValue, EquippedWeapon.WeaponValue);
+            int effectiveWeaponValue = EquippedWeapon.WeaponValue + WeaponAttackBonus + SingleUseWeaponBonus;
+            damage = ScoundrelRules.CalcDamage(card.MonsterValue, effectiveWeaponValue);
             WeaponFloor = ScoundrelRules.NextWeaponFloor(card.MonsterValue);
+            _slainMonsterValues.Add(card.MonsterValue);
+            SingleUseWeaponBonus = 0;
         }
         Health = Math.Max(0, Health - damage);
+    }
+
+    /// <summary>
+    /// Resets the main weapon system to its no-weapon defaults: clears
+    /// <see cref="WeaponFloor"/> (back to no floor), the slain-monster kill history
+    /// (<see cref="SlainMonsterCount"/>), <see cref="WeaponAttackBonus"/>, and
+    /// <see cref="SingleUseWeaponBonus"/>. Shared by every path that lets go of the
+    /// currently-equipped weapon without carrying its wear/bonuses forward: equipping a new
+    /// weapon (<see cref="EquipWeapon"/>), selling it to a Merchant
+    /// (<see cref="ApplyMerchantEffect"/>), and giving it to the Weapon Joker
+    /// (<see cref="GiveEquippedWeaponToJoker"/>). Does not touch
+    /// <see cref="EquippedWeapon"/>/<see cref="PocketedWeapon"/> or discard the old weapon —
+    /// each caller handles that itself, since what happens to the old weapon differs per
+    /// caller (discarded, sold, or pocketed).
+    /// </summary>
+    private void ResetWeaponSystem()
+    {
+        WeaponFloor = int.MaxValue;
+        _slainMonsterValues.Clear();
+        WeaponAttackBonus = 0;
+        SingleUseWeaponBonus = 0;
     }
 
     private void EquipWeapon(CardModel card)
@@ -161,6 +666,114 @@ public class GameEngine
         if (EquippedWeapon != null)
             _discard.Add(EquippedWeapon);
         EquippedWeapon = card;
-        WeaponFloor = int.MaxValue;
+        ResetWeaponSystem();
+    }
+
+    /// <summary>
+    /// Recycle a Blacksmith/Merchant card that couldn't or wouldn't be used into a random
+    /// position in the deck (PRD §6, item 3/4) — distinct from Run, which always returns
+    /// cards to the bottom (index 0).
+    /// </summary>
+    private void RecycleIntoDeck(CardModel card)
+    {
+        int index = _rng.Next(0, _deck.Count + 1);
+        _deck.Insert(index, card);
+    }
+
+    /// <summary>
+    /// Core Blacksmith effect (PRD §6, item 3), shared by <see cref="UseBlacksmith"/> and
+    /// <see cref="TakeCard"/>'s Blacksmith branch. Assumes the card has already been
+    /// removed from the room; does not touch room/CardsTakenThisRoom bookkeeping — callers
+    /// are responsible for that (via FinishRoomAction).
+    /// </summary>
+    private void ApplyBlacksmithEffect(CardModel card, bool activate)
+    {
+        if (!activate || EquippedWeapon == null)
+        {
+            RecycleIntoDeck(card);
+            return;
+        }
+
+        if (SlainMonsterCount == 0)
+        {
+            // Nothing to remove — grant a rank-based bonus instead. J/Q/K bonuses are
+            // permanent; the Ace's is single-use ("Excalibur"), consumed after the next
+            // weapon-blocked fight (see ApplyMonsterDamage).
+            switch (card.Rank)
+            {
+                case 11: WeaponAttackBonus += 1; break;                        // Jack
+                case 12: WeaponAttackBonus += 2; break;                        // Queen
+                case 13: WeaponAttackBonus += 3; break;                        // King
+                case ScoundrelRules.AceRank: SingleUseWeaponBonus += 4; break; // Ace
+            }
+        }
+        else
+        {
+            int removal = card.Rank switch
+            {
+                11 => 1,                                     // Jack
+                12 => 2,                                     // Queen
+                13 => 3,                                     // King
+                ScoundrelRules.AceRank => SlainMonsterCount,  // Ace — remove all
+                _ => 0,
+            };
+
+            // Weapon degradation forces each kill to be strictly weaker than the last, so
+            // _slainMonsterValues is in decreasing-value order — the most recent (last) kill
+            // is both the lowest value AND the one WeaponFloor is derived from. Removing from
+            // the front (oldest/highest-value) would strip everything except that last entry,
+            // leaving the floor untouched until every kill is gone. Removing from the back
+            // (most recent/lowest-value first) instead means the floor actually improves with
+            // each removal, correctly reflecting whichever kill is now the "most recent".
+            int toRemove = Math.Min(removal, _slainMonsterValues.Count);
+            _slainMonsterValues.RemoveRange(_slainMonsterValues.Count - toRemove, toRemove);
+
+            WeaponFloor = _slainMonsterValues.Count == 0 ? int.MaxValue : _slainMonsterValues[^1];
+        }
+
+        _discard.Add(card);
+    }
+
+    /// <summary>
+    /// Core Merchant effect (PRD §6, item 4), shared by <see cref="UseMerchant"/> and
+    /// <see cref="TakeCard"/>'s Merchant branch. Assumes the card has already been removed
+    /// from the room; does not touch room/CardsTakenThisRoom bookkeeping — callers are
+    /// responsible for that (via FinishRoomAction).
+    /// </summary>
+    private void ApplyMerchantEffect(CardModel card, bool activate)
+    {
+        if (!activate || EquippedWeapon == null)
+        {
+            RecycleIntoDeck(card);
+            return;
+        }
+
+        var oldWeapon = EquippedWeapon;
+        int hpGain;
+        if (card.Rank == ScoundrelRules.AceRank)
+        {
+            // Ace of Hearts: full unreduced weapon value + 5, ignoring SlainMonsterCount
+            // wear entirely — distinct from the J/Q/K formula below.
+            hpGain = oldWeapon.WeaponValue + 5;
+        }
+        else
+        {
+            int bonus = card.Rank switch
+            {
+                11 => 0, // Jack
+                12 => 1, // Queen
+                13 => 3, // King
+                _ => 0,
+            };
+            hpGain = Math.Max(1, oldWeapon.WeaponValue - SlainMonsterCount) + bonus;
+        }
+
+        Health = ScoundrelRules.Heal(Health, hpGain);
+
+        _discard.Add(oldWeapon);
+        EquippedWeapon = null;
+        ResetWeaponSystem();
+
+        _discard.Add(card);
     }
 }

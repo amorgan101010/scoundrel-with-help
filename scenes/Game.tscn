@@ -7,6 +7,8 @@
 [ext_resource type="Script" uid="uid://nge5xs0pqlvl" path="res://scenes/RoomContainer.gd" id="5_room"]
 [ext_resource type="Script" uid="uid://cov28geqoa6bq" path="res://scenes/DropZoneContainer.gd" id="6_dzc"]
 [ext_resource type="Script" uid="uid://buokfsbn6sbtb" path="res://scripts/HealthDie.cs" id="7_hd"]
+[ext_resource type="Script" path="res://scenes/JokerPocketSlot.gd" id="8_jps"]
+[ext_resource type="Script" path="res://scenes/WeaponSlot.gd" id="9_ws"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_red_n"]
 bg_color = Color(0.75, 0.18, 0.18, 1)
@@ -120,6 +122,14 @@ offset_bottom = 60.0
 theme_override_font_sizes/font_size = 22
 text = "HP: 20 / 20"
 
+[node name="ExtendedRulesToggle" type="CheckBox" parent="UI" unique_id=900000001]
+offset_left = 30.0
+offset_top = 8.0
+offset_right = 280.0
+offset_bottom = 38.0
+theme_override_font_sizes/font_size = 16
+text = "Extended Rules"
+
 [node name="LeftPanel" type="Control" parent="UI" unique_id=321654987]
 layout_mode = 3
 anchor_right = 0.33333334
@@ -156,9 +166,9 @@ offset_top = 34.0
 offset_right = 225.0
 offset_bottom = 349.0
 mouse_filter = 1
-script = ExtResource("4_pile")
-allow_card_movement = false
-restrict_to_top_card = false
+script = ExtResource("9_ws")
+allow_card_movement = true
+restrict_to_top_card = true
 enable_drop_zone = false
 
 [node name="InPlayGroup" type="Control" parent="UI/LeftPanel/WeaponGroup" unique_id=444555666]
@@ -214,6 +224,22 @@ visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+script = ExtResource("6_dzc")
+card_face_up = false
+allow_card_movement = false
+restrict_to_top_card = false
+
+[node name="PotionJokerDropZone" type="Control" parent="UI/LeftPanel" unique_id=700000001]
+visible = false
+layout_mode = 1
+anchors_preset = 0
+anchor_left = 0.0
+anchor_top = 0.5
+anchor_right = 0.5
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
@@ -222,6 +248,70 @@ script = ExtResource("6_dzc")
 card_face_up = false
 allow_card_movement = false
 restrict_to_top_card = false
+
+[node name="WeaponJokerDropZone" type="Control" parent="UI/LeftPanel" unique_id=700000002]
+visible = false
+layout_mode = 1
+anchors_preset = 0
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+script = ExtResource("6_dzc")
+card_face_up = false
+allow_card_movement = false
+restrict_to_top_card = false
+
+[node name="JokerGroup" type="Control" parent="UI/LeftPanel" unique_id=700000003]
+anchors_preset = 0
+offset_left = 30.0
+offset_top = 718.0
+offset_right = 460.0
+offset_bottom = 1053.0
+mouse_filter = 2
+
+[node name="PotionJokerHpLabel" type="Label" parent="UI/LeftPanel/JokerGroup" unique_id=700000004]
+layout_mode = 0
+offset_right = 225.0
+offset_bottom = 20.0
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 1
+text = "Potion Joker: —"
+
+[node name="PotionJokerSlot" type="Control" parent="UI/LeftPanel/JokerGroup" unique_id=700000005]
+anchors_preset = 0
+offset_top = 24.0
+offset_right = 225.0
+offset_bottom = 339.0
+mouse_filter = 1
+script = ExtResource("8_jps")
+allow_card_movement = true
+restrict_to_top_card = false
+enable_drop_zone = false
+
+[node name="WeaponJokerHpLabel" type="Label" parent="UI/LeftPanel/JokerGroup" unique_id=700000006]
+layout_mode = 0
+offset_left = 245.0
+offset_right = 470.0
+offset_bottom = 20.0
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 1
+text = "Weapon Joker: —"
+
+[node name="WeaponJokerSlot" type="Control" parent="UI/LeftPanel/JokerGroup" unique_id=700000007]
+anchors_preset = 0
+offset_left = 245.0
+offset_top = 24.0
+offset_right = 470.0
+offset_bottom = 339.0
+mouse_filter = 1
+script = ExtResource("8_jps")
+allow_card_movement = true
+restrict_to_top_card = false
+enable_drop_zone = false
 
 [node name="StatusLabel" type="Label" parent="UI" unique_id=927201028]
 anchors_preset = 5
