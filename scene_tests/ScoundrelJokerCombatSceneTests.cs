@@ -23,7 +23,7 @@ public class ScoundrelJokerCombatSceneTests
     {
         _runner = ISceneRunner.Load("res://scenes/Game.tscn", true);
         // Let _Ready() run and the initial deal animations settle.
-        await _runner.AwaitMillis(UITimings.AnimationSettleMs);
+        await _runner.AwaitMillis(AnimationSettleMs);
     }
 
     [AfterTest]
@@ -142,7 +142,7 @@ public class ScoundrelJokerCombatSceneTests
         var game = (ScoundrelGame)_runner!.Scene();
         game.ExtendedRules = true;
         game.StartGameWithDeck(deck);
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+        await _runner!.AwaitMillis(DragAnimationMs);
 
         var scene = _runner!.Scene();
         var room  = scene.GetNode("UI/RoomContainer");
@@ -151,7 +151,7 @@ public class ScoundrelJokerCombatSceneTests
         var joker = FindRoomCard(scene, s => s == "red_joker");
         AssertThat(joker).IsNotNull();
         ClickCard(scene, joker!);
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);
 
         int hpBefore = ParseHP(scene);
 
@@ -189,7 +189,7 @@ public class ScoundrelJokerCombatSceneTests
         var game = (ScoundrelGame)_runner!.Scene();
         game.ExtendedRules = true;
         game.StartGameWithDeck(deck);
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+        await _runner!.AwaitMillis(DragAnimationMs);
 
         var scene = _runner!.Scene();
         var room  = scene.GetNode("UI/RoomContainer");
@@ -198,7 +198,7 @@ public class ScoundrelJokerCombatSceneTests
         var joker = FindRoomCard(scene, s => s == "black_joker");
         AssertThat(joker).IsNotNull();
         ClickCard(scene, joker!);
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);
 
         int hpBefore = ParseHP(scene);
 
@@ -235,7 +235,7 @@ public class ScoundrelJokerCombatSceneTests
         var game = (ScoundrelGame)_runner!.Scene();
         game.ExtendedRules = true;
         game.StartGameWithDeck(deck);
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+        await _runner!.AwaitMillis(DragAnimationMs);
 
         var scene = _runner!.Scene();
         var room  = scene.GetNode("UI/RoomContainer");
@@ -245,7 +245,7 @@ public class ScoundrelJokerCombatSceneTests
         var joker = FindRoomCard(scene, s => s == "red_joker");
         AssertThat(joker).IsNotNull();
         ClickCard(scene, joker!);
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);
 
         var monster = FindRoomCardByName(scene, "10_clubs");
         AssertThat(monster).IsNotNull();
@@ -288,7 +288,7 @@ public class ScoundrelJokerCombatSceneTests
         var game = (ScoundrelGame)_runner!.Scene();
         game.ExtendedRules = true;
         game.StartGameWithDeck(deck);
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+        await _runner!.AwaitMillis(DragAnimationMs);
 
         var scene = _runner!.Scene();
         var discardPile = scene.GetNode("UI/RightPanel/DiscardGroup/DiscardPile");
@@ -300,12 +300,12 @@ public class ScoundrelJokerCombatSceneTests
         var joker = FindRoomCard(scene, s => s == "red_joker");
         AssertThat(joker).IsNotNull();
         ClickCard(scene, joker!);
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);
 
         var potion = FindRoomCardByName(scene, "6_hearts");
         AssertThat(potion).IsNotNull();
         await MouseDragCard(_runner!, potion!, PotionJokerZoneCenter(_runner!));
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+        await _runner!.AwaitMillis(DragAnimationMs);
 
         AssertThat((int)potionJokerSlot.Call("get_card_count")).IsEqual(2); // joker + pocketed potion
         AssertThat(heartsLabel.Text).IsEqual("♥  5"); // storing doesn't remove it from play
@@ -313,7 +313,7 @@ public class ScoundrelJokerCombatSceneTests
         var monster = FindRoomCardByName(scene, "10_clubs");
         AssertThat(monster).IsNotNull();
         await MouseDragCard(_runner!, monster!, PotionJokerZoneCenter(_runner!));
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+        await _runner!.AwaitMillis(DragAnimationMs);
 
         // The joker died (10 damage >= 8 HP). Both its own card AND the pocketed potion
         // must have left the slot -- a stuck pocketed card is the bug being tested for.
@@ -327,7 +327,7 @@ public class ScoundrelJokerCombatSceneTests
     [TestCase(Description = "Dragging a monster onto a joker fight zone with no joker owned bounces it back without discarding")]
     public async Task DraggingMonsterToJokerZoneWithoutJoker_BouncesBack()
     {
-        await SetupFixedDeck(_runner!, UITimings.DragAnimationMs);
+        await SetupFixedDeck(_runner!, DragAnimationMs);
         var scene = _runner!.Scene();
         var room  = scene.GetNode("UI/RoomContainer");
 

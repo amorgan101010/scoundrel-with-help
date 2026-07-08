@@ -23,7 +23,7 @@ public class ScoundrelRoomFlowSceneTests
     {
         _runner = ISceneRunner.Load("res://scenes/Game.tscn", true);
         // Let _Ready() run and the initial deal animations settle.
-        await _runner.AwaitMillis(UITimings.AnimationSettleMs);
+        await _runner.AwaitMillis(AnimationSettleMs);
     }
 
     [AfterTest]
@@ -62,7 +62,7 @@ public class ScoundrelRoomFlowSceneTests
     [TestCase(Description = "Weapon label stays legible and InPlayGroup never overlaps WeaponSlot after viewport shrink")]
     public async Task WeaponGroup_ResponsiveLayoutOnViewportResize()
     {
-        await _runner!.AwaitMillis(UITimings.AnimationSettleMs);
+        await _runner!.AwaitMillis(AnimationSettleMs);
 
         var scene = _runner!.Scene();
         var weaponGroup = scene.GetNode<Control>("UI/LeftPanel/WeaponGroup");
@@ -135,9 +135,9 @@ public class ScoundrelRoomFlowSceneTests
         ClickCard(scene, FindRoomCard(scene, s => s == "diamonds")!); // 6_diamonds (weapon)
         await _runner!.AwaitMillis(50);
         ClickCard(scene, FindRoomCard(scene, s => s == "hearts")!);   // 5_hearts (potion)
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs);
+        await _runner!.AwaitMillis(InteractionDelayMs);
         ClickCard(scene, FindRoomCard(scene, s => s == "clubs")!);    // 4_clubs (0 dmg with weapon)
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs);
+        await _runner!.AwaitMillis(InteractionDelayMs);
 
         AssertThat(nextRoomButton.Visible).IsTrue();
         AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(1);
@@ -153,19 +153,19 @@ public class ScoundrelRoomFlowSceneTests
     [TestCase(Description = "Retry button resets the game to full HP with a fresh 4-card room")]
     public async Task RetryButton_ResetsGame()
     {
-        await SetupFixedDeck(_runner!, UITimings.DragAnimationMs);
+        await SetupFixedDeck(_runner!, DragAnimationMs);
         var scene = _runner!.Scene();
         var room  = scene.GetNode("UI/RoomContainer");
 
         // Take one card so the room is no longer in the initial 4-card state.
         ClickCard(scene, FindRoomCard(scene, s => s == "diamonds")!); // equip weapon
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);  // 200ms
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);  // 200ms
         AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(ScoundrelRules.RoomSize - 1);
 
         // Retry — TopButtonGroup was reparented to ButtonLayer in _Ready().
         var retryButton = scene.GetNode<Button>("ButtonLayer/TopButtonGroup/RetryButton");
         retryButton.EmitSignal("pressed");
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs); // wait for new deal to settle
+        await _runner!.AwaitMillis(DragAnimationMs); // wait for new deal to settle
 
         AssertThat(ParseHP(scene)).IsEqual(ScoundrelRules.MaxHealth);
         AssertThat(((GArray)room.Call("get_all_cards")).Count).IsEqual(ScoundrelRules.RoomSize);
@@ -189,7 +189,7 @@ public class ScoundrelRoomFlowSceneTests
     [TestCase(Description = "Real mouse click on a room card does nothing (drag-only controls)")]
     public async Task MouseClickDoesNotTakeCard()
     {
-        await SetupFixedDeck(_runner!, UITimings.DragAnimationMs);
+        await SetupFixedDeck(_runner!, DragAnimationMs);
         var scene = _runner!.Scene();
         var room  = scene.GetNode("UI/RoomContainer");
 
@@ -207,7 +207,7 @@ public class ScoundrelRoomFlowSceneTests
     [TestCase(Description = "Drag to the correct zone takes the card; click leaves the room unchanged")]
     public async Task DragTakesCard_ClickDoesNot()
     {
-        await SetupFixedDeck(_runner!, UITimings.DragAnimationMs);
+        await SetupFixedDeck(_runner!, DragAnimationMs);
         var scene = _runner!.Scene();
         var room  = scene.GetNode("UI/RoomContainer");
 

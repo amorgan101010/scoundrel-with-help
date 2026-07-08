@@ -23,7 +23,7 @@ public class ScoundrelJokerPocketSceneTests
     {
         _runner = ISceneRunner.Load("res://scenes/Game.tscn", true);
         // Let _Ready() run and the initial deal animations settle.
-        await _runner.AwaitMillis(UITimings.AnimationSettleMs);
+        await _runner.AwaitMillis(AnimationSettleMs);
     }
 
     [AfterTest]
@@ -71,7 +71,7 @@ public class ScoundrelJokerPocketSceneTests
         var game = (ScoundrelGame)_runner!.Scene();
         game.ExtendedRules = true;
         game.StartGameWithDeck(deck);
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+        await _runner!.AwaitMillis(DragAnimationMs);
 
         var scene = _runner!.Scene();
         var room  = scene.GetNode("UI/RoomContainer");
@@ -80,7 +80,7 @@ public class ScoundrelJokerPocketSceneTests
         var joker = FindRoomCard(scene, s => s == "red_joker");
         AssertThat(joker).IsNotNull();
         ClickCard(scene, joker!);
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);
 
         int hpBefore = ParseHP(scene);
         int countBeforeStore = ((GArray)room.Call("get_all_cards")).Count;
@@ -118,7 +118,7 @@ public class ScoundrelJokerPocketSceneTests
         var game = (ScoundrelGame)_runner!.Scene();
         game.ExtendedRules = true;
         game.StartGameWithDeck(deck);
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+        await _runner!.AwaitMillis(DragAnimationMs);
 
         var scene = _runner!.Scene();
         var room  = scene.GetNode("UI/RoomContainer");
@@ -127,7 +127,7 @@ public class ScoundrelJokerPocketSceneTests
         var joker = FindRoomCard(scene, s => s == "red_joker");
         AssertThat(joker).IsNotNull();
         ClickCard(scene, joker!);
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);
 
         int countBefore = ((GArray)room.Call("get_all_cards")).Count;
 
@@ -161,7 +161,7 @@ public class ScoundrelJokerPocketSceneTests
         var game = (ScoundrelGame)_runner!.Scene();
         game.ExtendedRules = true;
         game.StartGameWithDeck(deck);
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+        await _runner!.AwaitMillis(DragAnimationMs);
 
         var scene = _runner!.Scene();
         var potionJokerSlot = scene.GetNode("UI/LeftPanel/JokerGroup/PotionJokerSlot");
@@ -170,13 +170,13 @@ public class ScoundrelJokerPocketSceneTests
         var joker = FindRoomCard(scene, s => s == "red_joker");
         AssertThat(joker).IsNotNull();
         ClickCard(scene, joker!);
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);
 
         // Take monster damage first so the heal is observable.
         var monster = FindRoomCardByName(scene, "8_clubs");
         AssertThat(monster).IsNotNull();
         ClickCard(scene, monster!);
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);
         int hpAfterDamage = ParseHP(scene);
 
         var potion = FindRoomCardByName(scene, "5_hearts");
@@ -184,7 +184,7 @@ public class ScoundrelJokerPocketSceneTests
         await MouseDragCard(_runner!, potion!, PotionJokerZoneCenter(_runner!));
         // Let the store-move settle before dragging the pocketed card back out —
         // DraggableObject silently rejects input while a card is mid-tween.
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+        await _runner!.AwaitMillis(DragAnimationMs);
 
         // Slot count 2: the joker's own card plus the stored potion.
         AssertThat((int)potionJokerSlot.Call("get_card_count")).IsEqual(2);
@@ -219,7 +219,7 @@ public class ScoundrelJokerPocketSceneTests
         var game = (ScoundrelGame)_runner!.Scene();
         game.ExtendedRules = true;
         game.StartGameWithDeck(deck);
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+        await _runner!.AwaitMillis(DragAnimationMs);
 
         var scene = _runner!.Scene();
         var potionJokerSlot = scene.GetNode("UI/LeftPanel/JokerGroup/PotionJokerSlot");
@@ -228,19 +228,19 @@ public class ScoundrelJokerPocketSceneTests
         var joker = FindRoomCard(scene, s => s == "red_joker");
         AssertThat(joker).IsNotNull();
         ClickCard(scene, joker!);
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);
 
         // Take monster damage first so a missed heal would be observable.
         var monster = FindRoomCardByName(scene, "8_clubs");
         AssertThat(monster).IsNotNull();
         ClickCard(scene, monster!);
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);
         int hpAfterDamage = ParseHP(scene);
 
         var potion = FindRoomCardByName(scene, "5_hearts");
         AssertThat(potion).IsNotNull();
         await MouseDragCard(_runner!, potion!, PotionJokerZoneCenter(_runner!));
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+        await _runner!.AwaitMillis(DragAnimationMs);
 
         // Slot count 2: the joker's own card plus the stored potion.
         AssertThat((int)potionJokerSlot.Call("get_card_count")).IsEqual(2);
@@ -273,7 +273,7 @@ public class ScoundrelJokerPocketSceneTests
         var game = (ScoundrelGame)_runner!.Scene();
         game.ExtendedRules = true;
         game.StartGameWithDeck(deck);
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+        await _runner!.AwaitMillis(DragAnimationMs);
 
         var scene = _runner!.Scene();
         var weaponJokerSlot = scene.GetNode("UI/LeftPanel/JokerGroup/WeaponJokerSlot");
@@ -282,12 +282,12 @@ public class ScoundrelJokerPocketSceneTests
         var joker = FindRoomCard(scene, s => s == "black_joker");
         AssertThat(joker).IsNotNull();
         ClickCard(scene, joker!);
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);
 
         var weapon = FindRoomCardByName(scene, "7_diamonds");
         AssertThat(weapon).IsNotNull();
         await MouseDragCard(_runner!, weapon!, WeaponJokerZoneCenter(_runner!));
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+        await _runner!.AwaitMillis(DragAnimationMs);
 
         // Slot count 2: the joker's own card plus the stored weapon.
         AssertThat((int)weaponJokerSlot.Call("get_card_count")).IsEqual(2);
@@ -325,7 +325,7 @@ public class ScoundrelJokerPocketSceneTests
         var game = (ScoundrelGame)_runner!.Scene();
         game.ExtendedRules = true;
         game.StartGameWithDeck(deck);
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+        await _runner!.AwaitMillis(DragAnimationMs);
 
         var scene = _runner!.Scene();
         var weaponJokerSlot = scene.GetNode("UI/LeftPanel/JokerGroup/WeaponJokerSlot");
@@ -335,12 +335,12 @@ public class ScoundrelJokerPocketSceneTests
         var joker = FindRoomCard(scene, s => s == "black_joker");
         AssertThat(joker).IsNotNull();
         ClickCard(scene, joker!);
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);
 
         var weapon = FindRoomCardByName(scene, "7_diamonds");
         AssertThat(weapon).IsNotNull();
         await MouseDragCard(_runner!, weapon!, WeaponJokerZoneCenter(_runner!));
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+        await _runner!.AwaitMillis(DragAnimationMs);
 
         // Slot count 2: the joker's own card plus the stored weapon.
         AssertThat((int)weaponJokerSlot.Call("get_card_count")).IsEqual(2);
@@ -379,7 +379,7 @@ public class ScoundrelJokerPocketSceneTests
         var game = (ScoundrelGame)_runner!.Scene();
         game.ExtendedRules = true;
         game.StartGameWithDeck(deck);
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+        await _runner!.AwaitMillis(DragAnimationMs);
 
         var scene = _runner!.Scene();
         var weaponJokerSlot = scene.GetNode("UI/LeftPanel/JokerGroup/WeaponJokerSlot");
@@ -389,12 +389,12 @@ public class ScoundrelJokerPocketSceneTests
         var joker = FindRoomCard(scene, s => s == "black_joker");
         AssertThat(joker).IsNotNull();
         ClickCard(scene, joker!);
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);
 
         var weaponRoomCard = FindRoomCardByName(scene, "7_diamonds");
         AssertThat(weaponRoomCard).IsNotNull();
         ClickCard(scene, weaponRoomCard!); // equips into WeaponSlot
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs); // let the equip tween settle
+        await _runner!.AwaitMillis(DragAnimationMs); // let the equip tween settle
 
         AssertThat((int)weaponSlot.Call("get_card_count")).IsEqual(1);
         var equippedWeapon = ((GArray)weaponSlot.Call("get_top_cards", 1))[0].AsGodotObject();
@@ -405,7 +405,7 @@ public class ScoundrelJokerPocketSceneTests
         var monster = FindRoomCardByName(scene, "3_clubs");
         AssertThat(monster).IsNotNull();
         ClickCard(scene, monster!); // weapon (value 7) fully blocks value-3 monster
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);
 
         int BadgeCount() => ((Node)equippedWeapon!).GetChildren().Count(n => n.IsInGroup("slain_badge"));
         AssertThat(BadgeCount()).IsEqual(1);
@@ -415,7 +415,7 @@ public class ScoundrelJokerPocketSceneTests
         float jokerGlobalY = ((Vector2)jokerCard.Get("global_position")).Y;
 
         await MouseDragCard(_runner!, equippedWeapon, WeaponJokerZoneCenter(_runner!));
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+        await _runner!.AwaitMillis(DragAnimationMs);
 
         // Slot count 2: the joker's own card plus the newly-pocketed weapon.
         AssertThat((int)weaponJokerSlot.Call("get_card_count")).IsEqual(2);
@@ -459,7 +459,7 @@ public class ScoundrelJokerPocketSceneTests
         var game = (ScoundrelGame)_runner!.Scene();
         game.ExtendedRules = true;
         game.StartGameWithDeck(deck);
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+        await _runner!.AwaitMillis(DragAnimationMs);
 
         var scene = _runner!.Scene();
         var weaponJokerSlot = scene.GetNode("UI/LeftPanel/JokerGroup/WeaponJokerSlot");
@@ -470,12 +470,12 @@ public class ScoundrelJokerPocketSceneTests
         var joker = FindRoomCard(scene, s => s == "black_joker");
         AssertThat(joker).IsNotNull();
         ClickCard(scene, joker!);
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);
 
         var weaponRoomCard = FindRoomCardByName(scene, "7_diamonds");
         AssertThat(weaponRoomCard).IsNotNull();
         ClickCard(scene, weaponRoomCard!); // equips into WeaponSlot
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+        await _runner!.AwaitMillis(DragAnimationMs);
 
         AssertThat((int)weaponSlot.Call("get_card_count")).IsEqual(1);
         string labelBefore = weaponLabel.Text;
@@ -527,7 +527,7 @@ public class ScoundrelJokerPocketSceneTests
         var game = (ScoundrelGame)_runner!.Scene();
         game.ExtendedRules = true;
         game.StartGameWithDeck(deck);
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+        await _runner!.AwaitMillis(DragAnimationMs);
 
         var scene = _runner!.Scene();
         var potionJokerSlot = scene.GetNode("UI/LeftPanel/JokerGroup/PotionJokerSlot");
@@ -536,7 +536,7 @@ public class ScoundrelJokerPocketSceneTests
         var joker = FindRoomCard(scene, s => s == "red_joker");
         AssertThat(joker).IsNotNull();
         ClickCard(scene, joker!);
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);
 
         // Capture the joker's own card (the pocket's only occupant so far, index 0)
         // before storing anything on top of it.
@@ -546,7 +546,7 @@ public class ScoundrelJokerPocketSceneTests
         var potion = FindRoomCardByName(scene, "5_hearts");
         AssertThat(potion).IsNotNull();
         await MouseDragCard(_runner!, potion!, PotionJokerZoneCenter(_runner!));
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+        await _runner!.AwaitMillis(DragAnimationMs);
 
         AssertThat((int)potionJokerSlot.Call("get_card_count")).IsEqual(2);
         var stored = ((GArray)potionJokerSlot.Call("get_top_cards", 1))[0].AsGodotObject();
@@ -590,7 +590,7 @@ public class ScoundrelJokerPocketSceneTests
         var game = (ScoundrelGame)_runner!.Scene();
         game.ExtendedRules = true;
         game.StartGameWithDeck(deck);
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+        await _runner!.AwaitMillis(DragAnimationMs);
 
         var scene = _runner!.Scene();
         var potionJokerSlot = scene.GetNode("UI/LeftPanel/JokerGroup/PotionJokerSlot");
@@ -598,19 +598,19 @@ public class ScoundrelJokerPocketSceneTests
         var joker = FindRoomCard(scene, s => s == "red_joker");
         AssertThat(joker).IsNotNull();
         ClickCard(scene, joker!);
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);
 
         // Take monster damage first so the heal is observable.
         var monster = FindRoomCardByName(scene, "8_clubs");
         AssertThat(monster).IsNotNull();
         ClickCard(scene, monster!);
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);
         int hpAfterDamage = ParseHP(scene);
 
         var potion = FindRoomCardByName(scene, "5_hearts");
         AssertThat(potion).IsNotNull();
         await MouseDragCard(_runner!, potion!, PotionJokerZoneCenter(_runner!));
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+        await _runner!.AwaitMillis(DragAnimationMs);
 
         var pocketed = ((GArray)potionJokerSlot.Call("get_top_cards", 1))[0].AsGodotObject();
         // Confirm it's actually shrunk before retrieving, so the post-retrieve

@@ -23,7 +23,7 @@ public class ScoundrelCombatSceneTests
     {
         _runner = ISceneRunner.Load("res://scenes/Game.tscn", true);
         // Let _Ready() run and the initial deal animations settle.
-        await _runner.AwaitMillis(UITimings.AnimationSettleMs);
+        await _runner.AwaitMillis(AnimationSettleMs);
     }
 
     [AfterTest]
@@ -153,7 +153,7 @@ public class ScoundrelCombatSceneTests
     [TestCase(Description = "Dragging a weapon to the left zone equips it")]
     public async Task MouseDragTakesCard()
     {
-        await SetupFixedDeck(_runner!, UITimings.DragAnimationMs);
+        await SetupFixedDeck(_runner!, DragAnimationMs);
         var scene = _runner!.Scene();
         var room  = scene.GetNode("UI/RoomContainer");
 
@@ -170,7 +170,7 @@ public class ScoundrelCombatSceneTests
     [TestCase(Description = "Dragging a weapon to the right zone discards it without equipping")]
     public async Task DragWeaponToRightZoneDiscards()
     {
-        await SetupFixedDeck(_runner!, UITimings.DragAnimationMs);
+        await SetupFixedDeck(_runner!, DragAnimationMs);
         var scene = _runner!.Scene();
         var room  = scene.GetNode("UI/RoomContainer");
 
@@ -187,14 +187,14 @@ public class ScoundrelCombatSceneTests
     [TestCase(Description = "Dragging a monster to the right zone fights bare-handed, ignoring equipped weapon")]
     public async Task DragMonsterToRightZoneIsBarehanded()
     {
-        await SetupFixedDeck(_runner!, UITimings.DragAnimationMs);
+        await SetupFixedDeck(_runner!, DragAnimationMs);
         var scene = _runner!.Scene();
 
         // Equip 6_diamonds via direct signal so the weapon floor is fresh.
         var weapon = FindRoomCard(scene, s => s == "diamonds");
         AssertThat(weapon).IsNotNull();
         ClickCard(scene, weapon!);
-        await _runner!.AwaitMillis((uint)(UITimings.DragAnimationMs / 1.5f)); // wait shorter since weapon animates briefly
+        await _runner!.AwaitMillis((uint)(DragAnimationMs / 1.5f)); // wait shorter since weapon animates briefly
 
         AssertThat(scene.GetNode<Label>("UI/LeftPanel/WeaponGroup/WeaponLabel").Text).IsNotEqual("Weapon: none");
 
@@ -210,7 +210,7 @@ public class ScoundrelCombatSceneTests
     [TestCase(Description = "Dragging a monster to the left zone when weapon floor is exceeded bounces it back")]
     public async Task DragMonsterExceedingFloorToLeftZoneBounces()
     {
-        await SetupFixedDeck(_runner!, UITimings.DragAnimationMs);
+        await SetupFixedDeck(_runner!, DragAnimationMs);
         var scene = _runner!.Scene();
 
         // Equip 6_diamonds (value 6), then fight 4_clubs with weapon (floor → 4).

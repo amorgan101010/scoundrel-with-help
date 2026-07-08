@@ -23,7 +23,7 @@ public class ScoundrelAudioSceneTests
     {
         _runner = ISceneRunner.Load("res://scenes/Game.tscn", true);
         // Let _Ready() run and the initial deal animations settle.
-        await _runner.AwaitMillis(UITimings.AnimationSettleMs);
+        await _runner.AwaitMillis(AnimationSettleMs);
     }
 
     [AfterTest]

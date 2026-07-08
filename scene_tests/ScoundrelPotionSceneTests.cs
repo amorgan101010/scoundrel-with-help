@@ -23,7 +23,7 @@ public class ScoundrelPotionSceneTests
     {
         _runner = ISceneRunner.Load("res://scenes/Game.tscn", true);
         // Let _Ready() run and the initial deal animations settle.
-        await _runner.AwaitMillis(UITimings.AnimationSettleMs);
+        await _runner.AwaitMillis(AnimationSettleMs);
     }
 
     [AfterTest]
@@ -77,7 +77,7 @@ public class ScoundrelPotionSceneTests
     [TestCase(Description = "Dragging a potion to the left zone drinks it, healing the player")]
     public async Task DragPotionToLeftZoneDrinks()
     {
-        await SetupFixedDeck(_runner!, UITimings.DragAnimationMs);
+        await SetupFixedDeck(_runner!, DragAnimationMs);
         var scene = _runner!.Scene();
         var room  = scene.GetNode("UI/RoomContainer");
 
@@ -85,7 +85,7 @@ public class ScoundrelPotionSceneTests
         var monster = FindRoomCard(scene, s => s == "spades");
         AssertThat(monster).IsNotNull();
         ClickCard(scene, monster!);
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);  // 200ms
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);  // 200ms
 
         int hpAfterDamage = ParseHP(scene);
         var potion = FindRoomCard(scene, s => s == "hearts"); // 5_hearts
@@ -112,7 +112,7 @@ public class ScoundrelPotionSceneTests
         var monster = FindRoomCard(scene, s => s == "spades"); // 8_spades
         AssertThat(monster).IsNotNull();
         ClickCard(scene, monster!);
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);  // 200ms
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);  // 200ms
 
         int hpAfterDamage = ParseHP(scene);
         var potion = FindRoomCard(scene, s => s == "hearts");
@@ -144,7 +144,7 @@ public class ScoundrelPotionSceneTests
         };
         var game = (ScoundrelGame)_runner!.Scene();
         game.StartGameWithDeck(potionDeck);
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs); // settle for real mouse input
+        await _runner!.AwaitMillis(DragAnimationMs); // settle for real mouse input
 
         var scene = _runner!.Scene();
         var room  = scene.GetNode("UI/RoomContainer");
@@ -154,7 +154,7 @@ public class ScoundrelPotionSceneTests
         var firstPotion = FindRoomCard(scene, s => s == "hearts");
         AssertThat(firstPotion).IsNotNull();
         ClickCard(scene, firstPotion!);
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);  // 200ms
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);  // 200ms
 
         var voidPotion = FindRoomCard(scene, s => s == "hearts");
         AssertThat(voidPotion).IsNotNull();

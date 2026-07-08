@@ -23,7 +23,7 @@ public class ScoundrelExtendedRulesSceneTests
     {
         _runner = ISceneRunner.Load("res://scenes/Game.tscn", true);
         // Let _Ready() run and the initial deal animations settle.
-        await _runner.AwaitMillis(UITimings.AnimationSettleMs);
+        await _runner.AwaitMillis(AnimationSettleMs);
     }
 
     [AfterTest]
@@ -117,7 +117,7 @@ public class ScoundrelExtendedRulesSceneTests
         var game = (ScoundrelGame)_runner!.Scene();
         game.ExtendedRules = true;
         game.StartGameWithDeck(deck);
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+        await _runner!.AwaitMillis(DragAnimationMs);
 
         var scene = _runner!.Scene();
         var weaponSlot = scene.GetNode("UI/LeftPanel/WeaponGroup/WeaponSlot");
@@ -127,7 +127,7 @@ public class ScoundrelExtendedRulesSceneTests
         var weapon = FindRoomCardByName(scene, "6_diamonds");
         AssertThat(weapon).IsNotNull();
         ClickCard(scene, weapon!);
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);
 
         AssertThat((int)weaponSlot.Call("get_card_count")).IsEqual(1);
         AssertThat(game.AudioManager.LastSfxPlayed).IsEqual(nameof(game.AudioManager._sfxSwordDrawn));
@@ -170,7 +170,7 @@ public class ScoundrelExtendedRulesSceneTests
         var game = (ScoundrelGame)_runner!.Scene();
         game.ExtendedRules = true;
         game.StartGameWithDeck(deck);
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+        await _runner!.AwaitMillis(DragAnimationMs);
 
         var scene = _runner!.Scene();
         var weaponSlot = scene.GetNode("UI/LeftPanel/WeaponGroup/WeaponSlot");
@@ -181,13 +181,13 @@ public class ScoundrelExtendedRulesSceneTests
         var monster = FindRoomCardByName(scene, "10_clubs");
         AssertThat(monster).IsNotNull();
         ClickCard(scene, monster!);
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);
         int hpAfterDamage = ParseHP(scene);
 
         var weapon = FindRoomCardByName(scene, "6_diamonds");
         AssertThat(weapon).IsNotNull();
         ClickCard(scene, weapon!);
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);
         AssertThat((int)weaponSlot.Call("get_card_count")).IsEqual(1);
 
         var merchant = FindRoomCardByName(scene, "jack_hearts");
@@ -231,21 +231,21 @@ public class ScoundrelExtendedRulesSceneTests
         var game = (ScoundrelGame)_runner!.Scene();
         game.ExtendedRules = true;
         game.StartGameWithDeck(deck);
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+        await _runner!.AwaitMillis(DragAnimationMs);
 
         var scene = _runner!.Scene();
 
         var weapon = FindRoomCardByName(scene, "6_diamonds");
         AssertThat(weapon).IsNotNull();
         ClickCard(scene, weapon!);
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);
 
         var blacksmith = FindRoomCardByName(scene, "jack_diamonds");
         AssertThat(blacksmith).IsNotNull();
 
         var pos = (Vector2)blacksmith!.Get("global_position");
         _runner!.SimulateMouseMove(pos);
-        await _runner!.AwaitMillis(UITimings.MouseHoverDelayMs);
+        await _runner!.AwaitMillis(MouseHoverDelayMs);
         _runner!.SimulateMouseButtonPress(MouseButton.Left, false);
         await _runner!.AwaitIdleFrame();
 
@@ -257,7 +257,7 @@ public class ScoundrelExtendedRulesSceneTests
         // Release over the card's own position (room dead-zone) so the card
         // bounces back to its slot instead of being taken by this test.
         _runner!.SimulateMouseButtonRelease(MouseButton.Left);
-        await _runner!.AwaitMillis(UITimings.PostInputSettleMs);
+        await _runner!.AwaitMillis(PostInputSettleMs);
     }
 
     [TestCase(Description = "Dragging a Merchant card with a weapon equipped shows accurate zone labels, not 'Drink'/'Discard' text meant for real potions")]
@@ -277,21 +277,21 @@ public class ScoundrelExtendedRulesSceneTests
         var game = (ScoundrelGame)_runner!.Scene();
         game.ExtendedRules = true;
         game.StartGameWithDeck(deck);
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+        await _runner!.AwaitMillis(DragAnimationMs);
 
         var scene = _runner!.Scene();
 
         var weapon = FindRoomCardByName(scene, "6_diamonds");
         AssertThat(weapon).IsNotNull();
         ClickCard(scene, weapon!);
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);
 
         var merchant = FindRoomCardByName(scene, "jack_hearts");
         AssertThat(merchant).IsNotNull();
 
         var pos = (Vector2)merchant!.Get("global_position");
         _runner!.SimulateMouseMove(pos);
-        await _runner!.AwaitMillis(UITimings.MouseHoverDelayMs);
+        await _runner!.AwaitMillis(MouseHoverDelayMs);
         _runner!.SimulateMouseButtonPress(MouseButton.Left, false);
         await _runner!.AwaitIdleFrame();
 
@@ -301,7 +301,7 @@ public class ScoundrelExtendedRulesSceneTests
         AssertThat(game.RightZoneLabelText).IsNotEqual("Discard");
 
         _runner!.SimulateMouseButtonRelease(MouseButton.Left);
-        await _runner!.AwaitMillis(UITimings.PostInputSettleMs);
+        await _runner!.AwaitMillis(PostInputSettleMs);
     }
 
     // ── Root-cause fix: "Blacksmiths currently don't seem to do anything" ──────
@@ -339,7 +339,7 @@ public class ScoundrelExtendedRulesSceneTests
         var game = (ScoundrelGame)_runner!.Scene();
         game.ExtendedRules = true;
         game.StartGameWithDeck(deck);
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+        await _runner!.AwaitMillis(DragAnimationMs);
 
         var scene = _runner!.Scene();
         var deckPile = scene.GetNode("UI/RightPanel/DeckGroup/DeckPile");
@@ -348,7 +348,7 @@ public class ScoundrelExtendedRulesSceneTests
         var weapon = FindRoomCardByName(scene, "6_diamonds");
         AssertThat(weapon).IsNotNull();
         ClickCard(scene, weapon!);
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);
 
         int deckCountBefore = (int)deckPile.Call("get_card_count");
 
@@ -381,14 +381,14 @@ public class ScoundrelExtendedRulesSceneTests
         var game = (ScoundrelGame)_runner!.Scene();
         game.ExtendedRules = true;
         game.StartGameWithDeck(deck);
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+        await _runner!.AwaitMillis(DragAnimationMs);
 
         var scene = _runner!.Scene();
 
         var weapon = FindRoomCardByName(scene, "6_diamonds");
         AssertThat(weapon).IsNotNull();
         ClickCard(scene, weapon!);
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);
 
         AssertThat(scene.GetNode<Label>("UI/LeftPanel/WeaponGroup/WeaponLabel").Text).IsEqual("Weapon: 6_diamonds  (next: any)");
 
@@ -397,7 +397,7 @@ public class ScoundrelExtendedRulesSceneTests
         var blacksmith = FindRoomCardByName(scene, "jack_diamonds");
         AssertThat(blacksmith).IsNotNull();
         ClickCard(scene, blacksmith!);
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);
 
         AssertThat(scene.GetNode<Label>("UI/LeftPanel/WeaponGroup/WeaponLabel").Text).IsEqual("Weapon: 6_diamonds  [+1 atk]  (next: any)");
         AssertThat(scene.GetNode<Label>("HudLayer/StatusLabel").Text).IsEqual("Blacksmith granted +1 weapon attack!");
@@ -420,19 +420,19 @@ public class ScoundrelExtendedRulesSceneTests
         var game = (ScoundrelGame)_runner!.Scene();
         game.ExtendedRules = true;
         game.StartGameWithDeck(deck);
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+        await _runner!.AwaitMillis(DragAnimationMs);
 
         var scene = _runner!.Scene();
 
         var weapon = FindRoomCardByName(scene, "10_diamonds");
         AssertThat(weapon).IsNotNull();
         ClickCard(scene, weapon!);
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);
 
         var monster = FindRoomCardByName(scene, "2_clubs");
         AssertThat(monster).IsNotNull();
         ClickCard(scene, monster!);
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);
 
         int BadgeCount() => ((Node)weapon!).GetChildren().Count(n => n.IsInGroup("slain_badge"));
         AssertThat(BadgeCount()).IsEqual(1);
@@ -440,7 +440,7 @@ public class ScoundrelExtendedRulesSceneTests
         var blacksmith = FindRoomCardByName(scene, "jack_diamonds");
         AssertThat(blacksmith).IsNotNull();
         ClickCard(scene, blacksmith!);
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);
 
         AssertThat(BadgeCount()).IsEqual(0);
         AssertThat(scene.GetNode<Label>("HudLayer/StatusLabel").Text).IsEqual("Blacksmith removed 1 slain monster from your weapon!");
@@ -463,14 +463,14 @@ public class ScoundrelExtendedRulesSceneTests
         var game = (ScoundrelGame)_runner!.Scene();
         game.ExtendedRules = true;
         game.StartGameWithDeck(deck);
-        await _runner!.AwaitMillis(UITimings.DragAnimationMs);
+        await _runner!.AwaitMillis(DragAnimationMs);
 
         var scene = _runner!.Scene();
 
         var weapon = FindRoomCardByName(scene, "10_diamonds");
         AssertThat(weapon).IsNotNull();
         ClickCard(scene, weapon!);
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);
 
         // Kill order matters: 6 first (floor -> 6), then 4 (4 < 6, floor -> 4). Badges are
         // added oldest-first, so badge[0] is "6" (the earlier, higher-value kill) and
@@ -478,12 +478,12 @@ public class ScoundrelExtendedRulesSceneTests
         var monster6 = FindRoomCardByName(scene, "6_clubs");
         AssertThat(monster6).IsNotNull();
         ClickCard(scene, monster6!);
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);
 
         var monster4 = FindRoomCardByName(scene, "4_clubs");
         AssertThat(monster4).IsNotNull();
         ClickCard(scene, monster4!);
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);
 
         List<string> BadgeTexts() =>
             ((Node)weapon!).GetChildren()
@@ -496,7 +496,7 @@ public class ScoundrelExtendedRulesSceneTests
         var blacksmith = FindRoomCardByName(scene, "jack_diamonds");
         AssertThat(blacksmith).IsNotNull();
         ClickCard(scene, blacksmith!);
-        await _runner!.AwaitMillis(UITimings.InteractionDelayMs * 4);
+        await _runner!.AwaitMillis(InteractionDelayMs * 4);
 
         var remaining = BadgeTexts();
         AssertThat(remaining.Count).IsEqual(1);

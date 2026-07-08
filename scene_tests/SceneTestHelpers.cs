@@ -6,14 +6,52 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 /// <summary>
-/// Shared fixed deck and input/lookup helpers for the Scoundrel scene-test suites
-/// (ScoundrelRoomFlowSceneTests, ScoundrelCombatSceneTests, etc.). Not itself a
-/// [TestSuite] — a plain static class, same pattern as UITimings.cs — so gdUnit4's
-/// directory scan of scene_tests/ skips it while every suite gets it via
-/// `using static SceneTestHelpers;`.
+/// Shared timing constants, fixed deck, and input/lookup helpers for the Scoundrel
+/// scene-test suites (ScoundrelRoomFlowSceneTests, ScoundrelCombatSceneTests, etc.).
+/// Not itself a [TestSuite] — a plain static class — so gdUnit4's directory scan of
+/// scene_tests/ skips it while every suite gets it via `using static SceneTestHelpers;`.
 /// </summary>
 public static class SceneTestHelpers
 {
+    // ── Timing constants (milliseconds) ─────────────────────────────────────────
+
+    /// <summary>
+    /// Brief delay for animations to visually settle after initial scene load.
+    /// Used in scene test SetupFixedDeck() defaults and assertions following card moves.
+    /// </summary>
+    public const uint AnimationSettleMs = 200;
+
+    /// <summary>
+    /// Wait time for card animation to complete and drag state to reset.
+    /// Used before sending real mouse input in scene tests.
+    /// Required because DraggableObject silently rejects clicks while in MOVING state.
+    /// </summary>
+    public const uint DragAnimationMs = 1200;
+
+    /// <summary>
+    /// Delay after mouse movement to allow hover state to register in DraggableObject.
+    /// Used between SimulateMouseMove and button press in drag/click sequence.
+    /// </summary>
+    public const uint MouseHoverDelayMs = 100;
+
+    /// <summary>
+    /// Delay between pressing and releasing mouse button during a drag.
+    /// Allows the card state machine to transition through HOLDING before release fires.
+    /// </summary>
+    public const uint MouseDragDelayMs = 80;
+
+    /// <summary>
+    /// Wait time after all input is complete for game logic to run and animations to settle.
+    /// Used at the end of drag/click sequences before assertions.
+    /// </summary>
+    public const uint PostInputSettleMs = 500;
+
+    /// <summary>
+    /// Delay between consecutive card interactions in the same room.
+    /// Used when clicking/dragging multiple cards in sequence.
+    /// </summary>
+    public const uint InteractionDelayMs = 50;
+
     // ── Fixed deck ────────────────────────────────────────────────────────────
     //
     // Deck is bottom→top; last 4 (indices 4-7) are dealt to Room 1 first.
@@ -84,10 +122,10 @@ public static class SceneTestHelpers
     }
 
     // Reset the scene to FixedDeck and wait for deal animations to settle.
-    // Pass settleMs=UITimings.DragAnimationMs for tests that send real mouse input — DraggableObject silently
+    // Pass settleMs=DragAnimationMs for tests that send real mouse input — DraggableObject silently
     // rejects clicks while a card is in MOVING state (animating to its slot), and a fresh
     // StartGameWithDeck call gets no free frames from the loader like BeforeTest does.
-    public static async Task SetupFixedDeck(ISceneRunner runner, uint settleMs = UITimings.AnimationSettleMs)
+    public static async Task SetupFixedDeck(ISceneRunner runner, uint settleMs = AnimationSettleMs)
     {
         var game = (ScoundrelGame)runner.Scene();
         game.StartGameWithDeck(new List<CardModel>(FixedDeck));
@@ -102,11 +140,11 @@ public static class SceneTestHelpers
     {
         var pos = (Vector2)card.Get("global_position");
         runner.SimulateMouseMove(pos);
-        await runner.AwaitMillis(UITimings.MouseHoverDelayMs);  // let hover state register
+        await runner.AwaitMillis(MouseHoverDelayMs);  // let hover state register
         runner.SimulateMouseButtonPress(MouseButton.Left, false);
         await runner.AwaitIdleFrame();  // let HOLDING state register in _holding_cards
         runner.SimulateMouseButtonRelease(MouseButton.Left);
-        await runner.AwaitMillis(UITimings.PostInputSettleMs);  // wait for game logic + animation
+        await runner.AwaitMillis(PostInputSettleMs);  // wait for game logic + animation
     }
 
     // Returns the centre of RightDropZone in viewport coordinates. Used as the
@@ -138,13 +176,13 @@ public static class SceneTestHelpers
         var pos    = (Vector2)card.Get("global_position");
         var target = dropTarget ?? RightZoneCenter(runner);
         runner.SimulateMouseMove(pos);
-        await runner.AwaitMillis(UITimings.MouseHoverDelayMs);
+        await runner.AwaitMillis(MouseHoverDelayMs);
         runner.SimulateMouseButtonPress(MouseButton.Left, false);
-        await runner.AwaitMillis(UITimings.MouseDragDelayMs);
+        await runner.AwaitMillis(MouseDragDelayMs);
         runner.SimulateMouseMove(target);
-        await runner.AwaitMillis(UITimings.MouseDragDelayMs);
+        await runner.AwaitMillis(MouseDragDelayMs);
         runner.SimulateMouseButtonRelease(MouseButton.Left);
-        await runner.AwaitMillis(UITimings.PostInputSettleMs);
+        await runner.AwaitMillis(PostInputSettleMs);
     }
 
     // Computes a card's actual on-screen bounding rect, accounting for `scale`.
