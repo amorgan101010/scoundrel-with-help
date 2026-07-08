@@ -9,6 +9,8 @@
 [ext_resource type="Script" uid="uid://buokfsbn6sbtb" path="res://scripts/HealthDie.cs" id="7_hd"]
 [ext_resource type="Script" path="res://scenes/JokerPocketSlot.gd" id="8_jps"]
 [ext_resource type="Script" path="res://scenes/WeaponSlot.gd" id="9_ws"]
+[ext_resource type="FontFile" path="res://assets/fonts/NotoSerifDisplay-Bold.ttf" id="10_fontdisplay"]
+[ext_resource type="FontFile" path="res://assets/fonts/NotoSerif-Regular.ttf" id="11_fontserif"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_red_n"]
 bg_color = Color(0.75, 0.18, 0.18, 1)
@@ -52,47 +54,53 @@ corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_blue_n"]
-bg_color = Color(0.2, 0.41, 0.8, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gold_n"]
+bg_color = Color(0.098, 0.078, 0.063, 0.6)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.651, 0.502, 0.235, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_blue_p"]
-bg_color = Color(0.13, 0.3, 0.65, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gold_p"]
+bg_color = Color(0.651, 0.502, 0.235, 0.25)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.886, 0.749, 0.486, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_blue_h"]
-bg_color = Color(0.3, 0.52, 0.9, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gold_h"]
+bg_color = Color(0.651, 0.502, 0.235, 0.15)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.886, 0.749, 0.486, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yellow_n"]
-bg_color = Color(0.82, 0.67, 0.05, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yellow_p"]
-bg_color = Color(0.68, 0.55, 0.02, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yellow_h"]
-bg_color = Color(0.9, 0.77, 0.15, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_deckbadge"]
+bg_color = Color(0.133, 0.094, 0.059, 0.92)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.651, 0.502, 0.235, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
 
 [node name="Game" type="Node" unique_id=1067270305]
 script = ExtResource("1_gm")
@@ -111,7 +119,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.13, 0.2, 0.13, 1)
+color = Color(0.098, 0.078, 0.063, 1)
 
 [node name="HealthLabel" type="Label" parent="UI" unique_id=1000776137]
 visible = false
@@ -124,11 +132,48 @@ text = "HP: 20 / 20"
 
 [node name="ExtendedRulesToggle" type="CheckBox" parent="UI" unique_id=900000001]
 offset_left = 30.0
-offset_top = 8.0
+offset_top = 215.0
 offset_right = 280.0
-offset_bottom = 38.0
+offset_bottom = 245.0
 theme_override_font_sizes/font_size = 16
 text = "Extended Rules"
+
+[node name="HealthDie" type="Control" parent="UI" unique_id=876543210]
+anchors_preset = 0
+offset_left = 40.0
+offset_top = 25.0
+offset_right = 150.0
+offset_bottom = 163.0
+script = ExtResource("7_hd")
+
+[node name="GameTitleLabel" type="Label" parent="UI" unique_id=920000001]
+offset_left = 175.0
+offset_top = 38.0
+offset_right = 700.0
+offset_bottom = 100.0
+theme_override_fonts/font = ExtResource("10_fontdisplay")
+theme_override_font_sizes/font_size = 46
+theme_override_colors/font_color = Color(0.886, 0.831, 0.702, 1)
+text = "SCOUNDREL"
+
+[node name="GameSubtitleLabel" type="Label" parent="UI" unique_id=920000002]
+offset_left = 178.0
+offset_top = 102.0
+offset_right = 520.0
+offset_bottom = 124.0
+theme_override_fonts/font = ExtResource("11_fontserif")
+theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.608, 0.549, 0.439, 1)
+text = "A DUNGEON OF ONE"
+
+[node name="HeaderDivider" type="ColorRect" parent="UI" unique_id=920000003]
+anchor_right = 1.0
+grow_horizontal = 2
+offset_left = 30.0
+offset_top = 208.0
+offset_right = -30.0
+offset_bottom = 210.0
+color = Color(0.192, 0.149, 0.098, 0.85)
 
 [node name="LeftPanel" type="Control" parent="UI" unique_id=321654987]
 layout_mode = 3
@@ -136,14 +181,6 @@ anchor_right = 0.33333334
 anchor_bottom = 1.0
 grow_vertical = 2
 mouse_filter = 2
-
-[node name="HealthDie" type="Control" parent="UI/LeftPanel" unique_id=876543210]
-anchors_preset = 0
-offset_left = 40.0
-offset_top = 83.0
-offset_right = 235.0
-offset_bottom = 278.0
-script = ExtResource("7_hd")
 
 [node name="WeaponGroup" type="Control" parent="UI/LeftPanel" unique_id=111222333]
 anchors_preset = 0
@@ -357,6 +394,38 @@ allow_card_movement = false
 restrict_to_top_card = false
 enable_drop_zone = false
 
+[node name="DeckCountBadge" type="Control" parent="UI/RightPanel/DeckGroup" unique_id=930000001]
+anchors_preset = 0
+offset_left = 125.0
+offset_right = 225.0
+offset_bottom = 50.0
+mouse_filter = 2
+
+[node name="DeckCountBadgePanel" type="Panel" parent="UI/RightPanel/DeckGroup/DeckCountBadge" unique_id=930000002]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_deckbadge")
+
+[node name="DeckCountLabel" type="Label" parent="UI/RightPanel/DeckGroup/DeckCountBadge" unique_id=930000003]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("11_fontserif")
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.886, 0.749, 0.486, 1)
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "44 LEFT"
+
 [node name="DiscardGroup" type="Control" parent="UI/RightPanel" unique_id=345678901]
 layout_mode = 1
 anchors_preset = 1
@@ -450,31 +519,37 @@ anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -235.0
-offset_top = 10.0
+offset_top = 72.0
 offset_right = 235.0
-offset_bottom = 80.0
+offset_bottom = 120.0
 grow_horizontal = 2
 
 [node name="RetryButton" type="Button" parent="UI/TopButtonGroup" unique_id=1426019074]
-custom_minimum_size = Vector2(0, 70)
+custom_minimum_size = Vector2(0, 46)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 24
-theme_override_styles/normal = SubResource("StyleBoxFlat_blue_n")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_blue_p")
-theme_override_styles/hover = SubResource("StyleBoxFlat_blue_h")
+theme_override_colors/font_color = Color(0.608, 0.549, 0.439, 1)
+theme_override_colors/font_hover_color = Color(0.886, 0.749, 0.486, 1)
+theme_override_colors/font_pressed_color = Color(0.886, 0.749, 0.486, 1)
+theme_override_fonts/font = ExtResource("11_fontserif")
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_gold_n")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_gold_p")
+theme_override_styles/hover = SubResource("StyleBoxFlat_gold_h")
 text = "↺ New Game"
 
 [node name="HelpButton" type="Button" parent="UI/TopButtonGroup" unique_id=1844877452]
-custom_minimum_size = Vector2(0, 70)
+custom_minimum_size = Vector2(0, 46)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.1, 0.07, 0, 1)
-theme_override_font_sizes/font_size = 24
-theme_override_styles/normal = SubResource("StyleBoxFlat_yellow_n")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_yellow_p")
-theme_override_styles/hover = SubResource("StyleBoxFlat_yellow_h")
+theme_override_colors/font_color = Color(0.608, 0.549, 0.439, 1)
+theme_override_colors/font_hover_color = Color(0.886, 0.749, 0.486, 1)
+theme_override_colors/font_pressed_color = Color(0.886, 0.749, 0.486, 1)
+theme_override_fonts/font = ExtResource("11_fontserif")
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_gold_n")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_gold_p")
+theme_override_styles/hover = SubResource("StyleBoxFlat_gold_h")
 text = "? Help"
 
 [node name="HelpDialog" type="AcceptDialog" parent="UI" unique_id=2005807090]
