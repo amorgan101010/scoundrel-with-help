@@ -55,6 +55,10 @@ public class ScoundrelRoomFlowSceneTests
         AssertThat((int)scene.GetNode("UI/RightPanel/DeckGroup/DeckPile").Call("get_card_count")).IsEqual(ScoundrelRules.DeckSize);
         AssertThat((int)scene.GetNode("UI/RightPanel/DiscardGroup/DiscardPile").Call("get_card_count")).IsEqual(0);
 
+        // Header deck-count badge (ui_overhaul.png "N LEFT" readout) mirrors DeckPile's count.
+        AssertThat(scene.GetNode<Label>("UI/RightPanel/DeckGroup/DeckCountBadge/DeckCountLabel").Text)
+            .IsEqual($"{ScoundrelRules.DeckSize} LEFT");
+
         var roomCards = (GArray)scene.GetNode("UI/RoomContainer").Call("get_all_cards");
         AssertThat(roomCards.Count).IsEqual(ScoundrelRules.RoomSize);
     }

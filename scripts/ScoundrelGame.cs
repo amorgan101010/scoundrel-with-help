@@ -37,6 +37,7 @@ public partial class ScoundrelGame : Node
     private Label _weaponJokerHpLabel = null!;
     private Label _healthLabel = null!;
     private HealthDie _healthDie = null!;
+    private Label _deckCountLabel = null!;
     private Label _weaponLabel = null!;
     private Label _statusLabel = null!;
     private Label _clubsLabel = null!;
@@ -201,7 +202,8 @@ public partial class ScoundrelGame : Node
             cardSize => _cardSize = cardSize);
         _layoutController.ApplyNow();
 
-        _healthDie = GetNode<HealthDie>("UI/LeftPanel/HealthDie");
+        _healthDie = GetNode<HealthDie>("UI/HealthDie");
+        _deckCountLabel = GetNode<Label>("UI/RightPanel/DeckGroup/DeckCountBadge/DeckCountLabel");
 
         // Lift retry + help buttons and status text above the bounce layer (201).
         // HudLayer: status/flavor text (display only, game-over and in-game messages)
@@ -1316,6 +1318,7 @@ public partial class ScoundrelGame : Node
         int discardCount = (int)_discardPile.Call("get_card_count");
         _deckPile.Set("tooltip_text",     $"Deck: {deckCount} card{(deckCount == 1 ? "" : "s")}");
         _discardPile.Set("tooltip_text",  $"Discard: {discardCount} card{(discardCount == 1 ? "" : "s")}");
+        _deckCountLabel.Text = $"{deckCount} LEFT";
 
         _clubsLabel.Text    = $"♣  {_inPlayClubs}";
         _spadesLabel.Text   = $"♠  {_inPlaySpades}";
