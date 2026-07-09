@@ -2,5 +2,6 @@
   "name": "jack_clubs",
   "front_image": "blank.svg",
   "suit": "clubs",
-  "rank": 11
+  "rank": 11,
+  "flavor_name": "ORC WARCHIEF"
 }

@@ -2,5 +2,6 @@
   "name": "3_clubs",
   "front_image": "blank.svg",
   "suit": "clubs",
-  "rank": 3
+  "rank": 3,
+  "flavor_name": "GOBLIN"
 }

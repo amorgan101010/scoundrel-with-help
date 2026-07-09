@@ -2,5 +2,6 @@
   "name": "6_clubs",
   "front_image": "blank.svg",
   "suit": "clubs",
-  "rank": 6
+  "rank": 6,
+  "flavor_name": "CAVE TROLL"
 }

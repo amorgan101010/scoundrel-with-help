@@ -34,7 +34,7 @@ public partial class RoomCardOverlay : Control
 
     private const float Padding         = 14f;
     private const float BannerHeight    = 46f;
-    private const float IconHeight      = 150f;
+    private const float IconHeight      = 160f;
     private const float FooterHeight    = 28f;
     private const float FooterBottomGap = 12f;
     private const float DividerGap      = 10f;

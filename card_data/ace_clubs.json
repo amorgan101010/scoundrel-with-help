@@ -2,5 +2,6 @@
   "name": "ace_clubs",
   "front_image": "blank.svg",
   "suit": "clubs",
-  "rank": 1
+  "rank": 1,
+  "flavor_name": "VOID WRAITH"
 }

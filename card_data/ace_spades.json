@@ -2,5 +2,6 @@
   "name": "ace_spades",
   "front_image": "blank.svg",
   "suit": "spades",
-  "rank": 1
+  "rank": 1,
+  "flavor_name": "SHADOW REAPER"
 }

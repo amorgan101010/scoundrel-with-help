@@ -2,5 +2,6 @@
   "name": "10_hearts",
   "front_image": "blank.svg",
   "suit": "hearts",
-  "rank": 10
+  "rank": 10,
+  "flavor_name": "HOLY DRAUGHT"
 }

@@ -2,5 +2,6 @@
   "name": "9_diamonds",
   "front_image": "blank.svg",
   "suit": "diamonds",
-  "rank": 9
+  "rank": 9,
+  "flavor_name": "ELVEN BOW"
 }

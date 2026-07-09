@@ -47,13 +47,13 @@ public partial class WeaponPanelOverlay : Control
 {
     private const float Padding          = 16f;
     private const float NumberTop        = 8f;
-    private const float NumberHeight     = 52f;
-    private const float ConstraintHeight = 22f;
+    private const float NumberHeight     = 44f;
+    private const float ConstraintHeight = 20f;
     private const float ConstraintGap    = 2f;
-    private const float IconTopGap       = 10f;
-    private const float IconBottomGap    = 6f;
-    private const float NameStripHeight  = 30f;
-    private const float DividerGap       = 8f;
+    private const float IconTopGap       = 6f;
+    private const float IconBottomGap    = 4f;
+    private const float NameStripHeight  = 26f;
+    private const float DividerGap       = 6f;
 
     private Label _numberLabel      = null!;
     private Label _constraintLabel  = null!;

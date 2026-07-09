@@ -2,5 +2,6 @@
   "name": "2_clubs",
   "front_image": "blank.svg",
   "suit": "clubs",
-  "rank": 2
+  "rank": 2,
+  "flavor_name": "CAVE RAT"
 }

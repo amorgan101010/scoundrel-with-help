@@ -2,5 +2,6 @@
   "name": "queen_spades",
   "front_image": "blank.svg",
   "suit": "spades",
-  "rank": 12
+  "rank": 12,
+  "flavor_name": "WRAITH QUEEN"
 }

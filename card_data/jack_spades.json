@@ -2,5 +2,6 @@
   "name": "jack_spades",
   "front_image": "blank.svg",
   "suit": "spades",
-  "rank": 11
+  "rank": 11,
+  "flavor_name": "DEATH KNIGHT"
 }

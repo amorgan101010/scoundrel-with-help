@@ -2,5 +2,6 @@
   "name": "10_diamonds",
   "front_image": "blank.svg",
   "suit": "diamonds",
-  "rank": 10
+  "rank": 10,
+  "flavor_name": "VOID REAVER"
 }

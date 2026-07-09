@@ -2,5 +2,6 @@
   "name": "9_hearts",
   "front_image": "blank.svg",
   "suit": "hearts",
-  "rank": 9
+  "rank": 9,
+  "flavor_name": "LIFE ESSENCE"
 }

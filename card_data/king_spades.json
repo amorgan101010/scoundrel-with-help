@@ -2,5 +2,6 @@
   "name": "king_spades",
   "front_image": "blank.svg",
   "suit": "spades",
-  "rank": 13
+  "rank": 13,
+  "flavor_name": "DRAGON LORD"
 }

@@ -2,5 +2,6 @@
   "name": "9_clubs",
   "front_image": "blank.svg",
   "suit": "clubs",
-  "rank": 9
+  "rank": 9,
+  "flavor_name": "MINOTAUR"
 }

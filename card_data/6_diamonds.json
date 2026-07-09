@@ -2,5 +2,6 @@
   "name": "6_diamonds",
   "front_image": "blank.svg",
   "suit": "diamonds",
-  "rank": 6
+  "rank": 6,
+  "flavor_name": "BATTLE AXE"
 }

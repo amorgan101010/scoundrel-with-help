@@ -2,5 +2,6 @@
   "name": "8_spades",
   "front_image": "blank.svg",
   "suit": "spades",
-  "rank": 8
+  "rank": 8,
+  "flavor_name": "WIGHT"
 }

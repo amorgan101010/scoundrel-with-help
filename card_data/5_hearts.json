@@ -2,5 +2,6 @@
   "name": "5_hearts",
   "front_image": "blank.svg",
   "suit": "hearts",
-  "rank": 5
+  "rank": 5,
+  "flavor_name": "LIFE ELIXIR"
 }

@@ -2,5 +2,6 @@
   "name": "3_diamonds",
   "front_image": "blank.svg",
   "suit": "diamonds",
-  "rank": 3
+  "rank": 3,
+  "flavor_name": "IRON DAGGER"
 }

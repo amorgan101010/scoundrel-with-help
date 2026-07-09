@@ -2,5 +2,6 @@
   "name": "4_diamonds",
   "front_image": "blank.svg",
   "suit": "diamonds",
-  "rank": 4
+  "rank": 4,
+  "flavor_name": "SHORT SWORD"
 }

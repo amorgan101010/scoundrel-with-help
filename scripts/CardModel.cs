@@ -12,7 +12,7 @@ public enum CardKind { Monster, Weapon, Potion, Blacksmith, Merchant, PotionJoke
 /// <summary>
 /// Godot-free card data record. Used by GameEngine and unit tests.
 /// </summary>
-public record CardModel(Suit Suit, int Rank, string Name = "")
+public record CardModel(Suit Suit, int Rank, string Name = "", string? FlavorName = null)
 {
     public bool IsMonster => Suit is Suit.Clubs or Suit.Spades;
     public bool IsWeapon  => Suit == Suit.Diamonds && Rank is >= 2 and <= 10;

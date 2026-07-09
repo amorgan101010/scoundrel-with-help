@@ -13,10 +13,12 @@ public enum RoomCardBannerFamily { Monster, Weapon, Potion, Friendly }
 /// Godot Control that actually draws these) the same way ScoundrelRules is split from
 /// ScoundrelGame — so this is unit-testable without spinning up a scene tree.
 ///
-/// Monster/Weapon/Potion cards have no per-card flavor name in this codebase today
-/// (CardModel only carries Suit+Rank), so their display name is derived as
-/// "{RANK} OF {SUIT}" (e.g. "10 OF SPADES") rather than invented flavor text —
-/// Blacksmith/Merchant/PotionJoker/WeaponJoker do have real names and use those.
+/// Monster/Weapon/Potion cards DO have a per-card flavor name (e.g. "CYCLOPS",
+/// "ELVEN BOW") — tools/gen_cards.py's NAMES dict, now surfaced onto CardModel via
+/// CardData.FromGodotCard's flavor_name read (see CardModel.cs/CardData.cs) instead of
+/// only being baked into the old full card art's own bottom text banner. DisplayName
+/// falls back to "{RANK} OF {SUIT}" only if FlavorName is somehow absent (defensive;
+/// every card gen_cards.py generates has one).
 /// </summary>
 public static class RoomCardContent
 {
@@ -37,7 +39,7 @@ public static class RoomCardContent
         CardKind.PotionJoker => "RED JOKER",
         CardKind.WeaponJoker => "BLACK JOKER",
         CardKind.Monster or CardKind.Weapon or CardKind.Potion
-            => $"{RankName(card.Rank)} OF {SuitName(card.Suit)}",
+            => card.FlavorName ?? $"{RankName(card.Rank)} OF {SuitName(card.Suit)}",
         _ => throw new System.InvalidOperationException($"Unhandled card kind: {card.Kind}"),
     };
 

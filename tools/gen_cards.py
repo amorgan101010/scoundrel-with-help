@@ -706,9 +706,20 @@ def main():
         if os.path.exists(json_path):
             with open(json_path) as f:
                 data = json.load(f)
-            data['front_image'] = f"{fname}.svg"
+            # front_image intentionally does NOT point at this card's own full
+            # illustrated SVG (fname.svg) -- the UI overhaul stopped wiring that art
+            # to the addon's Card node at all (see RoomCardOverlay.cs/ScoundrelGame.cs's
+            # OnCardSizeChanged comments), so every card's front_image is the shared
+            # blank placeholder instead. flavor_name is the per-card name this same
+            # NAMES dict already used for the old card's own bottom text banner
+            # (draw_name_banner) -- now surfaced to the C# side (RoomCardContent.
+            # DisplayName) for the new overlay's banner header instead of a generated
+            # "{RANK} OF {SUIT}" string.
+            data['front_image'] = 'blank.svg'
+            data['flavor_name'] = NAMES[(suit, rank)]
             with open(json_path, 'w') as f:
                 json.dump(data, f, indent=2)
+                f.write('\n')
 
         print(f"  {fname}.svg")
 
