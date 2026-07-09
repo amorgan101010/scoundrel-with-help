@@ -3,11 +3,16 @@ using Godot;
 /// <summary>
 /// Weapon panel overlay for the ui_overhaul.png "WEAPON" column: an opaque card-style
 /// background, a big equipped-weapon value in the top-left, a muted "next: &lt; N"
-/// constraint hint below it, a centered line-art icon (reusing RoomCardIcon — see
-/// RoomCardIcon.cs), and a bold serif name strip near the bottom (reusing
-/// RoomCardContent.DisplayName — see RoomCardContent.cs). Built entirely from native
-/// Label/Panel/ColorRect/RoomCardIcon primitives, no new image assets, matching chunk
-/// 2's steer for this redesign's chrome.
+/// constraint hint below it, a centered picture of the equipped weapon's real art
+/// (card_assets/art/{name}.svg — background-free, see RoomCardOverlay.cs's class doc
+/// for how that art is generated), and a bold serif name strip near the bottom
+/// (reusing RoomCardContent.DisplayName — see RoomCardContent.cs). Frame chrome
+/// (background/border/divider/name-strip) is native Label/Panel/ColorRect, per the
+/// coordinator's steer that new UI CHROME should avoid image assets; the icon itself
+/// is the deliberate exception (chunk 6) since weapons have real art. The icon's
+/// texture is swapped in UpdateWeapon() rather than fixed at Build() time, since each
+/// equipped weapon rank has a different picture (unlike chunk 2's RoomCardIcon, which
+/// drew one fixed generic icon regardless of rank).
 ///
 /// Added once as a child of WeaponSlot (the addon Pile control that hosts the equipped
 /// weapon's actual Card node) at _Ready(), sized to the initial card size, and then only
@@ -55,10 +60,10 @@ public partial class WeaponPanelOverlay : Control
     // colors shared between C# and .tscn.
     private const float BadgeSafeTopReserve = 22f;
 
-    private Label _numberLabel     = null!;
-    private Label _constraintLabel = null!;
-    private RoomCardIcon _icon     = null!;
-    private Label _nameLabel       = null!;
+    private Label _numberLabel      = null!;
+    private Label _constraintLabel  = null!;
+    private TextureRect _icon       = null!;
+    private Label _nameLabel        = null!;
 
     public static WeaponPanelOverlay Create(Vector2 slotSize)
     {
@@ -88,6 +93,7 @@ public partial class WeaponPanelOverlay : Control
         _constraintLabel.Text = $"♦ next: {floor}{bonusSuffix}";
 
         _nameLabel.Text = RoomCardContent.DisplayName(weapon);
+        _icon.Texture   = GD.Load<Texture2D>($"res://card_assets/art/{weapon.Name}.svg");
     }
 
     private void Build(Vector2 size)
@@ -152,10 +158,10 @@ public partial class WeaponPanelOverlay : Control
         float iconBottom = dividerY - IconBottomGap;
         float iconSize   = Mathf.Max(24f, Mathf.Min(iconBottom - iconTop, w - Padding * 2f));
         float iconCenterY = (iconTop + iconBottom) / 2f;
-        _icon = new RoomCardIcon
+        _icon = new TextureRect
         {
-            Kind         = CardKind.Weapon,
-            LineColor    = ScoundrelPalette.WeaponBlueBright,
+            ExpandMode   = TextureRect.ExpandModeEnum.FitWidthProportional,
+            StretchMode  = TextureRect.StretchModeEnum.KeepAspectCentered,
             OffsetLeft   = (w - iconSize) / 2f,
             OffsetTop    = iconCenterY - iconSize / 2f,
             OffsetRight  = (w + iconSize) / 2f,

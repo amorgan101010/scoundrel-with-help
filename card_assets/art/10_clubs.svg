@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="150" height="210" viewBox="0 0 150 210">
+<ellipse cx="75.00" cy="87.00" rx="31.00" ry="23.00" fill="rgb(187,226,201)"/>
+<rect x="50" y="110" width="50" height="14" fill="rgb(187,226,201)"/>
+<ellipse cx="75.00" cy="93.00" rx="15.00" ry="15.00" fill="rgb(41,49,44)"/>
+<ellipse cx="75.00" cy="93.00" rx="11.00" ry="11.00" fill="rgb(95,255,140)"/>
+<ellipse cx="75.00" cy="94.00" rx="5.00" ry="5.00" fill="rgb(41,49,44)"/>
+<polygon points="75,99 70,110 80,110" fill="rgb(41,49,44)" stroke-linejoin="round"/>
+<rect x="54" y="112" width="4" height="8" fill="rgb(41,49,44)"/>
+<rect x="61" y="112" width="4" height="8" fill="rgb(41,49,44)"/>
+<rect x="68" y="112" width="4" height="8" fill="rgb(41,49,44)"/>
+<rect x="75" y="112" width="4" height="8" fill="rgb(41,49,44)"/>
+<rect x="82" y="112" width="4" height="8" fill="rgb(41,49,44)"/>
+<line x1="69" y1="66" x2="79" y2="99" stroke="rgb(41,49,44)" stroke-width="2" stroke-linecap="round"/>
+</svg>

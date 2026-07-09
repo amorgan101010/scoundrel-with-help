@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="150" height="210" viewBox="0 0 150 210">
+<ellipse cx="75.00" cy="54.50" rx="16.00" ry="12.50" fill="rgb(175,180,195)"/>
+<rect x="59" y="55" width="32" height="22" fill="rgb(175,180,195)"/>
+<rect x="65" y="57" width="20" height="10" fill="rgb(28,15,58)"/>
+<polygon points="53,77 97,77 101,115 49,115" fill="rgb(175,180,195)" stroke-linejoin="round"/>
+<rect x="45" y="79" width="8" height="30" fill="rgb(175,180,195)"/>
+<rect x="97" y="79" width="8" height="30" fill="rgb(175,180,195)"/>
+<rect x="104" y="45" width="6" height="67" fill="rgb(230,235,250)"/>
+<rect x="95" y="71" width="24" height="6" fill="rgb(175,180,195)"/>
+<ellipse cx="107.00" cy="47.50" rx="3.00" ry="2.50" fill="rgb(255,55,0)"/>
+<ellipse cx="107.00" cy="52.50" rx="3.00" ry="2.50" fill="rgb(255,100,0)"/>
+<ellipse cx="107.00" cy="57.50" rx="3.00" ry="2.50" fill="rgb(255,145,0)"/>
+<ellipse cx="107.00" cy="62.50" rx="3.00" ry="2.50" fill="rgb(255,190,0)"/>
+<ellipse cx="107.00" cy="67.50" rx="3.00" ry="2.50" fill="rgb(255,235,0)"/>
+<ellipse cx="107.00" cy="72.50" rx="3.00" ry="2.50" fill="rgb(255,280,0)"/>
+</svg>

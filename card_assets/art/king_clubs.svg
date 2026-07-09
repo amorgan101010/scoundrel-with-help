@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="150" height="210" viewBox="0 0 150 210">
+<ellipse cx="68.00" cy="93.00" rx="25.00" ry="26.00" fill="rgb(104,153,122)"/>
+<ellipse cx="91.50" cy="96.50" rx="28.50" ry="14.50" fill="rgb(104,153,122)"/>
+<ellipse cx="79.00" cy="81.50" rx="8.00" ry="6.50" fill="rgb(0,0,0)"/>
+<ellipse cx="79.00" cy="81.50" rx="5.00" ry="4.50" fill="rgb(95,255,140)"/>
+<polygon points="107,111 115,121 113,111" fill="rgb(174,223,192)" stroke-linejoin="round"/>
+<polygon points="95,111 102,123 101,111" fill="rgb(174,223,192)" stroke-linejoin="round"/>
+<polygon points="47,69 31,42 61,65" fill="rgb(104,153,122)" stroke-linejoin="round"/>
+<polygon points="65,69 69,47 83,69" fill="rgb(104,153,122)" stroke-linejoin="round"/>
+<ellipse cx="121.00" cy="99.00" rx="9.00" ry="9.00" fill="rgb(255,100,0)"/>
+<ellipse cx="131.00" cy="92.00" rx="6.00" ry="6.00" fill="rgb(255,200,0)"/>
+<ellipse cx="139.00" cy="101.00" rx="4.00" ry="4.00" fill="rgb(255,55,0)"/>
+</svg>

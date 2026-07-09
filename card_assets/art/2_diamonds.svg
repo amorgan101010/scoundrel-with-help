@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="150" height="210" viewBox="0 0 150 210">
+<polygon points="75,49 70,92 80,92" fill="rgb(202,162,44)" stroke-linejoin="round"/>
+<rect x="62" y="89" width="26" height="4" fill="rgb(202,162,44)"/>
+<rect x="71" y="93" width="8" height="24" fill="rgb(98,68,38)"/>
+<ellipse cx="75.00" cy="120.00" rx="6.00" ry="5.00" fill="rgb(202,162,44)"/>
+<line x1="77" y1="53" x2="74" y2="79" stroke="rgb(56,40,10)" stroke-width="2" stroke-linecap="round"/>
+</svg>

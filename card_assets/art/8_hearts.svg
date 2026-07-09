@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="150" height="210" viewBox="0 0 150 210">
+<ellipse cx="75.00" cy="97.00" rx="53.00" ry="26.00" fill="rgb(66,11,18)"/>
+<ellipse cx="75.00" cy="97.00" rx="49.00" ry="24.00" fill="rgb(51,9,14)"/>
+<ellipse cx="75.00" cy="97.00" rx="45.00" ry="22.00" fill="rgb(37,6,10)"/>
+<ellipse cx="75.00" cy="97.00" rx="41.00" ry="20.00" fill="rgb(22,3,6)"/>
+<ellipse cx="75.00" cy="97.00" rx="37.00" ry="18.00" fill="rgb(7,1,2)"/>
+<ellipse cx="75.00" cy="97.00" rx="33.00" ry="24.00" fill="rgb(168,215,225)"/>
+<ellipse cx="75.00" cy="100.50" rx="30.00" ry="17.50" fill="rgb(238,42,67)"/>
+<line x1="47" y1="85" x2="47" y2="109" stroke="rgb(255,255,255)" stroke-width="2" stroke-linecap="round"/>
+<rect x="64" y="61" width="22" height="14" fill="rgb(168,215,225)"/>
+<rect x="62" y="56" width="26" height="7" fill="rgb(155,95,45)"/>
+<rect x="45" y="91" width="60" height="12" fill="rgb(58,15,15)"/>
+<rect x="45" y="91" width="60" height="12" fill="none" stroke="rgb(138,26,26)" stroke-width="1"/>
+<line x1="75" y1="92" x2="75" y2="102" stroke="rgb(255,195,195)" stroke-width="2" stroke-linecap="round"/>
+<line x1="70" y1="97" x2="80" y2="97" stroke="rgb(255,195,195)" stroke-width="2" stroke-linecap="round"/>
+<ellipse cx="68.00" cy="105.00" rx="3.00" ry="3.00" fill="rgb(255,107,132)"/>
+<ellipse cx="84.00" cy="93.00" rx="3.00" ry="3.00" fill="rgb(255,107,132)"/>
+<ellipse cx="77.00" cy="111.00" rx="3.00" ry="3.00" fill="rgb(255,107,132)"/>
+</svg>

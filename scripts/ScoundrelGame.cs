@@ -1412,8 +1412,7 @@ public partial class ScoundrelGame : Node
                 var overlay = RoomCardOverlayOf(cardNode);
                 if (overlay == null)
                 {
-                    var frontImage = godotCard.Get("front_image").As<Texture2D>();
-                    overlay = RoomCardOverlay.Create(cardModel, new Vector2(CardW, CardH), frontImage);
+                    overlay = RoomCardOverlay.Create(cardModel, new Vector2(CardW, CardH));
                     cardNode.AddChild(overlay);
                 }
                 overlay.UpdateDescription(RoomCardContent.Description(ScoundrelRules.TooltipFor(

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="150" height="210" viewBox="0 0 150 210">
+<ellipse cx="70.00" cy="69.00" rx="19.00" ry="14.00" fill="rgb(205,187,236)"/>
+<rect x="55" y="83" width="30" height="8" fill="rgb(205,187,236)"/>
+<ellipse cx="62.00" cy="71.00" rx="6.00" ry="7.00" fill="rgb(45,41,51)"/>
+<ellipse cx="62.00" cy="71.00" rx="3.00" ry="4.00" fill="rgb(165,95,255)"/>
+<ellipse cx="78.00" cy="71.00" rx="6.00" ry="7.00" fill="rgb(45,41,51)"/>
+<ellipse cx="78.00" cy="71.00" rx="3.00" ry="4.00" fill="rgb(165,95,255)"/>
+<polygon points="70,74 65,85 75,85" fill="rgb(45,41,51)" stroke-linejoin="round"/>
+<rect x="59" y="85" width="2" height="2" fill="rgb(45,41,51)"/>
+<rect x="64" y="85" width="2" height="2" fill="rgb(45,41,51)"/>
+<rect x="69" y="85" width="2" height="2" fill="rgb(45,41,51)"/>
+<rect x="74" y="85" width="2" height="2" fill="rgb(45,41,51)"/>
+<rect x="79" y="85" width="2" height="2" fill="rgb(45,41,51)"/>
+<line x1="64" y1="57" x2="74" y2="77" stroke="rgb(45,41,51)" stroke-width="2" stroke-linecap="round"/>
+<line x1="47" y1="105" x2="23" y2="89" stroke="rgb(115,65,205)" stroke-width="5" stroke-linecap="round"/>
+<line x1="93" y1="105" x2="121" y2="91" stroke="rgb(115,65,205)" stroke-width="5" stroke-linecap="round"/>
+<polygon points="59,105 91,105 95,135 55,135" fill="rgb(28,15,58)" stroke-linejoin="round"/>
+</svg>

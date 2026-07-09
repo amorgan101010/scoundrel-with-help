@@ -642,6 +642,31 @@ def make_card(suit, rank, fonts):
     return d.to_svg()
 
 
+def make_card_art_only(suit, rank):
+    """Same illustration as make_card, but WITHOUT draw_bg/draw_pip/draw_name_banner
+    -- no background fill, hatch lines, border, corner marks, rank/suit pip, or name
+    banner. Transparent canvas (no bg rect drawn), same W x H and same cx/cy=(75,97)
+    illustration center as the full card, so it drops into any container sized for
+    the full card without needing to know/recompute the illustration's position.
+
+    Added for the UI overhaul (ui_overhaul.png): the redesigned room/weapon card
+    chrome (border/banner/divider/footer) is now built natively in C#
+    (RoomCardOverlay.cs/WeaponPanelOverlay.cs), and needs just the picture -- not
+    this script's own background/border/text, which belonged to the pre-redesign
+    card look. Only used for clubs/spades/hearts/diamonds (monster/weapon/potion) --
+    Blacksmith/Merchant/Joker cards have no real art yet (see label_extended_cards.py's
+    text-free placeholder SVGs) and keep the redesign's hand-drawn RoomCardIcon.
+    """
+    p = P[suit]
+    d = SVGCanvas(W, H)
+    cx, cy = 75, 97
+    if   suit == 'clubs':    draw_clubs(d, cx, cy, p, rank)
+    elif suit == 'spades':   draw_spades(d, cx, cy, p, rank)
+    elif suit == 'hearts':   draw_potion(d, cx, cy, p, rank)
+    elif suit == 'diamonds': draw_weapon(d, cx, cy, p, rank)
+    return d.to_svg()
+
+
 def main():
     global _GLYPHS
     print("Loading font…")
@@ -676,7 +701,22 @@ def main():
         f.write(svg)
     print("  card_back.svg")
 
-    print(f"\nDone — {len(cards)} cards + back.")
+    art_dir = os.path.join(OUT, 'art')
+    os.makedirs(art_dir, exist_ok=True)
+    art_cards = (
+        [(s, r) for s in ('clubs', 'spades')
+         for r in ('ace', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'jack', 'queen', 'king')] +
+        [(s, r) for s in ('hearts', 'diamonds')
+         for r in ('2', '3', '4', '5', '6', '7', '8', '9', '10')]
+    )
+    for suit, rank in art_cards:
+        svg = make_card_art_only(suit, rank)
+        fname = f"{rank}_{suit}"
+        with open(os.path.join(art_dir, f"{fname}.svg"), 'w', encoding='utf-8') as f:
+            f.write(svg)
+        print(f"  art/{fname}.svg")
+
+    print(f"\nDone — {len(cards)} cards + back + {len(art_cards)} art-only illustrations.")
 
 
 if __name__ == '__main__':
