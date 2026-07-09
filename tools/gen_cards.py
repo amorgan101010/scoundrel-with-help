@@ -172,11 +172,16 @@ class SVGCanvas:
         d = f'M {sx:.2f},{sy:.2f} A {rx:.2f},{ry:.2f} 0 {large},1 {ex:.2f},{ey:.2f}'
         self._e.append(f'<path d="{d}" fill="none" stroke="{col}" stroke-width="{width}"/>')
 
-    def to_svg(self):
+    def to_svg(self, view_box=None):
+        """view_box, if given, is (x, y, w, h) overriding the default "0 0 self.w
+        self.h" -- lets a caller crop tighter than the full canvas while every
+        draw_* call above keeps using the same absolute 150x210 coordinate space
+        (no need to re-derive per-illustration bounding boxes)."""
         inner = '\n'.join(self._e)
+        vb = f'{view_box[0]} {view_box[1]} {view_box[2]} {view_box[3]}' if view_box else f'0 0 {self.w} {self.h}'
         return (
             f'<svg xmlns="http://www.w3.org/2000/svg"'
-            f' width="{self.w}" height="{self.h}" viewBox="0 0 {self.w} {self.h}">\n'
+            f' width="{self.w}" height="{self.h}" viewBox="{vb}">\n'
             f'{inner}\n</svg>\n'
         )
 
@@ -656,6 +661,17 @@ def make_card_art_only(suit, rank):
     card look. Only used for clubs/spades/hearts/diamonds (monster/weapon/potion) --
     Blacksmith/Merchant/Joker cards have no real art yet (see label_extended_cards.py's
     text-free placeholder SVGs) and keep the redesign's hand-drawn RoomCardIcon.
+
+    Uses a tighter viewBox than the full 150x210 canvas: every illustration is
+    centered at (75, 97), and checking every draw_* function's coordinate offsets
+    (the widest is the rank-9 diamond bow at cx+65, the tallest the rank-10 diamond
+    hilt spanning cy-68 to cy+36), a 140x150 box centered there (x:5-145, y:22-172)
+    contains all of them with margin to spare. Cropping this way -- rather than
+    leaving the full mostly-empty canvas for the C# side to fit into a box -- is
+    what actually fixes "the art looks too small": fitting a 150x210 canvas into a
+    wider-than-tall icon slot is height-constrained, so shrinking the canvas height
+    from 210 to 150 alone is a 40% larger effective render, with no risk of clipping
+    since every illustration was checked against this specific crop.
     """
     p = P[suit]
     d = SVGCanvas(W, H)
@@ -664,7 +680,7 @@ def make_card_art_only(suit, rank):
     elif suit == 'spades':   draw_spades(d, cx, cy, p, rank)
     elif suit == 'hearts':   draw_potion(d, cx, cy, p, rank)
     elif suit == 'diamonds': draw_weapon(d, cx, cy, p, rank)
-    return d.to_svg()
+    return d.to_svg(view_box=(5, 22, 140, 150))
 
 
 def main():

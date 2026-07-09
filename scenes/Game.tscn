@@ -432,6 +432,7 @@ anchors_preset = 0
 offset_right = 225.0
 offset_bottom = 315.0
 mouse_filter = 2
+z_index = 4090
 
 [node name="DeckCountBadgePanel" type="Panel" parent="UI/RightPanel/DeckGroup/DeckCountBadge" unique_id=930000002]
 layout_mode = 1
