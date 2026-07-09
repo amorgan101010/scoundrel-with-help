@@ -36,9 +36,21 @@ public partial class RoomCardOverlay : Control
     private const float DividerGap      = 10f;
     private const float DescGap         = 8f;
 
+    // Every card_assets/*.svg shares the same template: a ~5-6px border, the
+    // illustration, then a fixed text banner starting at y=162 of a 150x210
+    // viewBox (verified across monster/weapon/potion/face/ace/joker art). Cropping
+    // "border to just above that banner" — rather than tightly bounding each
+    // illustration, which varies in size per card kind — is robust across all of
+    // them. Expressed as fractions of the actual runtime texture (not raw viewBox
+    // pixels), since these SVGs import at svg/scale=4.0 (600x840), not 150x210.
+    private const float ArtCropLeft   = 8f / 150f;
+    private const float ArtCropRight  = 142f / 150f;
+    private const float ArtCropTop    = 8f / 210f;
+    private const float ArtCropBottom = 152f / 210f;
+
     private Label _descriptionLabel = null!;
 
-    public static RoomCardOverlay Create(CardModel card, Vector2 cardSize)
+    public static RoomCardOverlay Create(CardModel card, Vector2 cardSize, Texture2D frontImage)
     {
         var overlay = new RoomCardOverlay
         {
@@ -49,18 +61,18 @@ public partial class RoomCardOverlay : Control
             ZIndex      = 1,
         };
         overlay.AddToGroup(GroupName);
-        overlay.Build(card, cardSize);
+        overlay.Build(card, cardSize, frontImage);
         return overlay;
     }
 
     /// <summary>Refreshes the state-dependent description body text in place.</summary>
     public void UpdateDescription(string text) => _descriptionLabel.Text = text;
 
-    private void Build(CardModel card, Vector2 cardSize)
+    private void Build(CardModel card, Vector2 cardSize, Texture2D frontImage)
     {
         float w = cardSize.X, h = cardSize.Y;
         var family = RoomCardContent.BannerFamily(card.Kind);
-        var (bannerBg, bannerFg) = BannerColors(family);
+        var (bannerBg, bannerFg) = BannerColors(card, family);
 
         // Opaque background + thin border, covering the addon's generic front_image
         // art beneath (a StyleBoxFlat panel, not a background image/9-patch).
@@ -92,16 +104,30 @@ public partial class RoomCardOverlay : Control
         bannerLabel.AddThemeColorOverride("font_color", bannerFg);
         AddChild(bannerLabel);
 
-        // Icon area — simple native-drawn line art per card kind (RoomCardIcon), no
-        // image assets. Colored with a brighter per-family accent than the banner
-        // fill itself: BannerBlueWeapon/BannerPlumPotion/BannerMaroonMonster are
-        // tuned to host white banner text and read as near-invisible line art
-        // against the dark CardBackMaroon background, so IconColor uses a lighter
-        // variant per family instead (see IconColor below).
-        var icon = new RoomCardIcon
+        // Icon area — the real illustration baked into this card's own front_image
+        // art (card_assets/*.svg already has thematic per-card pictures: a monster
+        // face, a weapon shape, etc. — not just plain suit pips), cropped to just
+        // that illustration via an AtlasTexture region so the source image's own
+        // border/corner-marks/rank-text banner don't show (see ArtCrop* consts).
+        // Chunk 6 replaced chunk 2's hand-drawn RoomCardIcon here after the user
+        // saw the invented line art next to real card art and wanted the real
+        // picture instead — native-shape chrome (banner/border/divider/footer)
+        // stays, this is specifically about the illustration.
+        var texSize = frontImage.GetSize();
+        var atlas = new AtlasTexture
         {
-            Kind         = card.Kind,
-            LineColor    = IconColor(card),
+            Atlas = frontImage,
+            Region = new Rect2(
+                texSize.X * ArtCropLeft,
+                texSize.Y * ArtCropTop,
+                texSize.X * (ArtCropRight - ArtCropLeft),
+                texSize.Y * (ArtCropBottom - ArtCropTop)),
+        };
+        var icon = new TextureRect
+        {
+            Texture      = atlas,
+            ExpandMode   = TextureRect.ExpandModeEnum.FitWidthProportional,
+            StretchMode  = TextureRect.StretchModeEnum.KeepAspectCentered,
             OffsetTop    = BannerHeight,
             OffsetRight  = w,
             OffsetBottom = BannerHeight + IconHeight,
@@ -183,23 +209,25 @@ public partial class RoomCardOverlay : Control
         AddChild(footerRight);
     }
 
-    private static (Color bg, Color fg) BannerColors(RoomCardBannerFamily family) => family switch
+    // Friendly cards (Blacksmith/Merchant/PotionJoker/WeaponJoker) share one gold
+    // banner regardless of suit, matching the mockup's Blacksmith example. Monster/
+    // Weapon/Potion cards use their card's actual Suit instead of a fixed per-KIND
+    // color (chunk 6): the real card art now shown in the icon slot is itself
+    // per-suit colored (green clubs, purple spades, gold diamonds, red hearts), so
+    // the banner matches that rather than clashing with a fixed "all monsters red"
+    // treatment.
+    private static (Color bg, Color fg) BannerColors(CardModel card, RoomCardBannerFamily family)
     {
-        RoomCardBannerFamily.Monster  => (ScoundrelPalette.BannerMaroonMonster, Colors.White),
-        RoomCardBannerFamily.Weapon   => (ScoundrelPalette.BannerBlueWeapon, Colors.White),
-        RoomCardBannerFamily.Potion   => (ScoundrelPalette.BannerPlumPotion, Colors.White),
-        RoomCardBannerFamily.Friendly => (ScoundrelPalette.BannerGoldFriendly, ScoundrelPalette.BackgroundNearBlack),
-        _ => throw new System.InvalidOperationException($"Unhandled banner family: {family}"),
-    };
+        if (family == RoomCardBannerFamily.Friendly)
+            return (ScoundrelPalette.BannerGoldFriendly, ScoundrelPalette.BackgroundNearBlack);
 
-    // Icon line-art color: a bright, high-contrast accent per card kind against the
-    // near-black CardBackMaroon background — deliberately not the same value as
-    // BannerColors' bg (see the comment at the icon's construction above).
-    private static Color IconColor(CardModel card) => card.Kind switch
-    {
-        CardKind.Monster => ScoundrelPalette.MonsterRedValue,
-        CardKind.Weapon  => ScoundrelPalette.WeaponBlueBright,
-        CardKind.Potion  => ScoundrelPalette.PotionRoseBright,
-        _                => ScoundrelPalette.BannerGoldFriendly, // Blacksmith/Merchant/Jokers — already bright enough as-is.
-    };
+        return card.Suit switch
+        {
+            Suit.Clubs    => (ScoundrelPalette.BannerClubsGreen, Colors.White),
+            Suit.Spades   => (ScoundrelPalette.BannerSpadesPurple, Colors.White),
+            Suit.Diamonds => (ScoundrelPalette.BannerDiamondsGold, Colors.White),
+            Suit.Hearts   => (ScoundrelPalette.BannerHeartsRed, Colors.White),
+            _ => throw new System.InvalidOperationException($"Suit {card.Suit} has no room-card banner color."),
+        };
+    }
 }
