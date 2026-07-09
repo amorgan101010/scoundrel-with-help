@@ -126,7 +126,6 @@ public partial class ScoundrelGame : Node
 
     // Slain-monster badge geometry: layout slot dimensions vs. visible control size.
     private const float BadgeLayoutWidth  = 45f;
-    private const float BadgeLayoutHeight = 66f;
     private const float BadgeVisualWidth  = 30f;
     private const float BadgeVisualHeight = 44f;
     private const float BadgeNaturalStep  = 52.5f;
@@ -1288,7 +1287,13 @@ public partial class ScoundrelGame : Node
         float step = count <= 1 ? BadgeNaturalStep
                     : Mathf.Min(BadgeNaturalStep, (CardW - BadgeLayoutWidth) / (count - 1));
         float startX = (CardW - ((count - 1) * step + BadgeLayoutWidth)) / 2f;
-        float y = CardH - BadgeLayoutHeight / 3f;
+        // Badges live in WeaponPanelOverlay's dedicated badge row above the name
+        // strip now (ui_overhaul.png shows them below the weapon name, both fully
+        // inside the card), not hanging off the card's bottom edge -- the old
+        // "CardH - BadgeLayoutHeight / 3f" position placed the full BadgeVisualHeight
+        // below the card's bottom boundary entirely, overlapping the name strip.
+        float badgeRowTop = CardH - WeaponPanelOverlay.BadgeRowBottomGap - WeaponPanelOverlay.BadgeRowHeight;
+        float y = badgeRowTop + (WeaponPanelOverlay.BadgeRowHeight - BadgeVisualHeight) / 2f;
         for (int i = 0; i < count; i++)
             badges[i].Position = new Vector2(startX + i * step, y);
     }

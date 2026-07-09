@@ -54,6 +54,16 @@ public partial class WeaponPanelOverlay : Control
     private const float IconBottomGap    = 4f;
     private const float NameStripHeight  = 26f;
     private const float DividerGap       = 6f;
+    private const float NameToBadgeGap   = 4f;
+    // Slain-monster badges get their own dedicated row above the name strip now
+    // (ui_overhaul.png shows "K J 10" chips sitting below "ELVEN BOW", both fully
+    // inside the card) instead of hanging off the bottom edge past the card's own
+    // boundary -- the previous ScoundrelGame.RelayoutBadges Y position placed the
+    // full badge height below the card's bottom edge entirely, overlapping (and
+    // extending past) this name strip. BadgeRowHeight matches ScoundrelGame's
+    // BadgeVisualHeight (44) with a little breathing room.
+    public const float BadgeRowBottomGap = 8f;
+    public const float BadgeRowHeight    = 48f;
 
     private Label _numberLabel      = null!;
     private Label _constraintLabel  = null!;
@@ -150,9 +160,12 @@ public partial class WeaponPanelOverlay : Control
         _constraintLabel.AddThemeColorOverride("font_color", ScoundrelPalette.ConstraintRose);
         AddChild(_constraintLabel);
 
-        // Name strip + divider anchored to the full slot height; the icon then fills
-        // whatever space remains between the constraint hint and the name strip.
-        float dividerY = h - NameStripHeight - DividerGap;
+        // Name strip + divider anchored above the dedicated badge row at the
+        // bottom; the icon then fills whatever space remains between the
+        // constraint hint and the name strip.
+        float badgeRowTop = h - BadgeRowBottomGap - BadgeRowHeight;
+        float nameBottom  = badgeRowTop - NameToBadgeGap;
+        float dividerY = nameBottom - NameStripHeight - DividerGap;
         var divider = new ColorRect
         {
             Color        = ScoundrelPalette.DividerGoldBrown,
@@ -184,7 +197,7 @@ public partial class WeaponPanelOverlay : Control
             OffsetLeft          = Padding,
             OffsetTop           = dividerY + DividerGap,
             OffsetRight         = w - Padding,
-            OffsetBottom        = h,
+            OffsetBottom        = nameBottom,
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment   = VerticalAlignment.Center,
             AutowrapMode        = TextServer.AutowrapMode.Word,

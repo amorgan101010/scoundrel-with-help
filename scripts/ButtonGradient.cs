@@ -12,29 +12,22 @@ using Godot;
 /// first pass" gotcha ScoundrelLayoutController.UpdateButtonGroupWidths already
 /// works around for this exact button group.
 ///
-/// Each corner mask is a 2×radius patch (NOT radius×radius — verified via local
-/// screenshot that a radius-sized patch makes Godot's corner_radius describe a
-/// degenerate arc centered at the wrong point, producing an inverted "vesica" bite
-/// instead of a rounded cap) with a transparent fill and a border painted in the
-/// page background color (this button sits directly over UI/Background, a uniform
-/// ColorRect, so that's accurate), traced along the TRUE corner's own arc and wide
-/// enough (radius * 0.42, comfortably more than the ~0.293*radius max gap between a
-/// square corner and its rounded arc) to fully cover the square texture's corner
-/// nub. Same border-stroke-over-transparent-fill idea as BannerGradient's mask, but
-/// this button has no real border to blend into, so the border width does the
-/// masking work directly rather than just tracing an existing line.
+/// Each of the 4 corners gets a CornerNubMask (see that file's class doc) instead
+/// of a border-stroke mask -- confirmed via a real in-editor screenshot that a
+/// border-stroke mask leaves the actual corner nub completely uncovered (no
+/// geometry there at all, regardless of border width), so the square gradient
+/// texture still showed through underneath.
 ///
 /// Resized can fire repeatedly (layout settling, viewport resize) and each firing
 /// used to build a fresh StyleBoxFlat per corner mask + glow -- same "leaked unsafe
 /// reference" crash BannerGradient hit, see its class doc. Style resources are
-/// cached by their (small, finite) actual parameters; only the Panels themselves
+/// cached by their (small, finite) actual parameters; only the Controls themselves
 /// (which must reflect the button's current pixel size) are rebuilt per call.
 /// </summary>
 public static class ButtonGradient
 {
     private const string ChromeName = "GradientChrome";
 
-    private static readonly Dictionary<(int radius, bool isTop, bool isLeft), StyleBoxFlat> MaskStyleCache = new();
     private static readonly Dictionary<(int radius, Color glowColor), StyleBoxFlat> GlowStyleCache = new();
 
     public static void Apply(Button button, Color baseColor, Color glowColor, int radius)
@@ -57,7 +50,10 @@ public static class ButtonGradient
 
         foreach (var isTop in new[] { true, false })
             foreach (var isLeft in new[] { true, false })
-                chrome.AddChild(CornerMask(w, h, radius, isTop, isLeft));
+            {
+                var position = new Vector2(isLeft ? 0f : w - radius, isTop ? 0f : h - radius);
+                chrome.AddChild(CornerNubMask.Create(position, radius, isTop, isLeft, ScoundrelPalette.BackgroundNearBlack));
+            }
 
         var glow = new Panel { MouseFilter = Control.MouseFilterEnum.Ignore };
         glow.SetAnchorsPreset(Control.LayoutPreset.FullRect);
@@ -74,34 +70,5 @@ public static class ButtonGradient
         style.SetCornerRadiusAll(radius);
         GlowStyleCache[(radius, glowColor)] = style;
         return style;
-    }
-
-    private static Panel CornerMask(float w, float h, int radius, bool isTop, bool isLeft)
-    {
-        float size = radius * 2f;
-
-        if (!MaskStyleCache.TryGetValue((radius, isTop, isLeft), out var style))
-        {
-            int borderWidth = (int)(radius * 0.42f);
-            style = new StyleBoxFlat { BgColor = Colors.Transparent, BorderColor = ScoundrelPalette.BackgroundNearBlack };
-            style.BorderWidthTop    = isTop ? borderWidth : 0;
-            style.BorderWidthBottom = isTop ? 0 : borderWidth;
-            style.BorderWidthLeft   = isLeft ? borderWidth : 0;
-            style.BorderWidthRight  = isLeft ? 0 : borderWidth;
-            if (isTop && isLeft) style.CornerRadiusTopLeft = radius;
-            else if (isTop && !isLeft) style.CornerRadiusTopRight = radius;
-            else if (!isTop && isLeft) style.CornerRadiusBottomLeft = radius;
-            else style.CornerRadiusBottomRight = radius;
-            MaskStyleCache[(radius, isTop, isLeft)] = style;
-        }
-
-        var patch = new Panel
-        {
-            MouseFilter = Control.MouseFilterEnum.Ignore,
-            Position    = new Vector2(isLeft ? 0f : w - size, isTop ? 0f : h - size),
-            Size        = new Vector2(size, size),
-        };
-        patch.AddThemeStyleboxOverride("panel", style);
-        return patch;
     }
 }
