@@ -427,13 +427,15 @@ public partial class ScoundrelGame : Node
             foreach (var rank in Ranks)
             {
                 var s = suit == "clubs" ? Suit.Clubs : Suit.Spades;
-                deck.Add(new CardModel(s, RankToInt(rank), $"{rank}_{suit}"));
+                var name = $"{rank}_{suit}";
+                deck.Add(new CardModel(s, RankToInt(rank), name, LoadFlavorName(name)));
             }
         foreach (var suit in RedSuits)
             foreach (var rank in RedRanks)
             {
                 var s = suit == "hearts" ? Suit.Hearts : Suit.Diamonds;
-                deck.Add(new CardModel(s, int.Parse(rank), $"{rank}_{suit}"));
+                var name = $"{rank}_{suit}";
+                deck.Add(new CardModel(s, int.Parse(rank), name, LoadFlavorName(name)));
             }
 
         if (ExtendedRules)
@@ -453,6 +455,26 @@ public partial class ScoundrelGame : Node
         }
 
         return deck;
+    }
+
+    /// <summary>Reads card_data/{name}.json's "flavor_name" field directly (Blacksmith/
+    /// Merchant/Joker cards, added further up in BuildDeck without going through this
+    /// helper, have none). Needed here specifically because BuildDeck constructs
+    /// GameEngine's CardModel list BEFORE any Godot Card node exists for these cards --
+    /// CardData.FromGodotCard's flavor_name read (used elsewhere, e.g. re-deriving a
+    /// CardModel from an existing Card node) only works once a Card node's card_info
+    /// is populated, which happens later, in the "create matching Godot card nodes"
+    /// loop below. Reading the same JSON file gen_cards.py writes to keeps this in
+    /// sync with the generator's NAMES dict without duplicating it into a second C#
+    /// lookup table.</summary>
+    private static string? LoadFlavorName(string cardName)
+    {
+        using var file = Godot.FileAccess.Open($"res://card_data/{cardName}.json", Godot.FileAccess.ModeFlags.Read);
+        if (file == null) return null;
+
+        var parsed = Json.ParseString(file.GetAsText());
+        if (parsed.AsGodotDictionary() is not { } info || !info.ContainsKey("flavor_name")) return null;
+        return info["flavor_name"].AsString();
     }
 
     // ── Room sync ─────────────────────────────────────────────────────────
