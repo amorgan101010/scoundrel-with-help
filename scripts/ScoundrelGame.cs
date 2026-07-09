@@ -44,6 +44,13 @@ public partial class ScoundrelGame : Node
     private Label _spadesLabel = null!;
     private Label _heartsLabel = null!;
     private Label _diamondsLabel = null!;
+    // ── Weapon panel + gameplay-role tally (ui_overhaul.png chunk 3) ──────────
+    private WeaponPanelOverlay _weaponPanelOverlay = null!;
+    private Label _remainingHeaderLabel = null!;
+    private Label _monstersLabel = null!;
+    private Label _weaponsLabel = null!;
+    private Label _potionsLabel = null!;
+    private Label _npcsLabel = null!;
     private Button _runButton = null!;
     private Button _nextRoomButton = null!;
     private Button _retryButton = null!;
@@ -61,6 +68,16 @@ public partial class ScoundrelGame : Node
     private int _inPlaySpades;
     private int _inPlayHearts;
     private int _inPlayDiamonds;
+    // ── Gameplay-role tracking (ui_overhaul.png "REMAINING" tally — chunk 3,
+    // Part B). Parallel to the raw suit counts above rather than a replacement:
+    // Clubs+Spades collapse into Monsters, while Diamonds/Hearts each split into
+    // a real-item bucket (Weapons/Potions) and an NPC bucket (Blacksmith/
+    // Merchant), per CardModel's existing IsMonster/IsWeapon/IsPotion/
+    // IsBlacksmith/IsMerchant classification. UI labels only — not game logic.
+    private int _inPlayMonsters;
+    private int _inPlayWeapons;
+    private int _inPlayPotions;
+    private int _inPlayNpcs;
 
     // ── Cached factory reference ──────────────────────────────────────────
     private GodotObject _cardFactory = null!;
@@ -202,6 +219,41 @@ public partial class ScoundrelGame : Node
             cardSize => _cardSize = cardSize);
         _layoutController.ApplyNow();
 
+        // ── Weapon panel overlay (ui_overhaul.png "WEAPON" column, chunk 3 Part A) ──
+        // WeaponLabel is kept as an invisible data-carrier: gdUnit4 scene tests assert
+        // its exact text in several places (see e.g. ScoundrelCombatSceneTests), so its
+        // Text logic in UpdateUI() is untouched — only its visibility changes here.
+        // WeaponPanelOverlay is built once (at the current card size) and added as a
+        // sibling of WeaponSlot's own "Cards"/DropZone children, then only refreshed in
+        // place — see WeaponPanelOverlay.cs for why it can't reuse RoomCardOverlay's
+        // build-once-per-card model.
+        _weaponLabel.Visible = false;
+        _weaponPanelOverlay = WeaponPanelOverlay.Create(new Vector2(CardW, CardH));
+        weaponSlotControl.AddChild(_weaponPanelOverlay);
+
+        // ── Gameplay-role tally (ui_overhaul.png "REMAINING" replacement for the raw
+        // per-suit "IN PLAY" list, chunk 3 Part B) ─────────────────────────────────
+        // ClubsLabel/SpadesLabel/HeartsLabel/DiamondsLabel and InPlayHeader are kept
+        // fully intact and still computed every UpdateUI() call — gdUnit4 scene tests
+        // assert their exact text (e.g. ScoundrelJokerCombatSceneTests' HeartsLabel
+        // check) — just hidden, since these new labels show the same underlying deck
+        // state grouped by gameplay role instead of raw suit. Positioned at the exact
+        // same offsets as the labels they replace so InPlayGroup's existing
+        // responsive-layout math (ScoundrelLayoutController.UpdateWeaponGroupLayout,
+        // sized off the group's original height) needs no changes.
+        inPlayHeader.Visible = false;
+        _clubsLabel.Visible = false;
+        _spadesLabel.Visible = false;
+        _heartsLabel.Visible = false;
+        _diamondsLabel.Visible = false;
+
+        _remainingHeaderLabel = CreateTallyLabel(inPlayGroup, inPlayHeader, ScoundrelPalette.MutedGoldGray);
+        _remainingHeaderLabel.Text = "REMAINING";
+        _monstersLabel = CreateTallyLabel(inPlayGroup, _clubsLabel, ScoundrelPalette.MonsterRedValue);
+        _weaponsLabel  = CreateTallyLabel(inPlayGroup, _spadesLabel, ScoundrelPalette.WeaponBlueBright);
+        _potionsLabel  = CreateTallyLabel(inPlayGroup, _heartsLabel, ScoundrelPalette.PotionRoseBright);
+        _npcsLabel     = CreateTallyLabel(inPlayGroup, _diamondsLabel, ScoundrelPalette.BannerGoldFriendly);
+
         _healthDie = GetNode<HealthDie>("UI/HealthDie");
         _deckCountLabel = GetNode<Label>("UI/RightPanel/DeckGroup/DeckCountBadge/DeckCountLabel");
 
@@ -326,6 +378,13 @@ public partial class ScoundrelGame : Node
         _inPlaySpades   = deck.Count(c => c.Suit == Suit.Spades);
         _inPlayHearts   = deck.Count(c => c.Suit == Suit.Hearts);
         _inPlayDiamonds = deck.Count(c => c.Suit == Suit.Diamonds);
+
+        // Gameplay-role tally (chunk 3 Part B) — initialized alongside the raw suit
+        // counts above, from the same starting deck.
+        _inPlayMonsters = deck.Count(c => c.IsMonster);
+        _inPlayWeapons  = deck.Count(c => c.IsWeapon);
+        _inPlayPotions  = deck.Count(c => c.IsPotion);
+        _inPlayNpcs     = deck.Count(c => c.IsBlacksmith || c.IsMerchant);
 
         // Create matching Godot card nodes (all start in the deck pile).
         foreach (var cardModel in deck)
@@ -1184,6 +1243,12 @@ public partial class ScoundrelGame : Node
             badges[i].Position = new Vector2(startX + i * step, y);
     }
 
+    // Bordered chip look (ui_overhaul.png's small "K"/"J"/"10" slain-monster badges
+    // below the weapon panel) rather than the previous plain dark-filled rect —
+    // restyle only, per chunk 3: the badge's Size/group membership/child shape
+    // (Label as a direct child, found by scene tests via `grandchild is Label`) are
+    // all unchanged, so AddSlainBadge/RemoveSlainBadges/ClearSlainBadges/
+    // RelayoutBadges need no changes.
     private static Control CreateBadgeControl(int rank)
     {
         string text = rank switch { 1 => "A", 11 => "J", 12 => "Q", 13 => "K", _ => rank.ToString() };
@@ -1195,10 +1260,16 @@ public partial class ScoundrelGame : Node
         badge.ZIndex = 1;
         badge.AddToGroup("slain_badge");
 
-        var bg = new ColorRect();
-        bg.Color = new Color(0.08f, 0.08f, 0.08f, 0.88f);
+        var chipStyle = new StyleBoxFlat
+        {
+            BgColor = ScoundrelPalette.CardBackMaroon,
+            BorderColor = ScoundrelPalette.MonsterRedValue,
+        };
+        chipStyle.SetBorderWidthAll(1);
+        var bg = new Panel();
         bg.AnchorRight = 1f; bg.AnchorBottom = 1f;
         bg.MouseFilter = Control.MouseFilterEnum.Ignore;
+        bg.AddThemeStyleboxOverride("panel", chipStyle);
         badge.AddChild(bg);
 
         var label = new Label();
@@ -1207,6 +1278,8 @@ public partial class ScoundrelGame : Node
         label.VerticalAlignment = VerticalAlignment.Center;
         label.AnchorRight = 1f; label.AnchorBottom = 1f;
         label.MouseFilter = Control.MouseFilterEnum.Ignore;
+        label.AddThemeFontOverride("font", ScoundrelPalette.SerifRegular);
+        label.AddThemeColorOverride("font_color", ScoundrelPalette.TitleCream);
         badge.AddChild(label);
 
         return badge;
@@ -1257,6 +1330,17 @@ public partial class ScoundrelGame : Node
             case Suit.Hearts:   _inPlayHearts--;   break;
             case Suit.Diamonds: _inPlayDiamonds--; break;
         }
+
+        // Gameplay-role tally (chunk 3 Part B) — parallel to the raw suit counts
+        // above, decremented from the same removal event via CardModel's existing
+        // classification properties rather than raw Suit (Diamonds/Hearts each
+        // split into a real-item bucket and an NPC bucket — see CardModel.cs).
+        // Jokers match none of these four and are intentionally left uncounted,
+        // same as they're absent from the raw suit tally above.
+        if (card.IsMonster) _inPlayMonsters--;
+        else if (card.IsWeapon) _inPlayWeapons--;
+        else if (card.IsPotion) _inPlayPotions--;
+        else if (card.IsBlacksmith || card.IsMerchant) _inPlayNpcs--;
     }
 
     private void ShowBriefMessage(string text)
@@ -1359,6 +1443,13 @@ public partial class ScoundrelGame : Node
         {
             _weaponLabel.Text = "Weapon: none";
         }
+        // WeaponPanelOverlay is the visible replacement for WeaponLabel above (chunk 3
+        // Part A) — same underlying state (EquippedWeapon/WeaponFloor/attack bonuses),
+        // refreshed right alongside it.
+        _weaponPanelOverlay.UpdateWeapon(
+            _engine.EquippedWeapon,
+            _engine.WeaponFloor,
+            _engine.WeaponAttackBonus + _engine.SingleUseWeaponBonus);
 
         _potionJokerHpLabel.Text = _engine.HasPotionJoker
             ? $"Potion Joker HP: {_engine.PotionJokerHealth}/8"
@@ -1381,11 +1472,49 @@ public partial class ScoundrelGame : Node
         _heartsLabel.Text   = $"♥  {_inPlayHearts}";
         _diamondsLabel.Text = $"♦  {_inPlayDiamonds}";
 
+        // Gameplay-role tally (ui_overhaul.png "REMAINING" — chunk 3 Part B), the
+        // visible replacement for the four raw-suit labels above. Monsters has no
+        // single suit glyph of its own (it's Clubs+Spades combined), so it reuses
+        // both of theirs rather than an unverified combat glyph — every glyph here
+        // is one already proven to render correctly by the existing
+        // ClubsLabel/SpadesLabel/HeartsLabel/DiamondsLabel/RoomCardOverlay text.
+        _monstersLabel.Text = $"♣♠ Monsters  {_inPlayMonsters}";
+        _weaponsLabel.Text  = $"♦ Weapons  {_inPlayWeapons}";
+        _potionsLabel.Text  = $"♥ Potions  {_inPlayPotions}";
+        _npcsLabel.Text     = $"✦ NPCs  {_inPlayNpcs}";
+
         UpdateCardTooltips();
         SyncRoomCardOverlays();
     }
 
     // ── Utilities ─────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Creates a new Label positioned at the exact same offsets as `positionTemplate`
+    /// (one of the raw-suit labels/InPlayHeader being hidden — see _Ready()), styled
+    /// with the redesign's serif font and a given accent color, and appends it to
+    /// `parent`. Reusing the template's own live font-size override (rather than a
+    /// fixed constant) means this new label matches whatever size
+    /// ScoundrelLayoutController.UpdateWeaponGroupLayout last computed for it, without
+    /// this new label needing its own entry in that responsive-sizing logic.
+    /// </summary>
+    private static Label CreateTallyLabel(Control parent, Label positionTemplate, Color color)
+    {
+        var label = new Label
+        {
+            OffsetLeft   = positionTemplate.OffsetLeft,
+            OffsetTop    = positionTemplate.OffsetTop,
+            OffsetRight  = positionTemplate.OffsetRight,
+            OffsetBottom = positionTemplate.OffsetBottom,
+            MouseFilter  = Control.MouseFilterEnum.Ignore,
+        };
+        label.AddThemeFontOverride("font", ScoundrelPalette.SerifRegular);
+        label.AddThemeFontSizeOverride("font_size", positionTemplate.GetThemeFontSize("font_size"));
+        label.AddThemeColorOverride("font_color", color);
+        parent.AddChild(label);
+        return label;
+    }
+
     private static Label AddZoneLabel(Node parent, float anchorLeft, float anchorRight, float anchorTop = 0f, float anchorBottom = 1f)
     {
         var label = new Label
