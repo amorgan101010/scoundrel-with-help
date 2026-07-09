@@ -190,10 +190,6 @@ offset_bottom = 100.0
 theme_override_fonts/font = ExtResource("12_fontdecorative")
 theme_override_font_sizes/font_size = 46
 theme_override_colors/font_color = Color(0.886, 0.831, 0.702, 1)
-theme_override_colors/font_shadow_color = Color(0.651, 0.502, 0.235, 0.18)
-theme_override_constants/shadow_offset_x = 0
-theme_override_constants/shadow_offset_y = 0
-theme_override_constants/shadow_outline_size = 16
 text = "Scoundrel"
 
 [node name="GameSubtitleLabel" type="Label" parent="UI" unique_id=920000002]

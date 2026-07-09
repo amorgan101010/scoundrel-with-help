@@ -179,6 +179,11 @@ public partial class ScoundrelGame : Node
         // gradient, NEXT ROOM does). See ButtonGradient's class doc for why this is
         // built at runtime rather than as .tscn sub_resources.
         ButtonGradient.Apply(_nextRoomButton, ScoundrelPalette.ButtonSolidGold, ScoundrelPalette.BrightGold with { A = 0.45f }, radius: 8);
+        // Wide, uniformly-dim glow behind the title -- Label's own per-glyph
+        // font_shadow_color (tried first) visibly double-brightens wherever two
+        // letters' dilated shadows overlap; see TextGlow's class doc for the fix.
+        var gameTitleLabel = GetNode<Label>("UI/GameTitleLabel");
+        TextGlow.Apply(gameTitleLabel, ScoundrelPalette.DisplayDecorative, 46, ScoundrelPalette.AccentGold, alpha: 0.18f, outlineSize: 20);
         _retryButton    = GetNode<Button>("UI/TopButtonGroup/RetryButton");
         _helpButton     = GetNode<Button>("UI/TopButtonGroup/HelpButton");
         _helpDialog     = GetNode<AcceptDialog>("UI/HelpDialog");
