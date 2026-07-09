@@ -80,6 +80,8 @@ corner_radius_top_left = 35
 corner_radius_top_right = 35
 corner_radius_bottom_right = 35
 corner_radius_bottom_left = 35
+shadow_color = Color(0.886, 0.749, 0.486, 0.6)
+shadow_size = 14
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gold_n"]
 bg_color = Color(0.098, 0.078, 0.063, 0.6)
@@ -187,6 +189,10 @@ offset_bottom = 100.0
 theme_override_fonts/font = ExtResource("10_fontdisplay")
 theme_override_font_sizes/font_size = 46
 theme_override_colors/font_color = Color(0.886, 0.831, 0.702, 1)
+theme_override_colors/font_shadow_color = Color(0.651, 0.502, 0.235, 0.5)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 0
+theme_override_constants/shadow_outline_size = 8
 text = "SCOUNDREL"
 
 [node name="GameSubtitleLabel" type="Label" parent="UI" unique_id=920000002]

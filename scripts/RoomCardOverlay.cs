@@ -82,15 +82,18 @@ public partial class RoomCardOverlay : Control
         background.AddThemeStyleboxOverride("panel", backgroundStyle);
         AddChild(background);
 
-        // Banner header bar — rounded on top only (bottom edge is flush with the
-        // icon area below it), matching the background's rounded top corners so the
-        // banner's own square corners don't poke past them.
-        var bannerStyle = new StyleBoxFlat { BgColor = bannerBg };
-        bannerStyle.CornerRadiusTopLeft = CornerRadius;
-        bannerStyle.CornerRadiusTopRight = CornerRadius;
+        // Banner header bar — a top-to-bottom gradient (per direct feedback: "card
+        // banners ... have gradients instead of solid colors") via StyleBoxTexture +
+        // GradientTexture2D, the idiomatic native Godot combo for a gradient fill
+        // (StyleBoxFlat's bg_color is flat-only). Confirmed via local screenshot:
+        // StyleBoxTexture has no corner-radius equivalent, so its own corners come
+        // out square, regressing the "rounded card corners" fix. Patched with two
+        // small corner masks below rather than reverting to a flat fill.
         var banner = new Panel { OffsetRight = w, OffsetBottom = BannerHeight, MouseFilter = MouseFilterEnum.Ignore };
-        banner.AddThemeStyleboxOverride("panel", bannerStyle);
+        banner.AddThemeStyleboxOverride("panel", BannerGradient.Style(bannerBg));
         AddChild(banner);
+        AddChild(BannerGradient.CornerMask(w, CornerRadius, isLeft: true));
+        AddChild(BannerGradient.CornerMask(w, CornerRadius, isLeft: false));
 
         var bannerLabel = new Label
         {

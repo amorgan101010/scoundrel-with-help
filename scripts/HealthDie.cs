@@ -34,6 +34,12 @@ public partial class HealthDie : Control
         {
             BgColor     = ScoundrelPalette.BackgroundNearBlack,
             BorderColor = ScoundrelPalette.AccentGold,
+            // Subtle gold halo per direct feedback ("the health circle ... have a
+            // subtle glow around them and I like that") -- StyleBoxFlat's native
+            // shadow (offset zero, so it radiates evenly instead of casting to one
+            // side) rather than a second image/shader layer.
+            ShadowColor = ScoundrelPalette.AccentGold with { A = 0.45f },
+            ShadowSize  = 10,
         };
         ringStyle.SetBorderWidthAll(RingBorderWidth);
         ringStyle.SetCornerRadiusAll((int)(RingSide / 2f)); // full circle when width == height

@@ -138,13 +138,15 @@ public partial class CompanionPanelOverlay : Control
         background.AddThemeStyleboxOverride("panel", backgroundStyle);
         AddChild(background);
 
-        // Banner header bar — rounded on top only, matching RoomCardOverlay's treatment.
-        var bannerStyle = new StyleBoxFlat { BgColor = bannerColor };
-        bannerStyle.CornerRadiusTopLeft = 10;
-        bannerStyle.CornerRadiusTopRight = 10;
+        // Banner header bar — gradient fill (per direct feedback: "card banners ...
+        // have gradients instead of solid colors"), rounded on top only, matching
+        // RoomCardOverlay's treatment — see BannerGradient's class doc for how the
+        // gradient + corner-rounding-restore technique works.
         var banner = new Panel { OffsetRight = w, OffsetBottom = BannerHeight, MouseFilter = MouseFilterEnum.Ignore };
-        banner.AddThemeStyleboxOverride("panel", bannerStyle);
+        banner.AddThemeStyleboxOverride("panel", BannerGradient.Style(bannerColor));
         AddChild(banner);
+        AddChild(BannerGradient.CornerMask(w, 10, isLeft: true));
+        AddChild(BannerGradient.CornerMask(w, 10, isLeft: false));
 
         var bannerLabel = new Label
         {
