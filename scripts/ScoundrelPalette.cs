@@ -82,6 +82,19 @@ public static class ScoundrelPalette
     // distinctly lighter/warmer than BackgroundNearBlack/CardBackMaroon above.
     public static readonly Color CompanionBlackBanner = new Color(0.173f, 0.157f, 0.129f); // #2C2821
 
+    // ── Bottom action button colors (chunk 5 — RunButton/NextRoomButton) ────
+    // Pixel-sampled (PIL, median over ~3000 border+text pixels) from the mockup's
+    // "RUN — SKIP ROOM" pill button. Closest existing color is CompanionRedBanner,
+    // but at a normalized RGB distance of ~0.115 (~15/255 combined) it reads as a
+    // visibly different red, so this gets its own constant rather than drifting
+    // the button color toward an unrelated companion-identity red.
+    public static readonly Color ButtonOutlineRose = new Color(0.616f, 0.231f, 0.235f); // #9D3B3C
+    // Pixel-sampled fill from the mockup's solid-gold "NEXT ROOM →" pill button.
+    // Closest existing gold (BannerGoldFriendly) differs mainly in the blue
+    // channel (0.353 vs 0.176 — a visibly warmer/less-saturated gold here), so
+    // this is its own sampled value rather than reusing the banner gold.
+    public static readonly Color ButtonSolidGold  = new Color(0.769f, 0.624f, 0.353f); // #C49F5A
+
     // ── Fonts ───────────────────────────────────────────────────────────────
     public const string DisplayBoldFontPath  = "res://assets/fonts/NotoSerifDisplay-Bold.ttf";
     public const string SerifRegularFontPath = "res://assets/fonts/NotoSerif-Regular.ttf";

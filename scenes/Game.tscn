@@ -12,47 +12,74 @@
 [ext_resource type="FontFile" path="res://assets/fonts/NotoSerifDisplay-Bold.ttf" id="10_fontdisplay"]
 [ext_resource type="FontFile" path="res://assets/fonts/NotoSerif-Regular.ttf" id="11_fontserif"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_red_n"]
-bg_color = Color(0.75, 0.18, 0.18, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_run_n"]
+bg_color = Color(0.098, 0.078, 0.063, 0.6)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.616, 0.231, 0.235, 1)
+corner_radius_top_left = 35
+corner_radius_top_right = 35
+corner_radius_bottom_right = 35
+corner_radius_bottom_left = 35
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_red_p"]
-bg_color = Color(0.6, 0.1, 0.1, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_run_p"]
+bg_color = Color(0.616, 0.231, 0.235, 0.25)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.761, 0.231, 0.29, 1)
+corner_radius_top_left = 35
+corner_radius_top_right = 35
+corner_radius_bottom_right = 35
+corner_radius_bottom_left = 35
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_red_h"]
-bg_color = Color(0.85, 0.28, 0.28, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_run_h"]
+bg_color = Color(0.616, 0.231, 0.235, 0.15)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.761, 0.231, 0.29, 1)
+corner_radius_top_left = 35
+corner_radius_top_right = 35
+corner_radius_bottom_right = 35
+corner_radius_bottom_left = 35
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_green_n"]
-bg_color = Color(0.18, 0.58, 0.18, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_run_d"]
+bg_color = Color(0.098, 0.078, 0.063, 0.6)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.616, 0.231, 0.235, 0.35)
+corner_radius_top_left = 35
+corner_radius_top_right = 35
+corner_radius_bottom_right = 35
+corner_radius_bottom_left = 35
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_green_p"]
-bg_color = Color(0.1, 0.45, 0.1, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_next_n"]
+bg_color = Color(0.769, 0.624, 0.353, 1)
+corner_radius_top_left = 35
+corner_radius_top_right = 35
+corner_radius_bottom_right = 35
+corner_radius_bottom_left = 35
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_green_h"]
-bg_color = Color(0.28, 0.68, 0.28, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_next_p"]
+bg_color = Color(0.651, 0.502, 0.235, 1)
+corner_radius_top_left = 35
+corner_radius_top_right = 35
+corner_radius_bottom_right = 35
+corner_radius_bottom_left = 35
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_next_h"]
+bg_color = Color(0.886, 0.749, 0.486, 1)
+corner_radius_top_left = 35
+corner_radius_top_right = 35
+corner_radius_bottom_right = 35
+corner_radius_bottom_left = 35
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gold_n"]
 bg_color = Color(0.098, 0.078, 0.063, 0.6)
@@ -501,24 +528,30 @@ grow_horizontal = 2
 custom_minimum_size = Vector2(0, 70)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 24
-theme_override_styles/normal = SubResource("StyleBoxFlat_red_n")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_red_p")
-theme_override_styles/hover = SubResource("StyleBoxFlat_red_h")
-text = "RUN (skip room)"
+theme_override_colors/font_color = Color(0.616, 0.231, 0.235, 1)
+theme_override_colors/font_hover_color = Color(0.761, 0.231, 0.29, 1)
+theme_override_colors/font_pressed_color = Color(0.761, 0.231, 0.29, 1)
+theme_override_colors/font_disabled_color = Color(0.616, 0.231, 0.235, 0.45)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxFlat_run_n")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_run_p")
+theme_override_styles/hover = SubResource("StyleBoxFlat_run_h")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_run_d")
+text = "RUN — SKIP ROOM"
 
 [node name="NextRoomButton" type="Button" parent="UI/BottomButtonGroup" unique_id=1785200382]
 visible = false
 custom_minimum_size = Vector2(0, 70)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 24
-theme_override_styles/normal = SubResource("StyleBoxFlat_green_n")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_green_p")
-theme_override_styles/hover = SubResource("StyleBoxFlat_green_h")
-text = "Next Room →"
+theme_override_colors/font_color = Color(0.098, 0.078, 0.063, 1)
+theme_override_colors/font_hover_color = Color(0.098, 0.078, 0.063, 1)
+theme_override_colors/font_pressed_color = Color(0.098, 0.078, 0.063, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxFlat_next_n")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_next_p")
+theme_override_styles/hover = SubResource("StyleBoxFlat_next_h")
+text = "NEXT ROOM →"
 
 [node name="TopButtonGroup" type="HBoxContainer" parent="UI" unique_id=999000002]
 anchors_preset = 5
