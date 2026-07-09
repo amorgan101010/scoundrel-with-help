@@ -17,5 +17,6 @@
     <Compile Include="../scripts/ScoundrelRules.cs" />
     <Compile Include="../scripts/CardModel.cs" />
     <Compile Include="../scripts/GameEngine.cs" />
+    <Compile Include="../scripts/RoomCardContent.cs" />
   </ItemGroup>
 </Project>

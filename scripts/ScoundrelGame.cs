@@ -1282,6 +1282,62 @@ public partial class ScoundrelGame : Node
         }
     }
 
+    // ── Room card overlays (banner/icon/description/footer — see RoomCardOverlay.cs) ──
+
+    /// <summary>
+    /// Adds/refreshes the RoomCardOverlay for every card currently in the room, and
+    /// strips the overlay from any card that has left the room since the last sync
+    /// (moved to the weapon slot, a joker pocket, the discard pile, or back to the
+    /// deck via Run). Sweeps every known card each call rather than intercepting each
+    /// individual removal call site (MoveToDiscard, RecycleCardToDeck, OnRunPressed's
+    /// inline deck-return loop, EquipWeapon's old-weapon discard, ...) — mirrors
+    /// AddSlainBadge/ClearSlainBadges' approach of treating the Godot node itself as
+    /// the source of truth for what's currently attached, just generalized to "is
+    /// this card in _engine.Room right now" instead of "is this the equipped weapon".
+    /// Called from UpdateUI(), which already runs after every engine action.
+    /// </summary>
+    private void SyncRoomCardOverlays()
+    {
+        var room = _engine.Room.ToDictionary(c => c.Name);
+        foreach (var (name, godotCard) in _godotCards)
+        {
+            var cardNode = (Node)godotCard;
+            if (room.TryGetValue(name, out var cardModel))
+            {
+                var overlay = RoomCardOverlayOf(cardNode);
+                if (overlay == null)
+                {
+                    overlay = RoomCardOverlay.Create(cardModel, new Vector2(CardW, CardH));
+                    cardNode.AddChild(overlay);
+                }
+                overlay.UpdateDescription(RoomCardContent.Description(ScoundrelRules.TooltipFor(
+                    cardModel,
+                    _engine.EquippedWeapon,
+                    _engine.WeaponFloor,
+                    _engine.PotionUsedThisRoom,
+                    _engine.Health,
+                    _engine.WeaponAttackBonus,
+                    _engine.SingleUseWeaponBonus)));
+            }
+            else
+            {
+                var stale = RoomCardOverlayOf(cardNode);
+                if (stale != null)
+                {
+                    // QueueFree() defers actual removal to end of frame; hide it
+                    // immediately so a card that just left the room doesn't render
+                    // its old full-card overlay for the rest of this frame (mirrors
+                    // ClearSlainBadges' Visible = false before QueueFree()).
+                    stale.Visible = false;
+                    stale.QueueFree();
+                }
+            }
+        }
+    }
+
+    private static RoomCardOverlay? RoomCardOverlayOf(Node cardNode)
+        => cardNode.GetChildren().OfType<RoomCardOverlay>().FirstOrDefault();
+
     private void UpdateUI()
     {
         _healthLabel.Text = $"HP: {_engine.Health} / {ScoundrelRules.MaxHealth}";
@@ -1326,6 +1382,7 @@ public partial class ScoundrelGame : Node
         _diamondsLabel.Text = $"♦  {_inPlayDiamonds}";
 
         UpdateCardTooltips();
+        SyncRoomCardOverlays();
     }
 
     // ── Utilities ─────────────────────────────────────────────────────────
