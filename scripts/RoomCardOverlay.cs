@@ -38,11 +38,21 @@ public partial class RoomCardOverlay : Control
     private const float IconHeight      = 170f;
     // Friendly cards (Blacksmith/Merchant) keep the small hand-drawn RoomCardIcon,
     // not real art, and their extended-rules description text is noticeably longer
-    // than a monster/weapon/potion's flavor blurb -- at the full IconHeight, that
-    // text overflowed past the divider into the footer row (direct feedback,
-    // visible as "BLESSING" text overlapping the description). Shrinking just this
-    // icon reclaims the room the longer text actually needs.
-    private const float FriendlyIconHeight = 90f;
+    // than a monster/weapon/potion's flavor blurb (2 full sentences, sometimes 3 --
+    // e.g. Blacksmith's "no weapon equipped" text) -- at the full IconHeight, that
+    // text overflowed past the divider into the footer row even after a first
+    // attempt at shrinking it (direct feedback + screenshot showing the overflow
+    // still happening). Shrunk further, paired with a smaller Friendly-only
+    // description font size (see DescriptionFontSize below) -- this pairing was
+    // sized against Blacksmith's longest real string (Ace rank + unequipped:
+    // ~7 wrapped lines at 13px in this box), not guessed.
+    private const float FriendlyIconHeight = 60f;
+    // Monster/Weapon/Potion description text is short (1-2 lines: "9 damage",
+    // "value 6") with lots of spare room even at the old IconHeight, so it can run
+    // bigger than Friendly's long-text cards need to stay to fit (direct feedback:
+    // "the text could stand to be bigger yet, at least on base-game cards").
+    private const int BaseDescriptionFontSize     = 17;
+    private const int FriendlyDescriptionFontSize = 13;
     private const float FooterHeight    = 28f;
     private const float FooterBottomGap = 12f;
     private const float DividerGap      = 10f;
@@ -172,7 +182,7 @@ public partial class RoomCardOverlay : Control
             MouseFilter       = MouseFilterEnum.Ignore,
         };
         _descriptionLabel.AddThemeFontOverride("font", ScoundrelPalette.SerifRegular);
-        _descriptionLabel.AddThemeFontSizeOverride("font_size", 14);
+        _descriptionLabel.AddThemeFontSizeOverride("font_size", family == RoomCardBannerFamily.Friendly ? FriendlyDescriptionFontSize : BaseDescriptionFontSize);
         _descriptionLabel.AddThemeColorOverride("font_color", ScoundrelPalette.DescriptionGray);
         AddChild(_descriptionLabel);
 
