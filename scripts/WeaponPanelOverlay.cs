@@ -68,7 +68,10 @@ public partial class WeaponPanelOverlay : Control
             Position    = Vector2.Zero,
             Size        = slotSize,
             MouseFilter = MouseFilterEnum.Ignore,
-            ZIndex      = 1,
+            // See RoomCardOverlay.cs's identical comment: the addon bumps a card's
+            // z_index by 1000 on hover/hold/move and by 3000+i at rest in Pile-derived
+            // containers (WeaponSlot included) -- 4090 clears both with margin.
+            ZIndex      = 4090,
         };
         overlay.Build(slotSize);
         return overlay;

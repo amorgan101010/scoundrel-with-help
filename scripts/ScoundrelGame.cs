@@ -1278,10 +1278,11 @@ public partial class ScoundrelGame : Node
         badge.Name = "slain_badge";
         badge.Size = new Vector2(BadgeVisualWidth, BadgeVisualHeight);
         badge.MouseFilter = Control.MouseFilterEnum.Ignore;
-        // Must beat WeaponPanelOverlay's ZIndex (1) now that that overlay covers the
-        // weapon slot's full height instead of leaving a gap for badges to show
-        // through (chunk 6 -- the old art visible in that gap was itself the bug).
-        badge.ZIndex = 2;
+        // Must beat WeaponPanelOverlay's ZIndex (4090 -- see that file's comment on
+        // why it needs to be that high) now that the overlay covers the weapon slot's
+        // full height instead of leaving a gap for badges to show through (chunk 6 --
+        // the old art visible in that gap was itself the bug).
+        badge.ZIndex = 4091;
         badge.AddToGroup("slain_badge");
 
         var chipStyle = new StyleBoxFlat

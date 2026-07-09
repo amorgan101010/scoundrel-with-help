@@ -50,7 +50,13 @@ public partial class RoomCardOverlay : Control
             Position    = Vector2.Zero,
             Size        = cardSize,
             MouseFilter = MouseFilterEnum.Ignore,
-            ZIndex      = 1,
+            // The addon bumps a card's z_index by CardFrameworkSettings.VISUAL_DRAG_Z_OFFSET
+            // (1000) while HOVERING/HOLDING/MOVING (draggable_object.gd) and Pile-derived
+            // containers separately force VISUAL_PILE_Z_INDEX+i (3000+i, pile.gd) as the
+            // resting z_index -- a low value here (this was ZIndex=1) gets outrun by either,
+            // revealing the addon's raw card art on hover/drag. 4090 clears every combination
+            // of both with margin, while staying under Godot's z_index range limit.
+            ZIndex      = 4090,
         };
         overlay.AddToGroup(GroupName);
         overlay.Build(card, cardSize);
