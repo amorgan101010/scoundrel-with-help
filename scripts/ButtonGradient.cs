@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Godot;
 
 /// <summary>
@@ -22,10 +23,19 @@ using Godot;
 /// nub. Same border-stroke-over-transparent-fill idea as BannerGradient's mask, but
 /// this button has no real border to blend into, so the border width does the
 /// masking work directly rather than just tracing an existing line.
+///
+/// Resized can fire repeatedly (layout settling, viewport resize) and each firing
+/// used to build a fresh StyleBoxFlat per corner mask + glow -- same "leaked unsafe
+/// reference" crash BannerGradient hit, see its class doc. Style resources are
+/// cached by their (small, finite) actual parameters; only the Panels themselves
+/// (which must reflect the button's current pixel size) are rebuilt per call.
 /// </summary>
 public static class ButtonGradient
 {
     private const string ChromeName = "GradientChrome";
+
+    private static readonly Dictionary<(int radius, bool isTop, bool isLeft), StyleBoxFlat> MaskStyleCache = new();
+    private static readonly Dictionary<(int radius, Color glowColor), StyleBoxFlat> GlowStyleCache = new();
 
     public static void Apply(Button button, Color baseColor, Color glowColor, int radius)
     {
@@ -51,27 +61,39 @@ public static class ButtonGradient
 
         var glow = new Panel { MouseFilter = Control.MouseFilterEnum.Ignore };
         glow.SetAnchorsPreset(Control.LayoutPreset.FullRect);
-        var glowStyle = new StyleBoxFlat { BgColor = Colors.Transparent, ShadowColor = glowColor };
-        glowStyle.ShadowSize = 12;
-        glowStyle.SetCornerRadiusAll(radius);
-        glow.AddThemeStyleboxOverride("panel", glowStyle);
+        glow.AddThemeStyleboxOverride("panel", GlowStyle(radius, glowColor));
         chrome.AddChild(glow);
+    }
+
+    private static StyleBoxFlat GlowStyle(int radius, Color glowColor)
+    {
+        if (GlowStyleCache.TryGetValue((radius, glowColor), out var cached)) return cached;
+
+        var style = new StyleBoxFlat { BgColor = Colors.Transparent, ShadowColor = glowColor };
+        style.ShadowSize = 12;
+        style.SetCornerRadiusAll(radius);
+        GlowStyleCache[(radius, glowColor)] = style;
+        return style;
     }
 
     private static Panel CornerMask(float w, float h, int radius, bool isTop, bool isLeft)
     {
         float size = radius * 2f;
-        int borderWidth = (int)(radius * 0.42f);
 
-        var style = new StyleBoxFlat { BgColor = Colors.Transparent, BorderColor = ScoundrelPalette.BackgroundNearBlack };
-        style.BorderWidthTop    = isTop ? borderWidth : 0;
-        style.BorderWidthBottom = isTop ? 0 : borderWidth;
-        style.BorderWidthLeft   = isLeft ? borderWidth : 0;
-        style.BorderWidthRight  = isLeft ? 0 : borderWidth;
-        if (isTop && isLeft) style.CornerRadiusTopLeft = radius;
-        else if (isTop && !isLeft) style.CornerRadiusTopRight = radius;
-        else if (!isTop && isLeft) style.CornerRadiusBottomLeft = radius;
-        else style.CornerRadiusBottomRight = radius;
+        if (!MaskStyleCache.TryGetValue((radius, isTop, isLeft), out var style))
+        {
+            int borderWidth = (int)(radius * 0.42f);
+            style = new StyleBoxFlat { BgColor = Colors.Transparent, BorderColor = ScoundrelPalette.BackgroundNearBlack };
+            style.BorderWidthTop    = isTop ? borderWidth : 0;
+            style.BorderWidthBottom = isTop ? 0 : borderWidth;
+            style.BorderWidthLeft   = isLeft ? borderWidth : 0;
+            style.BorderWidthRight  = isLeft ? 0 : borderWidth;
+            if (isTop && isLeft) style.CornerRadiusTopLeft = radius;
+            else if (isTop && !isLeft) style.CornerRadiusTopRight = radius;
+            else if (!isTop && isLeft) style.CornerRadiusBottomLeft = radius;
+            else style.CornerRadiusBottomRight = radius;
+            MaskStyleCache[(radius, isTop, isLeft)] = style;
+        }
 
         var patch = new Panel
         {

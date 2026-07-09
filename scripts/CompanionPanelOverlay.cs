@@ -160,7 +160,7 @@ public partial class CompanionPanelOverlay : Control
             ClipText            = true,
             MouseFilter         = MouseFilterEnum.Ignore,
         };
-        bannerLabel.AddThemeFontOverride("font", ScoundrelPalette.DisplayBold);
+        bannerLabel.AddThemeFontOverride("font", ScoundrelPalette.DisplayDecorative);
         bannerLabel.AddThemeFontSizeOverride("font_size", 17);
         bannerLabel.AddThemeColorOverride("font_color", Colors.White);
         AddChild(bannerLabel);
