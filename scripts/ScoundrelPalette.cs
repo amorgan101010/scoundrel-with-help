@@ -39,19 +39,25 @@ public static class ScoundrelPalette
     // from that suit's existing card_assets/*.svg border-stroke color, since chunk 6
     // also started showing the real per-suit-colored card illustration in the icon
     // slot — a fixed "all monsters are red" banner looked wrong sitting above
-    // differently-colored (green clubs / purple spades) real art. Friendly cards
-    // (Blacksmith/Merchant/PotionJoker/WeaponJoker) keep one shared gold banner
-    // regardless of suit, matching the mockup's own Blacksmith example directly.
-    // Gold/tan banner fill for friendly cards (Blacksmith/Merchant/PotionJoker/WeaponJoker).
-    public static readonly Color BannerGoldFriendly  = new Color(0.788f, 0.616f, 0.176f); // #C99D2D
+    // differently-colored (green clubs / purple spades) real art. Blacksmith/Merchant
+    // (friendly NPCs, not weapons/potions despite sharing their suits) keep one shared
+    // banner regardless of suit, matching the mockup's own Blacksmith example
+    // directly — Jokers do NOT share this anymore (see RoomCardOverlay.BannerColors),
+    // they keep their own companion identity color even as a room card.
+    // Friendly-NPC banner fill (Blacksmith/Merchant). Originally a yellow-gold
+    // (#C99D2D) too close in hue to BannerDiamondsGold's olive-gold below for the two
+    // to read as different colors at a glance — shifted toward orange (hue ~24° vs
+    // diamonds' ~40°) to actually separate them, per direct feedback.
+    public static readonly Color BannerGoldFriendly  = new Color(0.788f, 0.416f, 0.176f); // #C96A2D
     // Clubs banner (monster) — sampled from 10_clubs.svg's border stroke.
     public static readonly Color BannerClubsGreen    = new Color(0.157f, 0.412f, 0.243f); // #286B3E
     // Spades banner (monster) — sampled from 7_spades.svg's border stroke.
     public static readonly Color BannerSpadesPurple  = new Color(0.227f, 0.125f, 0.463f); // #3A2076
     // Diamonds banner (weapon) — sampled from 7_diamonds.svg's border stroke.
     public static readonly Color BannerDiamondsGold  = new Color(0.486f, 0.365f, 0.078f); // #7C5D14
-    // Hearts banner (potion) — sampled from 7_hearts.svg's border stroke.
-    public static readonly Color BannerHeartsRed     = new Color(0.541f, 0.102f, 0.102f); // #8A1A1A
+    // Hearts/potion banner now uses PotionRoseBright (below), not a suit-sampled red,
+    // to match the "Potions" REMAINING-tally text color — see RoomCardOverlay.
+    // BannerColors.
     // Brighter red used for the monster footer's large damage numeral.
     public static readonly Color MonsterRedValue     = new Color(0.761f, 0.231f, 0.290f); // #C23B4A
     // Neutral warm gray used for room-card overlay body/description text.

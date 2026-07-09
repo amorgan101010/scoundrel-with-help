@@ -121,7 +121,7 @@ public partial class RoomCardOverlay : Control
             ? new RoomCardIcon
             {
                 Kind         = card.Kind,
-                LineColor    = ScoundrelPalette.BannerGoldFriendly,
+                LineColor    = FriendlyIconColor(card.Kind),
                 OffsetTop    = BannerHeight,
                 OffsetRight  = w,
                 OffsetBottom = BannerHeight + IconHeight,
@@ -212,15 +212,33 @@ public partial class RoomCardOverlay : Control
         AddChild(footerRight);
     }
 
-    // Friendly cards (Blacksmith/Merchant/PotionJoker/WeaponJoker) share one gold
-    // banner regardless of suit, matching the mockup's Blacksmith example. Monster/
-    // Weapon/Potion cards use their card's actual Suit instead of a fixed per-KIND
-    // color (chunk 6): the real card art now shown in the icon slot is itself
-    // per-suit colored (green clubs, purple spades, gold diamonds, red hearts), so
-    // the banner matches that rather than clashing with a fixed "all monsters red"
-    // treatment.
+    // Jokers keep their own companion identity color (red/near-black, same as
+    // CompanionPanelOverlay uses once they're taken) even as an anonymous room card,
+    // rather than the shared Blacksmith/Merchant "friendly NPC" gold-orange -- a
+    // Joker looking different in the room than once equipped read as wrong (the user
+    // flagged this directly). Blacksmith/Merchant still share one NPC color, now
+    // tuned further from Weapon's gold so the two don't read as the same hue.
+    // Potion uses the same pink as the "Potions" REMAINING-tally text
+    // (ScoundrelPalette.PotionRoseBright) instead of a red that matched nothing else
+    // on screen -- paired with dark (not white) banner text, mirroring how the NPC
+    // gold-orange banner already pairs a light fill with dark text.
+    // RoomCardIcon's hand-drawn line art needs a BRIGHT color to read against the
+    // near-black card background — the actual banner fills (CompanionRedBanner/
+    // CompanionBlackBanner, BannerGoldFriendly) are tuned to host white/dark banner
+    // text and are mostly too dark or too similar to the background for line art.
+    // Same accents CompanionPanelOverlay already uses for these exact two Joker
+    // kinds, reused here rather than inventing near-duplicate colors.
+    private static Color FriendlyIconColor(CardKind kind) => kind switch
+    {
+        CardKind.PotionJoker => ScoundrelPalette.MonsterRedValue,
+        CardKind.WeaponJoker => ScoundrelPalette.BrightGold,
+        _                    => ScoundrelPalette.BannerGoldFriendly, // Blacksmith/Merchant
+    };
+
     private static (Color bg, Color fg) BannerColors(CardModel card, RoomCardBannerFamily family)
     {
+        if (card.Kind == CardKind.PotionJoker) return (ScoundrelPalette.CompanionRedBanner, Colors.White);
+        if (card.Kind == CardKind.WeaponJoker) return (ScoundrelPalette.CompanionBlackBanner, Colors.White);
         if (family == RoomCardBannerFamily.Friendly)
             return (ScoundrelPalette.BannerGoldFriendly, ScoundrelPalette.BackgroundNearBlack);
 
@@ -229,7 +247,7 @@ public partial class RoomCardOverlay : Control
             Suit.Clubs    => (ScoundrelPalette.BannerClubsGreen, Colors.White),
             Suit.Spades   => (ScoundrelPalette.BannerSpadesPurple, Colors.White),
             Suit.Diamonds => (ScoundrelPalette.BannerDiamondsGold, Colors.White),
-            Suit.Hearts   => (ScoundrelPalette.BannerHeartsRed, Colors.White),
+            Suit.Hearts   => (ScoundrelPalette.PotionRoseBright, ScoundrelPalette.BackgroundNearBlack),
             _ => throw new System.InvalidOperationException($"Suit {card.Suit} has no room-card banner color."),
         };
     }
