@@ -183,7 +183,7 @@ public partial class ScoundrelGame : Node
         // font_shadow_color (tried first) visibly double-brightens wherever two
         // letters' dilated shadows overlap; see TextGlow's class doc for the fix.
         var gameTitleLabel = GetNode<Label>("UI/GameTitleLabel");
-        TextGlow.Apply(gameTitleLabel, ScoundrelPalette.DisplayDecorative, 46, ScoundrelPalette.AccentGold, alpha: 0.18f, outlineSize: 20);
+        TextGlow.Apply(gameTitleLabel, ScoundrelPalette.DisplayDecorative, 46, ScoundrelPalette.AccentGold, alpha: 0.12f, outlineSize: 34, margin: 40f);
         _retryButton    = GetNode<Button>("UI/TopButtonGroup/RetryButton");
         _helpButton     = GetNode<Button>("UI/TopButtonGroup/HelpButton");
         _helpDialog     = GetNode<AcceptDialog>("UI/HelpDialog");

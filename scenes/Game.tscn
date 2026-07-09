@@ -183,7 +183,7 @@ offset_bottom = 163.0
 script = ExtResource("7_hd")
 
 [node name="GameTitleLabel" type="Label" parent="UI" unique_id=920000001]
-offset_left = 175.0
+offset_left = 215.0
 offset_top = 38.0
 offset_right = 700.0
 offset_bottom = 100.0
@@ -193,7 +193,7 @@ theme_override_colors/font_color = Color(0.886, 0.831, 0.702, 1)
 text = "Scoundrel"
 
 [node name="GameSubtitleLabel" type="Label" parent="UI" unique_id=920000002]
-offset_left = 178.0
+offset_left = 218.0
 offset_top = 102.0
 offset_right = 520.0
 offset_bottom = 124.0

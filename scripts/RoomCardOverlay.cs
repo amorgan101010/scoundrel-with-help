@@ -36,6 +36,13 @@ public partial class RoomCardOverlay : Control
     private const float Padding         = 14f;
     private const float BannerHeight    = 46f;
     private const float IconHeight      = 170f;
+    // Friendly cards (Blacksmith/Merchant) keep the small hand-drawn RoomCardIcon,
+    // not real art, and their extended-rules description text is noticeably longer
+    // than a monster/weapon/potion's flavor blurb -- at the full IconHeight, that
+    // text overflowed past the divider into the footer row (direct feedback,
+    // visible as "BLESSING" text overlapping the description). Shrinking just this
+    // icon reclaims the room the longer text actually needs.
+    private const float FriendlyIconHeight = 90f;
     private const float FooterHeight    = 28f;
     private const float FooterBottomGap = 12f;
     private const float DividerGap      = 10f;
@@ -125,6 +132,7 @@ public partial class RoomCardOverlay : Control
         // runtime cropping needed since the art file already contains just the
         // picture. Friendly cards (Blacksmith/Merchant/PotionJoker/WeaponJoker) have
         // no real art yet, so they keep chunk 2's hand-drawn RoomCardIcon.
+        float iconHeight = family == RoomCardBannerFamily.Friendly ? FriendlyIconHeight : IconHeight;
         Control icon = family == RoomCardBannerFamily.Friendly
             ? new RoomCardIcon
             {
@@ -132,7 +140,7 @@ public partial class RoomCardOverlay : Control
                 LineColor    = FriendlyIconColor(card.Kind),
                 OffsetTop    = BannerHeight,
                 OffsetRight  = w,
-                OffsetBottom = BannerHeight + IconHeight,
+                OffsetBottom = BannerHeight + iconHeight,
                 MouseFilter  = MouseFilterEnum.Ignore,
             }
             : new TextureRect
@@ -141,7 +149,7 @@ public partial class RoomCardOverlay : Control
                 StretchMode  = TextureRect.StretchModeEnum.KeepAspectCentered,
                 OffsetTop    = BannerHeight,
                 OffsetRight  = w,
-                OffsetBottom = BannerHeight + IconHeight,
+                OffsetBottom = BannerHeight + iconHeight,
                 MouseFilter  = MouseFilterEnum.Ignore,
             };
         AddChild(icon);
@@ -150,7 +158,7 @@ public partial class RoomCardOverlay : Control
         // whatever space remains above it.
         float footerY    = h - FooterHeight - FooterBottomGap;
         float dividerY   = footerY - DividerGap;
-        float descTop    = BannerHeight + IconHeight + DescGap;
+        float descTop    = BannerHeight + iconHeight + DescGap;
         float descBottom = dividerY - DescGap;
 
         _descriptionLabel = new Label
@@ -164,7 +172,7 @@ public partial class RoomCardOverlay : Control
             MouseFilter       = MouseFilterEnum.Ignore,
         };
         _descriptionLabel.AddThemeFontOverride("font", ScoundrelPalette.SerifRegular);
-        _descriptionLabel.AddThemeFontSizeOverride("font_size", 11);
+        _descriptionLabel.AddThemeFontSizeOverride("font_size", 14);
         _descriptionLabel.AddThemeColorOverride("font_color", ScoundrelPalette.DescriptionGray);
         AddChild(_descriptionLabel);
 

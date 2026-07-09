@@ -66,10 +66,10 @@ public class RoomCardContentFooterTests
         => Assert.That(RoomCardContent.FooterLeftText(new CardModel(Suit.Diamonds, 4)), Is.EqualTo("♦ DIAMOND"));
     [Test] public void Potion_FooterLeftIsHeartGlyph()
         => Assert.That(RoomCardContent.FooterLeftText(new CardModel(Suit.Hearts, 4)), Is.EqualTo("♥ HEART"));
-    [Test] public void Blacksmith_FooterLeftIsBlessing()
-        => Assert.That(RoomCardContent.FooterLeftText(new CardModel(Suit.Diamonds, 1)), Is.EqualTo("BLESSING"));
-    [Test] public void Merchant_FooterLeftIsBlessing()
-        => Assert.That(RoomCardContent.FooterLeftText(new CardModel(Suit.Hearts, 13)), Is.EqualTo("BLESSING"));
+    [Test] public void Blacksmith_FooterLeftIsSuitGlyphAndSingularName()
+        => Assert.That(RoomCardContent.FooterLeftText(new CardModel(Suit.Diamonds, 1)), Is.EqualTo("♦ DIAMOND"));
+    [Test] public void Merchant_FooterLeftIsSuitGlyphAndSingularName()
+        => Assert.That(RoomCardContent.FooterLeftText(new CardModel(Suit.Hearts, 13)), Is.EqualTo("♥ HEART"));
     [Test] public void PotionJoker_FooterLeftIsCompanion()
         => Assert.That(RoomCardContent.FooterLeftText(new CardModel(Suit.RedJoker, 0)), Is.EqualTo("COMPANION"));
     [Test] public void WeaponJoker_FooterLeftIsCompanion()
@@ -81,8 +81,10 @@ public class RoomCardContentFooterTests
         => Assert.That(RoomCardContent.FooterValue(new CardModel(Suit.Diamonds, 7)), Is.EqualTo(7));
     [Test] public void Potion_FooterValueIsRank()
         => Assert.That(RoomCardContent.FooterValue(new CardModel(Suit.Hearts, 6)), Is.EqualTo(6));
-    [Test] public void Blacksmith_FooterValueIsNull()
-        => Assert.That(RoomCardContent.FooterValue(new CardModel(Suit.Diamonds, 1)), Is.Null);
+    [Test] public void Blacksmith_FooterValueIsRank()
+        => Assert.That(RoomCardContent.FooterValue(new CardModel(Suit.Diamonds, 1)), Is.EqualTo(1));
+    [Test] public void Merchant_FooterValueIsRank()
+        => Assert.That(RoomCardContent.FooterValue(new CardModel(Suit.Hearts, 13)), Is.EqualTo(13));
     [Test] public void PotionJoker_FooterValueIsNull()
         => Assert.That(RoomCardContent.FooterValue(new CardModel(Suit.RedJoker, 0)), Is.Null);
 }

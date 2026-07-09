@@ -58,25 +58,31 @@ public static class RoomCardContent
         ? null
         : System.Globalization.CultureInfo.InvariantCulture.TextInfo.ToTitleCase(s.ToLowerInvariant());
 
-    /// <summary>Left-hand footer text: suit glyph + singular suit name for a plain
-    /// monster/weapon/potion card ("♠ SPADE"), or a small role tag for the rest.</summary>
+    /// <summary>Left-hand footer text: suit glyph + singular suit name — "BLESSING"
+    /// was a meaningless static label for Blacksmith/Merchant (direct feedback: "it
+    /// should display the suit and rank like any other card"), so they now use the
+    /// same suit+name pattern as Monster/Weapon/Potion. PotionJoker/WeaponJoker keep
+    /// "COMPANION" since they have no suit of their own worth showing.</summary>
     public static string FooterLeftText(CardModel card) => card.Kind switch
     {
-        CardKind.Monster or CardKind.Weapon or CardKind.Potion
+        CardKind.Monster or CardKind.Weapon or CardKind.Potion or CardKind.Blacksmith or CardKind.Merchant
             => $"{SuitGlyph(card.Suit)} {SuitNameSingular(card.Suit)}",
-        CardKind.Blacksmith or CardKind.Merchant     => "BLESSING",
         CardKind.PotionJoker or CardKind.WeaponJoker => "COMPANION",
         _ => throw new System.InvalidOperationException($"Unhandled card kind: {card.Kind}"),
     };
 
-    /// <summary>Right-hand footer numeral for monster/weapon/potion cards (the value
-    /// shown large in the mockup's "♠ SPADE   4" row); null for the friendly kinds,
-    /// which show a sparkle glyph there instead (see RoomCardOverlay).</summary>
+    /// <summary>Right-hand footer numeral: the value shown large in the mockup's
+    /// "♠ SPADE   4" row. Blacksmith/Merchant have no game-mechanical "value" the way
+    /// a monster/weapon/potion does, so this shows their plain rank instead (same
+    /// "display suit and rank like any other card" feedback as FooterLeftText)
+    /// rather than the sparkle placeholder it used to fall through to. PotionJoker/
+    /// WeaponJoker still get null/sparkle -- they're suitless.</summary>
     public static int? FooterValue(CardModel card) => card.Kind switch
     {
-        CardKind.Monster => card.MonsterValue,
-        CardKind.Weapon  => card.WeaponValue,
-        CardKind.Potion  => card.PotionValue,
+        CardKind.Monster    => card.MonsterValue,
+        CardKind.Weapon     => card.WeaponValue,
+        CardKind.Potion     => card.PotionValue,
+        CardKind.Blacksmith or CardKind.Merchant => card.Rank,
         _ => null,
     };
 
