@@ -32,6 +32,7 @@ public partial class RoomCardOverlay : Control
 {
     public const string GroupName = "room_card_overlay";
 
+    private const int   CornerRadius    = 10;
     private const float Padding         = 14f;
     private const float BannerHeight    = 46f;
     private const float IconHeight      = 170f;
@@ -76,13 +77,19 @@ public partial class RoomCardOverlay : Control
         // art beneath (a StyleBoxFlat panel, not a background image/9-patch).
         var backgroundStyle = new StyleBoxFlat { BgColor = ScoundrelPalette.CardBackMaroon, BorderColor = ScoundrelPalette.DividerGoldBrown };
         backgroundStyle.SetBorderWidthAll(2);
+        backgroundStyle.SetCornerRadiusAll(CornerRadius);
         var background = new Panel { OffsetRight = w, OffsetBottom = h, MouseFilter = MouseFilterEnum.Ignore };
         background.AddThemeStyleboxOverride("panel", backgroundStyle);
         AddChild(background);
 
-        // Banner header bar.
+        // Banner header bar — rounded on top only (bottom edge is flush with the
+        // icon area below it), matching the background's rounded top corners so the
+        // banner's own square corners don't poke past them.
+        var bannerStyle = new StyleBoxFlat { BgColor = bannerBg };
+        bannerStyle.CornerRadiusTopLeft = CornerRadius;
+        bannerStyle.CornerRadiusTopRight = CornerRadius;
         var banner = new Panel { OffsetRight = w, OffsetBottom = BannerHeight, MouseFilter = MouseFilterEnum.Ignore };
-        banner.AddThemeStyleboxOverride("panel", new StyleBoxFlat { BgColor = bannerBg });
+        banner.AddThemeStyleboxOverride("panel", bannerStyle);
         AddChild(banner);
 
         var bannerLabel = new Label

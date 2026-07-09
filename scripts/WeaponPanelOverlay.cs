@@ -116,6 +116,7 @@ public partial class WeaponPanelOverlay : Control
         // comment on why this no longer stops short for the badge strip.
         var backgroundStyle = new StyleBoxFlat { BgColor = ScoundrelPalette.CardBackMaroon, BorderColor = ScoundrelPalette.DividerGoldBrown };
         backgroundStyle.SetBorderWidthAll(2);
+        backgroundStyle.SetCornerRadiusAll(10);
         var background = new Panel { OffsetRight = w, OffsetBottom = h, MouseFilter = MouseFilterEnum.Ignore };
         background.AddThemeStyleboxOverride("panel", backgroundStyle);
         AddChild(background);

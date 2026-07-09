@@ -133,13 +133,17 @@ public partial class CompanionPanelOverlay : Control
         // WeaponPanelOverlay's card background.
         var backgroundStyle = new StyleBoxFlat { BgColor = ScoundrelPalette.CardBackMaroon, BorderColor = ScoundrelPalette.DividerGoldBrown };
         backgroundStyle.SetBorderWidthAll(2);
+        backgroundStyle.SetCornerRadiusAll(10);
         var background = new Panel { OffsetRight = w, OffsetBottom = h, MouseFilter = MouseFilterEnum.Ignore };
         background.AddThemeStyleboxOverride("panel", backgroundStyle);
         AddChild(background);
 
-        // Banner header bar.
+        // Banner header bar — rounded on top only, matching RoomCardOverlay's treatment.
+        var bannerStyle = new StyleBoxFlat { BgColor = bannerColor };
+        bannerStyle.CornerRadiusTopLeft = 10;
+        bannerStyle.CornerRadiusTopRight = 10;
         var banner = new Panel { OffsetRight = w, OffsetBottom = BannerHeight, MouseFilter = MouseFilterEnum.Ignore };
-        banner.AddThemeStyleboxOverride("panel", new StyleBoxFlat { BgColor = bannerColor });
+        banner.AddThemeStyleboxOverride("panel", bannerStyle);
         AddChild(banner);
 
         var bannerLabel = new Label
