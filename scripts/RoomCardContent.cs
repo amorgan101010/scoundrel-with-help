@@ -32,16 +32,31 @@ public static class RoomCardContent
         _ => throw new System.InvalidOperationException($"Unhandled card kind: {kind}"),
     };
 
+    // Title Case, not ALL CAPS -- Cinzel Decorative (the font these render in, see
+    // ScoundrelPalette.DisplayDecorative) substitutes a distinct, more ornate glyph
+    // for at least one letter (a curled "U") when it sees genuine uppercase input,
+    // which read as visibly fussier than the mockup's plainer block-letter look;
+    // confirmed via a local render comparing "SCOUNDREL" against "Scoundrel" in the
+    // same font before making this change.
     public static string DisplayName(CardModel card) => card.Kind switch
     {
-        CardKind.Blacksmith  => "BLACKSMITH",
-        CardKind.Merchant    => "MERCHANT",
-        CardKind.PotionJoker => "RED JOKER",
-        CardKind.WeaponJoker => "BLACK JOKER",
+        CardKind.Blacksmith  => "Blacksmith",
+        CardKind.Merchant    => "Merchant",
+        CardKind.PotionJoker => "Red Joker",
+        CardKind.WeaponJoker => "Black Joker",
         CardKind.Monster or CardKind.Weapon or CardKind.Potion
-            => card.FlavorName ?? $"{RankName(card.Rank)} OF {SuitName(card.Suit)}",
+            => TitleCase(card.FlavorName) ?? $"{RankName(card.Rank)} of {SuitName(card.Suit)}",
         _ => throw new System.InvalidOperationException($"Unhandled card kind: {card.Kind}"),
     };
+
+    // tools/gen_cards.py's NAMES dict (surfaced as CardModel.FlavorName) is ALL CAPS
+    // -- kept that way there since it's also historically baked into the old full
+    // card art's own bottom banner, out of scope to touch here -- so the display
+    // path lower-cases and re-title-cases it rather than assuming the source data's
+    // casing.
+    private static string? TitleCase(string? s) => s == null
+        ? null
+        : System.Globalization.CultureInfo.InvariantCulture.TextInfo.ToTitleCase(s.ToLowerInvariant());
 
     /// <summary>Left-hand footer text: suit glyph + singular suit name for a plain
     /// monster/weapon/potion card ("♠ SPADE"), or a small role tag for the rest.</summary>
@@ -67,19 +82,19 @@ public static class RoomCardContent
 
     public static string RankName(int rank) => rank switch
     {
-        1  => "ACE",
-        11 => "JACK",
-        12 => "QUEEN",
-        13 => "KING",
+        1  => "Ace",
+        11 => "Jack",
+        12 => "Queen",
+        13 => "King",
         _  => rank.ToString(),
     };
 
     public static string SuitName(Suit suit) => suit switch
     {
-        Suit.Clubs    => "CLUBS",
-        Suit.Spades   => "SPADES",
-        Suit.Hearts   => "HEARTS",
-        Suit.Diamonds => "DIAMONDS",
+        Suit.Clubs    => "Clubs",
+        Suit.Spades   => "Spades",
+        Suit.Hearts   => "Hearts",
+        Suit.Diamonds => "Diamonds",
         _ => throw new System.InvalidOperationException($"Suit {suit} has no room-card name."),
     };
 

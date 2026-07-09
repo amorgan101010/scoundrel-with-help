@@ -27,29 +27,34 @@ public class RoomCardContentBannerFamilyTests
 public class RoomCardContentDisplayNameTests
 {
     [Test] public void Blacksmith_IsNamedBlacksmith()
-        => Assert.That(RoomCardContent.DisplayName(new CardModel(Suit.Diamonds, 1)), Is.EqualTo("BLACKSMITH"));
+        => Assert.That(RoomCardContent.DisplayName(new CardModel(Suit.Diamonds, 1)), Is.EqualTo("Blacksmith"));
     [Test] public void Merchant_IsNamedMerchant()
-        => Assert.That(RoomCardContent.DisplayName(new CardModel(Suit.Hearts, 11)), Is.EqualTo("MERCHANT"));
+        => Assert.That(RoomCardContent.DisplayName(new CardModel(Suit.Hearts, 11)), Is.EqualTo("Merchant"));
     [Test] public void PotionJoker_IsNamedRedJoker()
-        => Assert.That(RoomCardContent.DisplayName(new CardModel(Suit.RedJoker, 0)), Is.EqualTo("RED JOKER"));
+        => Assert.That(RoomCardContent.DisplayName(new CardModel(Suit.RedJoker, 0)), Is.EqualTo("Red Joker"));
     [Test] public void WeaponJoker_IsNamedBlackJoker()
-        => Assert.That(RoomCardContent.DisplayName(new CardModel(Suit.BlackJoker, 0)), Is.EqualTo("BLACK JOKER"));
+        => Assert.That(RoomCardContent.DisplayName(new CardModel(Suit.BlackJoker, 0)), Is.EqualTo("Black Joker"));
 
     [Test] public void NumberMonster_IsRankOfSuit()
-        => Assert.That(RoomCardContent.DisplayName(new CardModel(Suit.Spades, 10)), Is.EqualTo("10 OF SPADES"));
+        => Assert.That(RoomCardContent.DisplayName(new CardModel(Suit.Spades, 10)), Is.EqualTo("10 of Spades"));
     [Test] public void AceMonster_IsAceOfSuit()
-        => Assert.That(RoomCardContent.DisplayName(new CardModel(Suit.Clubs, 1)), Is.EqualTo("ACE OF CLUBS"));
+        => Assert.That(RoomCardContent.DisplayName(new CardModel(Suit.Clubs, 1)), Is.EqualTo("Ace of Clubs"));
     [Test] public void JackMonster_IsJackOfSuit()
-        => Assert.That(RoomCardContent.DisplayName(new CardModel(Suit.Spades, 11)), Is.EqualTo("JACK OF SPADES"));
+        => Assert.That(RoomCardContent.DisplayName(new CardModel(Suit.Spades, 11)), Is.EqualTo("Jack of Spades"));
     [Test] public void QueenMonster_IsQueenOfSuit()
-        => Assert.That(RoomCardContent.DisplayName(new CardModel(Suit.Clubs, 12)), Is.EqualTo("QUEEN OF CLUBS"));
+        => Assert.That(RoomCardContent.DisplayName(new CardModel(Suit.Clubs, 12)), Is.EqualTo("Queen of Clubs"));
     [Test] public void KingMonster_IsKingOfSuit()
-        => Assert.That(RoomCardContent.DisplayName(new CardModel(Suit.Spades, 13)), Is.EqualTo("KING OF SPADES"));
+        => Assert.That(RoomCardContent.DisplayName(new CardModel(Suit.Spades, 13)), Is.EqualTo("King of Spades"));
 
     [Test] public void Weapon_IsRankOfDiamonds()
-        => Assert.That(RoomCardContent.DisplayName(new CardModel(Suit.Diamonds, 9)), Is.EqualTo("9 OF DIAMONDS"));
+        => Assert.That(RoomCardContent.DisplayName(new CardModel(Suit.Diamonds, 9)), Is.EqualTo("9 of Diamonds"));
     [Test] public void Potion_IsRankOfHearts()
-        => Assert.That(RoomCardContent.DisplayName(new CardModel(Suit.Hearts, 4)), Is.EqualTo("4 OF HEARTS"));
+        => Assert.That(RoomCardContent.DisplayName(new CardModel(Suit.Hearts, 4)), Is.EqualTo("4 of Hearts"));
+
+    [Test] public void FlavorName_IsTitleCasedNotAllCaps()
+        => Assert.That(RoomCardContent.DisplayName(new CardModel(Suit.Clubs, 2, "2_clubs", "CYCLOPS")), Is.EqualTo("Cyclops"));
+    [Test] public void MultiWordFlavorName_IsTitleCasedPerWord()
+        => Assert.That(RoomCardContent.DisplayName(new CardModel(Suit.Diamonds, 9, "9_diamonds", "ELVEN BOW")), Is.EqualTo("Elven Bow"));
 }
 
 [TestFixture]
