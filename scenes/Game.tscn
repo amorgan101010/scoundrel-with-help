@@ -11,7 +11,7 @@
 [ext_resource type="Script" path="res://scenes/WeaponSlot.gd" id="9_ws"]
 [ext_resource type="FontFile" path="res://assets/fonts/NotoSerifDisplay-Bold.ttf" id="10_fontdisplay"]
 [ext_resource type="FontFile" path="res://assets/fonts/NotoSerif-Regular.ttf" id="11_fontserif"]
-[ext_resource type="FontFile" path="res://assets/fonts/CinzelDecorative-Bold.ttf" id="12_fontdecorative"]
+[ext_resource type="FontFile" path="res://assets/fonts/CinzelDecorative-Black.ttf" id="12_fontdecorative"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_run_n"]
 bg_color = Color(0.098, 0.078, 0.063, 0.6)
@@ -20,10 +20,10 @@ border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(0.616, 0.231, 0.235, 1)
-corner_radius_top_left = 35
-corner_radius_top_right = 35
-corner_radius_bottom_right = 35
-corner_radius_bottom_left = 35
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_run_p"]
 bg_color = Color(0.616, 0.231, 0.235, 0.25)
@@ -32,10 +32,10 @@ border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(0.761, 0.231, 0.29, 1)
-corner_radius_top_left = 35
-corner_radius_top_right = 35
-corner_radius_bottom_right = 35
-corner_radius_bottom_left = 35
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_run_h"]
 bg_color = Color(0.616, 0.231, 0.235, 0.15)
@@ -44,10 +44,10 @@ border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(0.761, 0.231, 0.29, 1)
-corner_radius_top_left = 35
-corner_radius_top_right = 35
-corner_radius_bottom_right = 35
-corner_radius_bottom_left = 35
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_run_d"]
 bg_color = Color(0.098, 0.078, 0.063, 0.6)
@@ -56,31 +56,31 @@ border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(0.616, 0.231, 0.235, 0.35)
-corner_radius_top_left = 35
-corner_radius_top_right = 35
-corner_radius_bottom_right = 35
-corner_radius_bottom_left = 35
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_next_n"]
 bg_color = Color(0.769, 0.624, 0.353, 1)
-corner_radius_top_left = 35
-corner_radius_top_right = 35
-corner_radius_bottom_right = 35
-corner_radius_bottom_left = 35
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_next_p"]
 bg_color = Color(0.651, 0.502, 0.235, 1)
-corner_radius_top_left = 35
-corner_radius_top_right = 35
-corner_radius_bottom_right = 35
-corner_radius_bottom_left = 35
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_next_h"]
 bg_color = Color(0.886, 0.749, 0.486, 1)
-corner_radius_top_left = 35
-corner_radius_top_right = 35
-corner_radius_bottom_right = 35
-corner_radius_bottom_left = 35
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 shadow_color = Color(0.886, 0.749, 0.486, 0.6)
 shadow_size = 14
 
@@ -190,10 +190,10 @@ offset_bottom = 100.0
 theme_override_fonts/font = ExtResource("12_fontdecorative")
 theme_override_font_sizes/font_size = 46
 theme_override_colors/font_color = Color(0.886, 0.831, 0.702, 1)
-theme_override_colors/font_shadow_color = Color(0.651, 0.502, 0.235, 0.35)
+theme_override_colors/font_shadow_color = Color(0.651, 0.502, 0.235, 0.4)
 theme_override_constants/shadow_offset_x = 0
 theme_override_constants/shadow_offset_y = 0
-theme_override_constants/shadow_outline_size = 3
+theme_override_constants/shadow_outline_size = 6
 text = "SCOUNDREL"
 
 [node name="GameSubtitleLabel" type="Label" parent="UI" unique_id=920000002]
@@ -541,7 +541,8 @@ theme_override_colors/font_color = Color(0.616, 0.231, 0.235, 1)
 theme_override_colors/font_hover_color = Color(0.761, 0.231, 0.29, 1)
 theme_override_colors/font_pressed_color = Color(0.761, 0.231, 0.29, 1)
 theme_override_colors/font_disabled_color = Color(0.616, 0.231, 0.235, 0.45)
-theme_override_font_sizes/font_size = 22
+theme_override_fonts/font = ExtResource("11_fontserif")
+theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_run_n")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_run_p")
 theme_override_styles/hover = SubResource("StyleBoxFlat_run_h")
@@ -556,7 +557,8 @@ size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.098, 0.078, 0.063, 1)
 theme_override_colors/font_hover_color = Color(0.098, 0.078, 0.063, 1)
 theme_override_colors/font_pressed_color = Color(0.098, 0.078, 0.063, 1)
-theme_override_font_sizes/font_size = 22
+theme_override_fonts/font = ExtResource("11_fontserif")
+theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_next_n")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_next_p")
 theme_override_styles/hover = SubResource("StyleBoxFlat_next_h")

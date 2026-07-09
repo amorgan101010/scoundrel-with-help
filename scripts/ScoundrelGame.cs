@@ -177,7 +177,7 @@ public partial class ScoundrelGame : Node
         // meaningfully (confirmed against ui_overhaul.png: RUN — SKIP ROOM has no
         // gradient, NEXT ROOM does). See ButtonGradient's class doc for why this is
         // built at runtime rather than as .tscn sub_resources.
-        ButtonGradient.Apply(_nextRoomButton, ScoundrelPalette.ButtonSolidGold, ScoundrelPalette.BrightGold with { A = 0.45f }, radius: 35);
+        ButtonGradient.Apply(_nextRoomButton, ScoundrelPalette.ButtonSolidGold, ScoundrelPalette.BrightGold with { A = 0.45f }, radius: 8);
         _retryButton    = GetNode<Button>("UI/TopButtonGroup/RetryButton");
         _helpButton     = GetNode<Button>("UI/TopButtonGroup/HelpButton");
         _helpDialog     = GetNode<AcceptDialog>("UI/HelpDialog");

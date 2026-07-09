@@ -110,8 +110,10 @@ public static class ScoundrelPalette
     public const string DisplayBoldFontPath       = "res://assets/fonts/NotoSerifDisplay-Bold.ttf";
     public const string SerifRegularFontPath      = "res://assets/fonts/NotoSerif-Regular.ttf";
     // SIL Open Font License, same terms as the two fonts above -- verified via the
-    // font file's own embedded name-table license string before bundling.
-    public const string DisplayDecorativeFontPath = "res://assets/fonts/CinzelDecorative-Bold.ttf";
+    // font file's own embedded name-table license string before bundling. Black
+    // (the heaviest weight Cinzel Decorative ships) rather than Bold -- direct
+    // feedback wanted a bolder/heavier look than Bold alone reads at this size.
+    public const string DisplayDecorativeFontPath = "res://assets/fonts/CinzelDecorative-Black.ttf";
 
     private static Font? _displayBold;
     private static Font? _serifRegular;
@@ -121,7 +123,7 @@ public static class ScoundrelPalette
     public static Font DisplayBold  => _displayBold  ??= GD.Load<Font>(DisplayBoldFontPath);
     /// <summary>Noto Serif Regular — subtitles, section labels, body text.</summary>
     public static Font SerifRegular => _serifRegular ??= GD.Load<Font>(SerifRegularFontPath);
-    /// <summary>Cinzel Decorative Bold — the game title and card/companion banner
+    /// <summary>Cinzel Decorative Black — the game title and card/companion banner
     /// headers only (per direct feedback, matching ui_overhaul.png), not every
     /// DisplayBold use -- its ornate strokes read poorly at small numeral sizes.</summary>
     public static Font DisplayDecorative => _displayDecorative ??= GD.Load<Font>(DisplayDecorativeFontPath);

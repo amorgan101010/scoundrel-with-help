@@ -134,6 +134,9 @@ public partial class CompanionPanelOverlay : Control
         var backgroundStyle = new StyleBoxFlat { BgColor = ScoundrelPalette.CardBackMaroon, BorderColor = ScoundrelPalette.DividerGoldBrown };
         backgroundStyle.SetBorderWidthAll(2);
         backgroundStyle.SetCornerRadiusAll(10);
+        backgroundStyle.ShadowColor = Colors.Black with { A = 0.5f };
+        backgroundStyle.ShadowSize = 8;
+        backgroundStyle.ShadowOffset = new Vector2(0f, 3f);
         var background = new Panel { OffsetRight = w, OffsetBottom = h, MouseFilter = MouseFilterEnum.Ignore };
         background.AddThemeStyleboxOverride("panel", backgroundStyle);
         AddChild(background);

@@ -127,6 +127,11 @@ public partial class WeaponPanelOverlay : Control
         var backgroundStyle = new StyleBoxFlat { BgColor = ScoundrelPalette.CardBackMaroon, BorderColor = ScoundrelPalette.DividerGoldBrown };
         backgroundStyle.SetBorderWidthAll(2);
         backgroundStyle.SetCornerRadiusAll(10);
+        // Soft drop shadow per ui_overhaul.png's card treatment -- native
+        // StyleBoxFlat shadow, matching RoomCardOverlay/CompanionPanelOverlay.
+        backgroundStyle.ShadowColor = Colors.Black with { A = 0.5f };
+        backgroundStyle.ShadowSize = 8;
+        backgroundStyle.ShadowOffset = new Vector2(0f, 3f);
         var background = new Panel { OffsetRight = w, OffsetBottom = h, MouseFilter = MouseFilterEnum.Ignore };
         background.AddThemeStyleboxOverride("panel", backgroundStyle);
         AddChild(background);

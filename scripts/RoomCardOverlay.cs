@@ -74,10 +74,15 @@ public partial class RoomCardOverlay : Control
         var (bannerBg, bannerFg) = BannerColors(card, family);
 
         // Opaque background + thin border, covering the addon's generic front_image
-        // art beneath (a StyleBoxFlat panel, not a background image/9-patch).
+        // art beneath (a StyleBoxFlat panel, not a background image/9-patch). Soft
+        // drop shadow per ui_overhaul.png's card treatment -- native StyleBoxFlat
+        // shadow, not a second image/blur layer.
         var backgroundStyle = new StyleBoxFlat { BgColor = ScoundrelPalette.CardBackMaroon, BorderColor = ScoundrelPalette.DividerGoldBrown };
         backgroundStyle.SetBorderWidthAll(2);
         backgroundStyle.SetCornerRadiusAll(CornerRadius);
+        backgroundStyle.ShadowColor = Colors.Black with { A = 0.5f };
+        backgroundStyle.ShadowSize = 8;
+        backgroundStyle.ShadowOffset = new Vector2(0f, 3f);
         var background = new Panel { OffsetRight = w, OffsetBottom = h, MouseFilter = MouseFilterEnum.Ignore };
         background.AddThemeStyleboxOverride("panel", backgroundStyle);
         AddChild(background);
