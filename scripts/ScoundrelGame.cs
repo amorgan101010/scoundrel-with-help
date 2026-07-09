@@ -158,6 +158,7 @@ public partial class ScoundrelGame : Node
         _roomContainer  = GetNode<Control>("UI/RoomContainer");
         _bottomButtonGroup = GetNode<HBoxContainer>("UI/BottomButtonGroup");
         _topButtonGroup = GetNode<HBoxContainer>("UI/TopButtonGroup");
+        var headerDivider = GetNode<Control>("UI/HeaderDivider");
         _leftDropZone   = GetNode<Node>("UI/LeftPanel/LeftDropZone");
         _rightDropZone  = GetNode<Node>("UI/RightPanel/RightDropZone");
         _potionJokerDropZone = GetNode<Node>("UI/LeftPanel/PotionJokerDropZone");
@@ -203,6 +204,7 @@ public partial class ScoundrelGame : Node
             _cardManager,
             _godotCards,
             _roomContainer,
+            headerDivider,
             _topButtonGroup,
             _bottomButtonGroup,
             _helpDialog,

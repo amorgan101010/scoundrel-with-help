@@ -54,6 +54,7 @@ public sealed class ScoundrelLayoutController
     private readonly Node _cardManager;
     private readonly SysCollections.Dictionary<string, GodotObject> _godotCards;
     private readonly Control _roomContainer;
+    private readonly Control _headerDivider;
     private readonly HBoxContainer _topButtonGroup;
     private readonly HBoxContainer _bottomButtonGroup;
     private readonly AcceptDialog _helpDialog;
@@ -86,6 +87,7 @@ public sealed class ScoundrelLayoutController
         Node cardManager,
         SysCollections.Dictionary<string, GodotObject> godotCards,
         Control roomContainer,
+        Control headerDivider,
         HBoxContainer topButtonGroup,
         HBoxContainer bottomButtonGroup,
         AcceptDialog helpDialog,
@@ -115,6 +117,7 @@ public sealed class ScoundrelLayoutController
         _cardManager = cardManager;
         _godotCards = godotCards;
         _roomContainer = roomContainer;
+        _headerDivider = headerDivider;
         _topButtonGroup = topButtonGroup;
         _bottomButtonGroup = bottomButtonGroup;
         _helpDialog = helpDialog;
@@ -345,10 +348,23 @@ public sealed class ScoundrelLayoutController
         var halfRoomWidth = roomWidth / 2f;
         var halfRoomHeight = roomHeight / 2f;
 
+        // Center the room between the header divider and the bottom button row,
+        // not on the screen's own 50% mark -- those two landmarks sit at different
+        // distances from the top/bottom edges (header taller than the button bar),
+        // so a screen-centered room reads as hugging the divider with a large gap
+        // above the buttons. RoomContainer is top-anchored (anchor_top/bottom = 0,
+        // see Game.tscn) specifically so these offsets are plain viewport-space
+        // pixels, directly comparable to headerDivider/bottomButtonGroup's own
+        // rects (same "UI" parent, same coordinate space) with no anchor-relative
+        // math needed.
+        float dividerBottom = _headerDivider.GetRect().Position.Y + _headerDivider.GetRect().Size.Y;
+        float buttonTop = _bottomButtonGroup.GetRect().Position.Y;
+        float centerY = (dividerBottom + buttonTop) / 2f;
+
         _roomContainer.OffsetLeft = -halfRoomWidth;
         _roomContainer.OffsetRight = halfRoomWidth;
-        _roomContainer.OffsetTop = -halfRoomHeight;
-        _roomContainer.OffsetBottom = halfRoomHeight;
+        _roomContainer.OffsetTop = centerY - halfRoomHeight;
+        _roomContainer.OffsetBottom = centerY + halfRoomHeight;
     }
 
     private void UpdateButtonGroupWidths()
