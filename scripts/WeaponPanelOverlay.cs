@@ -28,14 +28,15 @@ using Godot;
 /// exactly like RoomCardOverlay does for room cards. MouseFilter.Ignore throughout so
 /// drag-out-to-give-to-Joker still reaches the Card control beneath.
 ///
-/// The opaque background stops short of the card's bottom edge (see BadgeSafeTopReserve)
-/// rather than covering the full slot: ScoundrelGame's slain-monster badges are added as
-/// children of the equipped weapon's own Card node and deliberately hang partially below
-/// the visual card (RelayoutBadges positions them at CardH - BadgeLayoutHeight/3, see
-/// ScoundrelGame.cs), and this overlay — being a later sibling in the WeaponSlot tree —
-/// paints on top of the Card and would otherwise hide them. Leaving that strip
-/// uncovered lets the real card art + badges show through underneath, which also happens
-/// to mirror the mockup's own "badges as a separate row below the weapon card" layout.
+/// The opaque background covers the FULL slot, including the strip where slain-monster
+/// badges live (RelayoutBadges positions them at CardH - BadgeLayoutHeight/3, see
+/// ScoundrelGame.cs) -- chunk 6 fixed an earlier version that stopped short there on
+/// purpose (leaving the real card art visible in that gap so badges would show through);
+/// the user explicitly rejected any of the addon's original card art being visible, badges
+/// included. Badges stay visible on top because ScoundrelGame.CreateBadgeControl gives
+/// them ZIndex = 2, one higher than this overlay's ZIndex = 1 (both count from the same
+/// baseline: MouseFilter/painting aside, the badge is a child of the equipped weapon's
+/// Card, which lives as an ordinary un-elevated sibling here, same as this overlay).
 ///
 /// WeaponLabel (the pre-existing plain-text summary) is kept fully intact and still
 /// computed every UpdateUI() call — gdUnit4 scene tests assert its exact string in
@@ -49,16 +50,10 @@ public partial class WeaponPanelOverlay : Control
     private const float NumberHeight     = 52f;
     private const float ConstraintHeight = 22f;
     private const float ConstraintGap    = 2f;
-    private const float IconTopGap       = 14f;
-    private const float IconBottomGap    = 10f;
+    private const float IconTopGap       = 10f;
+    private const float IconBottomGap    = 6f;
     private const float NameStripHeight  = 30f;
     private const float DividerGap       = 8f;
-
-    // Mirrors ScoundrelGame's BadgeLayoutHeight/3 (the slain-badge row's vertical
-    // offset from the card's bottom edge) — keep the two in sync if either changes,
-    // same cross-file convention ScoundrelPalette's header comment documents for
-    // colors shared between C# and .tscn.
-    private const float BadgeSafeTopReserve = 22f;
 
     private Label _numberLabel      = null!;
     private Label _constraintLabel  = null!;
@@ -77,6 +72,20 @@ public partial class WeaponPanelOverlay : Control
         };
         overlay.Build(slotSize);
         return overlay;
+    }
+
+    /// <summary>Rebuilds this overlay at a new slot size -- called when
+    /// ScoundrelLayoutController recomputes card size on viewport resize. A fresh
+    /// Build() is simpler and less error-prone than re-deriving every offset in place,
+    /// and this runs rarely (debounced resize), not every frame. Caller must re-call
+    /// UpdateWeapon() with current state afterward -- Build() only creates empty
+    /// labels/icon, it doesn't know the current weapon.</summary>
+    public void Resize(Vector2 newSize)
+    {
+        foreach (var child in GetChildren())
+            child.QueueFree();
+        Size = newSize;
+        Build(newSize);
     }
 
     /// <summary>Refreshes all state-dependent visuals; hides the whole panel when no
@@ -99,14 +108,12 @@ public partial class WeaponPanelOverlay : Control
     private void Build(Vector2 size)
     {
         float w = size.X, h = size.Y;
-        float badgeSafeTop = h - BadgeSafeTopReserve;
 
-        // Opaque background + thin border, same treatment as RoomCardOverlay's card
-        // background — but stopping at badgeSafeTop rather than the full slot height
-        // (see class doc comment on BadgeSafeTopReserve).
+        // Opaque background + thin border, covering the FULL slot -- see class doc
+        // comment on why this no longer stops short for the badge strip.
         var backgroundStyle = new StyleBoxFlat { BgColor = ScoundrelPalette.CardBackMaroon, BorderColor = ScoundrelPalette.DividerGoldBrown };
         backgroundStyle.SetBorderWidthAll(2);
-        var background = new Panel { OffsetRight = w, OffsetBottom = badgeSafeTop, MouseFilter = MouseFilterEnum.Ignore };
+        var background = new Panel { OffsetRight = w, OffsetBottom = h, MouseFilter = MouseFilterEnum.Ignore };
         background.AddThemeStyleboxOverride("panel", backgroundStyle);
         AddChild(background);
 
@@ -139,10 +146,9 @@ public partial class WeaponPanelOverlay : Control
         _constraintLabel.AddThemeColorOverride("font_color", ScoundrelPalette.ConstraintRose);
         AddChild(_constraintLabel);
 
-        // Name strip + divider anchored to badgeSafeTop (not the full slot height —
-        // see BadgeSafeTopReserve); the icon then fills whatever space remains between
-        // the constraint hint and the name strip.
-        float dividerY = badgeSafeTop - NameStripHeight - DividerGap;
+        // Name strip + divider anchored to the full slot height; the icon then fills
+        // whatever space remains between the constraint hint and the name strip.
+        float dividerY = h - NameStripHeight - DividerGap;
         var divider = new ColorRect
         {
             Color        = ScoundrelPalette.DividerGoldBrown,
@@ -160,7 +166,6 @@ public partial class WeaponPanelOverlay : Control
         float iconCenterY = (iconTop + iconBottom) / 2f;
         _icon = new TextureRect
         {
-            ExpandMode   = TextureRect.ExpandModeEnum.FitWidthProportional,
             StretchMode  = TextureRect.StretchModeEnum.KeepAspectCentered,
             OffsetLeft   = (w - iconSize) / 2f,
             OffsetTop    = iconCenterY - iconSize / 2f,
@@ -175,7 +180,7 @@ public partial class WeaponPanelOverlay : Control
             OffsetLeft          = Padding,
             OffsetTop           = dividerY + DividerGap,
             OffsetRight         = w - Padding,
-            OffsetBottom        = badgeSafeTop,
+            OffsetBottom        = h,
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment   = VerticalAlignment.Center,
             AutowrapMode        = TextServer.AutowrapMode.Word,

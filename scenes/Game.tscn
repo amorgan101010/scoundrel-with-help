@@ -408,18 +408,18 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -255.0
+offset_left = -130.0
 offset_top = 23.0
 offset_right = -30.0
-offset_bottom = 338.0
+offset_bottom = 163.0
 grow_horizontal = 0
 mouse_filter = 2
 
 [node name="DeckPile" type="Control" parent="UI/RightPanel/DeckGroup" unique_id=2038153143]
 visible = false
 anchors_preset = 0
-offset_right = 225.0
-offset_bottom = 315.0
+offset_right = 100.0
+offset_bottom = 140.0
 mouse_filter = 1
 script = ExtResource("4_pile")
 card_face_up = false
@@ -430,8 +430,8 @@ enable_drop_zone = false
 
 [node name="DeckCountBadge" type="Control" parent="UI/RightPanel/DeckGroup" unique_id=930000001]
 anchors_preset = 0
-offset_right = 225.0
-offset_bottom = 315.0
+offset_right = 100.0
+offset_bottom = 140.0
 mouse_filter = 2
 
 [node name="DeckCountBadgePanel" type="Panel" parent="UI/RightPanel/DeckGroup/DeckCountBadge" unique_id=930000002]
@@ -453,10 +453,11 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 theme_override_fonts/font = ExtResource("11_fontserif")
-theme_override_font_sizes/font_size = 26
+theme_override_font_sizes/font_size = 15
 theme_override_colors/font_color = Color(0.886, 0.749, 0.486, 1)
 horizontal_alignment = 1
 vertical_alignment = 1
+autowrap_mode = 2
 text = "44 LEFT"
 
 [node name="DiscardGroup" type="Control" parent="UI/RightPanel" unique_id=345678901]
@@ -472,6 +473,7 @@ grow_horizontal = 0
 mouse_filter = 2
 
 [node name="DiscardPile" type="Control" parent="UI/RightPanel/DiscardGroup" unique_id=44963075]
+visible = false
 anchors_preset = 0
 offset_right = 225.0
 offset_bottom = 315.0

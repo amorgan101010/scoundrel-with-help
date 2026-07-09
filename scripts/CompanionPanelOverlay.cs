@@ -59,6 +59,7 @@ public partial class CompanionPanelOverlay : Control
 
     private ProgressBar _hpBar         = null!;
     private Label _hpNumberLabel       = null!;
+    private CardKind _kind;
 
     public static CompanionPanelOverlay Create(CardKind kind, Vector2 slotSize)
     {
@@ -72,6 +73,18 @@ public partial class CompanionPanelOverlay : Control
         };
         overlay.Build(kind, slotSize);
         return overlay;
+    }
+
+    /// <summary>Rebuilds this overlay at a new slot size -- called when
+    /// ScoundrelLayoutController recomputes card size on viewport resize (see
+    /// WeaponPanelOverlay.Resize for why a fresh Build() beats in-place re-layout).
+    /// Caller must re-call UpdateCompanion() with current state afterward.</summary>
+    public void Resize(Vector2 newSize)
+    {
+        foreach (var child in GetChildren())
+            child.QueueFree();
+        Size = newSize;
+        Build(_kind, newSize);
     }
 
     /// <summary>Refreshes the state-dependent bits: hides the whole panel when this
@@ -89,6 +102,7 @@ public partial class CompanionPanelOverlay : Control
 
     private void Build(CardKind kind, Vector2 size)
     {
+        _kind = kind;
         float w = size.X, h = size.Y;
         Color bannerColor = kind == CardKind.PotionJoker
             ? ScoundrelPalette.CompanionRedBanner

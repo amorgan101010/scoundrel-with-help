@@ -219,7 +219,7 @@ public partial class ScoundrelGame : Node
             _weaponJokerHpLabel,
             BaseCardWidth,
             BaseCardHeight,
-            cardSize => _cardSize = cardSize);
+            OnCardSizeChanged);
         _layoutController.ApplyNow();
 
         // ── Weapon panel overlay (ui_overhaul.png "WEAPON" column, chunk 3 Part A) ──
@@ -1278,7 +1278,10 @@ public partial class ScoundrelGame : Node
         badge.Name = "slain_badge";
         badge.Size = new Vector2(BadgeVisualWidth, BadgeVisualHeight);
         badge.MouseFilter = Control.MouseFilterEnum.Ignore;
-        badge.ZIndex = 1;
+        // Must beat WeaponPanelOverlay's ZIndex (1) now that that overlay covers the
+        // weapon slot's full height instead of leaving a gap for badges to show
+        // through (chunk 6 -- the old art visible in that gap was itself the bug).
+        badge.ZIndex = 2;
         badge.AddToGroup("slain_badge");
 
         var chipStyle = new StyleBoxFlat
@@ -1442,6 +1445,44 @@ public partial class ScoundrelGame : Node
 
     private static RoomCardOverlay? RoomCardOverlayOf(Node cardNode)
         => cardNode.GetChildren().OfType<RoomCardOverlay>().FirstOrDefault();
+
+    /// <summary>ScoundrelLayoutController's viewport-resize callback (debounced on
+    /// GetViewport()'s "size_changed" signal, see _Ready()). RoomCardOverlay/
+    /// WeaponPanelOverlay/CompanionPanelOverlay are each sized once at construction
+    /// and never automatically track later card-size changes -- without this, resizing
+    /// the window leaves the old, wrong-sized overlay in place while the addon's own
+    /// Card visual (front_image, badges, ...) rescales underneath it, exposing exactly
+    /// the "old card art visible at the edges" bug the user hit. Every overlay type
+    /// gets torn down and rebuilt fresh at the new size rather than re-deriving offsets
+    /// in place (same reasoning as WeaponPanelOverlay.Resize's doc comment).
+    ///
+    /// Guarded on _weaponPanelOverlay being non-null because this callback also fires
+    /// once synchronously from _layoutController.ApplyNow() in _Ready(), BEFORE any of
+    /// the three overlay fields are constructed -- that first call needs only the
+    /// _cardSize assignment; the overlays don't exist yet to refresh, and will already
+    /// use the correct (just-updated) size when they're created a few lines later.</summary>
+    private void OnCardSizeChanged(Vector2 cardSize)
+    {
+        _cardSize = cardSize;
+        if (_weaponPanelOverlay == null) return;
+
+        foreach (var (_, godotCard) in _godotCards)
+        {
+            var cardNode = (Node)godotCard;
+            var stale = RoomCardOverlayOf(cardNode);
+            if (stale != null)
+            {
+                cardNode.RemoveChild(stale); // synchronous, unlike QueueFree -- SyncRoomCardOverlays must see it gone immediately below
+                stale.QueueFree();
+            }
+        }
+
+        _weaponPanelOverlay.Resize(cardSize);
+        _potionCompanionOverlay.Resize(cardSize);
+        _weaponCompanionOverlay.Resize(cardSize);
+
+        UpdateUI();
+    }
 
     private void UpdateUI()
     {
