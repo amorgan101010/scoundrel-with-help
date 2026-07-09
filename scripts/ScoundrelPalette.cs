@@ -59,6 +59,13 @@ public static class ScoundrelPalette
     public static readonly Color WeaponBlueBright    = new Color(0.475f, 0.647f, 0.847f); // #79A5D8
     public static readonly Color PotionRoseBright    = new Color(0.796f, 0.412f, 0.616f); // #CB699D
 
+    // ── Weapon panel colors (chunk 3 — see WeaponPanelOverlay.cs) ───────────
+    // Muted dusty rose used for the weapon panel's "next: < N" constraint hint —
+    // no pixel-probe tool was available this session, so this is a close visual
+    // match to the mockup's soft rose-red rather than an exact sampled value
+    // (unlike the chunk-1/chunk-2 colors above, which were sampled directly).
+    public static readonly Color ConstraintRose      = new Color(0.706f, 0.408f, 0.455f); // #B46874
+
     // ── Fonts ───────────────────────────────────────────────────────────────
     public const string DisplayBoldFontPath  = "res://assets/fonts/NotoSerifDisplay-Bold.ttf";
     public const string SerifRegularFontPath = "res://assets/fonts/NotoSerif-Regular.ttf";
