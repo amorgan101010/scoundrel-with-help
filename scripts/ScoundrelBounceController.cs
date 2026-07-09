@@ -93,7 +93,19 @@ public sealed class ScoundrelBounceController
             }
 
             var info = godotCard.Get("card_info").AsGodotDictionary();
-            var texture = GD.Load<Texture2D>($"res://card_assets/{info["front_image"].AsString()}");
+            // Card.front_image (== card_info["front_image"]) now points to
+            // card_assets/blank.svg for every card -- the UI overhaul stopped wiring
+            // the old illustrated-card-with-frame art to the addon's own Card node
+            // entirely (it kept showing through the new overlays via z-index/hover
+            // edge cases the overlay couldn't reliably outrun). This bounce/win-lose
+            // ghost effect uses the same new art/ illustration-only SVGs the room
+            // card and weapon panel overlays use, not the old full card art -- the
+            // whole branch drops the old card art, not just the parts covered by an
+            // overlay. Monster (clubs/spades) and weapon/potion (diamonds/hearts)
+            // cards all have one; Blacksmith/Merchant (diamond/heart face cards) have
+            // no real art yet and are silently skipped below, same as any missing
+            // texture already was before this change.
+            var texture = GD.Load<Texture2D>($"res://card_assets/art/{info["name"].AsString()}.svg");
             if (texture == null) continue;
 
             var ghost = new TextureRect

@@ -1,6 +1,6 @@
 {
   "name": "queen_diamonds",
-  "front_image": "queen_diamonds.svg",
+  "front_image": "blank.svg",
   "suit": "diamonds",
   "rank": 12
 }

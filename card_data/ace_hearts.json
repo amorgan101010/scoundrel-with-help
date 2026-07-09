@@ -1,6 +1,6 @@
 {
   "name": "ace_hearts",
-  "front_image": "ace_hearts.svg",
+  "front_image": "blank.svg",
   "suit": "hearts",
   "rank": 1
 }

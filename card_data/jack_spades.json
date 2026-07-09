@@ -1,6 +1,6 @@
 {
   "name": "jack_spades",
-  "front_image": "jack_spades.svg",
+  "front_image": "blank.svg",
   "suit": "spades",
   "rank": 11
 }
