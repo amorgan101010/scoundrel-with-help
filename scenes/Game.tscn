@@ -416,6 +416,7 @@ grow_horizontal = 0
 mouse_filter = 2
 
 [node name="DeckPile" type="Control" parent="UI/RightPanel/DeckGroup" unique_id=2038153143]
+visible = false
 anchors_preset = 0
 offset_right = 225.0
 offset_bottom = 315.0
@@ -432,7 +433,6 @@ anchors_preset = 0
 offset_right = 225.0
 offset_bottom = 315.0
 mouse_filter = 2
-z_index = 4090
 
 [node name="DeckCountBadgePanel" type="Panel" parent="UI/RightPanel/DeckGroup/DeckCountBadge" unique_id=930000002]
 layout_mode = 1
