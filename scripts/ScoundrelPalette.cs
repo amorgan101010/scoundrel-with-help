@@ -66,6 +66,22 @@ public static class ScoundrelPalette
     // (unlike the chunk-1/chunk-2 colors above, which were sampled directly).
     public static readonly Color ConstraintRose      = new Color(0.706f, 0.408f, 0.455f); // #B46874
 
+    // ── Companion panel colors (chunk 4 — see CompanionPanelOverlay.cs) ─────
+    // Sampled directly from the mockup's RED JOKER/BLACK JOKER banner pixels
+    // (pixel-probed with PIL this session, averaging each banner's left/right
+    // edges to avoid the centered banner-title text). Deliberately distinct from
+    // BannerMaroonMonster/BannerGoldFriendly above: once a Joker becomes a
+    // companion (this panel) it gets its own identity color rather than the
+    // generic room-card monster/friendly banner families — that's intentional
+    // per the mockup, not an inconsistency to reconcile.
+    // Red Joker (Potion Joker) banner fill; also reused for the HP bar's red
+    // fill, since both companions' HP bars sample to this same red in the
+    // mockup and a second near-duplicate color would be pure token bloat.
+    public static readonly Color CompanionRedBanner   = new Color(0.518f, 0.188f, 0.192f); // #843031
+    // Black Joker (Weapon Joker) banner fill — a warm near-black, sampled
+    // distinctly lighter/warmer than BackgroundNearBlack/CardBackMaroon above.
+    public static readonly Color CompanionBlackBanner = new Color(0.173f, 0.157f, 0.129f); // #2C2821
+
     // ── Fonts ───────────────────────────────────────────────────────────────
     public const string DisplayBoldFontPath  = "res://assets/fonts/NotoSerifDisplay-Bold.ttf";
     public const string SerifRegularFontPath = "res://assets/fonts/NotoSerif-Regular.ttf";

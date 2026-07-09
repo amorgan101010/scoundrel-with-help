@@ -51,6 +51,9 @@ public partial class ScoundrelGame : Node
     private Label _weaponsLabel = null!;
     private Label _potionsLabel = null!;
     private Label _npcsLabel = null!;
+    // ── Companion panel (ui_overhaul.png "COMPANIONS" column, chunk 4) ────────
+    private CompanionPanelOverlay _potionCompanionOverlay = null!;
+    private CompanionPanelOverlay _weaponCompanionOverlay = null!;
     private Button _runButton = null!;
     private Button _nextRoomButton = null!;
     private Button _retryButton = null!;
@@ -230,6 +233,24 @@ public partial class ScoundrelGame : Node
         _weaponLabel.Visible = false;
         _weaponPanelOverlay = WeaponPanelOverlay.Create(new Vector2(CardW, CardH));
         weaponSlotControl.AddChild(_weaponPanelOverlay);
+
+        // ── Companion panel overlays (ui_overhaul.png "COMPANIONS" column, chunk 4) ──
+        // PotionJokerHpLabel/WeaponJokerHpLabel are kept as invisible data-carriers,
+        // same treatment as WeaponLabel above: gdUnit4 scene tests assert their exact
+        // text in several places (e.g. ScoundrelJokerCombatSceneTests), so their Text
+        // logic in UpdateUI() is untouched — only visibility changes here.
+        // CompanionPanelOverlay is built once per slot (at the current card size) and
+        // added as a sibling of PotionJokerSlot/WeaponJokerSlot's own "Cards"/DropZone
+        // children, then only refreshed in place via UpdateCompanion() — see
+        // CompanionPanelOverlay.cs for why its banner/icon/description never need to
+        // change after Build() (unlike WeaponPanelOverlay, whose weapon can be
+        // swapped, a given slot's Joker identity is fixed for the game's lifetime).
+        _potionJokerHpLabel.Visible = false;
+        _weaponJokerHpLabel.Visible = false;
+        _potionCompanionOverlay = CompanionPanelOverlay.Create(CardKind.PotionJoker, new Vector2(CardW, CardH));
+        potionJokerSlotControl.AddChild(_potionCompanionOverlay);
+        _weaponCompanionOverlay = CompanionPanelOverlay.Create(CardKind.WeaponJoker, new Vector2(CardW, CardH));
+        weaponJokerSlotControl.AddChild(_weaponCompanionOverlay);
 
         // ── Gameplay-role tally (ui_overhaul.png "REMAINING" replacement for the raw
         // per-suit "IN PLAY" list, chunk 3 Part B) ─────────────────────────────────
@@ -1457,6 +1478,11 @@ public partial class ScoundrelGame : Node
         _weaponJokerHpLabel.Text = _engine.HasWeaponJoker
             ? $"Weapon Joker HP: {_engine.WeaponJokerHealth}/8"
             : "Weapon Joker: —";
+        // CompanionPanelOverlay is the visible replacement for the two labels above
+        // (chunk 4) — same underlying state (HasPotionJoker/PotionJokerHealth,
+        // HasWeaponJoker/WeaponJokerHealth), refreshed right alongside them.
+        _potionCompanionOverlay.UpdateCompanion(_engine.HasPotionJoker, _engine.PotionJokerHealth);
+        _weaponCompanionOverlay.UpdateCompanion(_engine.HasWeaponJoker, _engine.WeaponJokerHealth);
 
         _runButton.Disabled     = !_engine.CanRun;
         _nextRoomButton.Visible = _engine.CanNextRoom;
